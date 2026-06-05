@@ -1,0 +1,7 @@
+# Only needed for the OPTIONAL pregen_art.py GPU art baker.
+torch>=2.2.0
+diffusers>=0.30.0
+transformers>=4.44.0
+accelerate>=0.33.0
+safetensors>=0.4.5
+Pillow>=10.0.0
