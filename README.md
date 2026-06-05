@@ -27,6 +27,52 @@ Includes a stock market with stocks, crypto and bonds that move every year, plus
 achievement). Plus real estate, pets, fame, achievements/ribbons, multiple save slots, and seeded
 reproducible lives.
 
+## An homage to the original — with two new things
+
+JMR's BitLife is built in **homage to BitLife by Candywriter, LLC** — it recreates the original's
+turn-based life simulation (be born, **Age Up**, random life events with choices, careers, school,
+crime → prison, casino, relationships, investing, achievements/ribbons) as faithfully as practical.
+It adds **two things the original doesn't have**, both running **locally in your browser**:
+
+1. **Talk to your life — interact with and get more information from a local LLM.** Type any
+   free-form action ("start a food truck", "run for office") and a small in-browser model (Gemma)
+   interprets it into bounded, safe game effects. An optional **AI narrator** also comments on your
+   life as you age, and a built-in **Hint/Help** lets you ask the game how anything works.
+2. **Art that's both pre-made and freshly generated.** A local Stable Diffusion model paints your
+   character avatar and life-event scenes. Common scenes ship **pre-baked for instant display**, and
+   anything new is **generated on the fly** and cached — so art is always either instant or arriving.
+
+## How it compares to the original
+
+A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
+❌ missing · ➕ beyond the original. Full detail in **[PARITY.md](./PARITY.md)**.
+
+| System | Real BitLife | This game (v0.7) | Status |
+|---|---|---|---|
+| Core stats | Happiness / Health / Smarts / Looks (+ Fame) | All four + Fame | ✅ |
+| Age-up loop + random events | Hundreds of stage-specific multi-choice events | 46 events across 7 life stages, choices + outcomes | 🟡 |
+| Activities (Mind & Body, Doctor) | Gym/library/meditate/spa, checkups/therapy/surgery, diseases | 32 activities incl. martial arts, Botox, witch doctor | 🟡 |
+| School & education | Elementary → university, majors, GPA, loans | Auto school + college with 12 degrees | 🟡 |
+| Careers / jobs | 100+ jobs with ladders & promotions | 33 jobs (entry → CEO/doctor/lawyer), promote/quit | 🟡 |
+| Special / fame careers | Royalty, military, athlete, musician, actor, mafia, politics | Actor/musician/athlete/model/influencer (fame paths) | 🟡 |
+| Crime & prison | ~10 crimes; parole, riots, escape | 7 crimes → prison (serve the sentence) | 🟡 |
+| Casino | Blackjack, slots, roulette, craps, keno, sports bet | 7 games | ✅ |
+| Relationships | Family, friends, exes, family tree, divorce, custody | Family + date → marry → kids; aging & death | 🟡 |
+| **Investing + insider trading** | Stocks/crypto/bonds/real estate; SEC "Martha" | Stocks/crypto/bonds + real estate; SEC arrest + Martha | ✅ |
+| Finance depth | Loans, mortgages, taxes, inheritance, bankruptcy | Crypto sale tax only | ❌ |
+| Achievements / ribbons | Large ribbon set + end-of-life summary | 16 ribbons + death summary | 🟡 |
+| Countries | ~30 nations | 30 nations | ✅ |
+| New life setup | Name, gender, country | First/last name, gender, country, **talent**, **zodiac**, seed | ✅ |
+| Save / multiple lives | Yes | localStorage, multiple slots, autosave | ✅ |
+| Reproducible (seeded) lives | — | Seed reproduces an entire life | ➕ |
+| **Type free-form actions (local LLM)** | — (buttons only) | Gemma interprets typed actions → safe effects | ➕ |
+| **AI narrator + Hint/Help** | — | LLM comments on your life; ask how anything works | ➕ |
+| **Generated art (local diffuser)** | — (emoji/clip-art) | SD 1.5 avatar + scenes, pre-baked **and** live | ➕ |
+
+> **Where it stands:** the core engine is ~70–80% of the original's loop; total feature surface ~40%;
+> content volume ~20% (and growing). The biggest remaining gap is sheer breadth — more events, jobs,
+> and deeper relationship/finance/prison systems. See [PARITY.md](./PARITY.md) for the priority list.
+
 ## Play it from GitHub
 
 The repo is set up to be served as a static site straight from GitHub Pages — no install, no
@@ -112,4 +158,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v1.0 — Jonathan Rothberg, 2026.*
+*v0.7 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*
