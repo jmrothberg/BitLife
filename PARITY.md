@@ -13,9 +13,10 @@ interprets free-typed actions, and a local diffuser that paints your avatar + li
 
 The gap to the real game is **breadth, not the engine**:
 - **Systems present:** ~13 of the major ones, mostly as working-but-shallow versions.
-- **Content depth:** the biggest gap — **25 events / 7 careers / 20 activities** here vs. *hundreds of
-  events and 100+ careers* in the real game.
-- **Rough completeness:** core engine **~70–80%**, total feature surface **~35%**, content volume **~10–15%**.
+- **Content depth (v0.7):** **46 events / 33 careers / 32 activities / 12 degrees / 30 countries** —
+  roughly 2–3× the v0.6 content, all modeled on real BitLife names/wording. Still short of the real
+  game's *hundreds of events and 100+ jobs*, but no longer thin.
+- **Rough completeness:** core engine **~70–80%**, total feature surface **~40%**, content volume **~20%**.
 
 The single highest-leverage way to "make it more like BitLife" is to **add content as data** in
 `bitlife_data.json` (events, careers, activities) — no engine changes needed for most of it.
@@ -27,12 +28,12 @@ Legend: ✅ solid · 🟡 partial/shallow · ❌ missing
 | System | Real BitLife | This clone | Status |
 |---|---|---|---|
 | Core stats | Happiness/Health/Smarts/Looks + Fame/Approval | All 4 + Fame (no Approval) | ✅ |
-| Age-up loop + random events | Hundreds of stage-specific events, multi-choice + outcomes | 25 events across 7 stages, choices + success/fail rolls | 🟡 (engine ✅, volume low) |
+| Age-up loop + random events | Hundreds of stage-specific events, multi-choice + outcomes | 46 events across 7 stages, choices + success/fail rolls | 🟡 (engine ✅, volume growing) |
 | Activities — Mind & Body | Gym, library, meditate, spa, walk, … | gym, library, meditate, spa, walk (5) | ✅ |
 | Activities — Doctor | Checkups, therapy, surgery, dentist, **diseases & treatments** | checkup, therapist, plastic surgery, teeth (4) — **no disease system** | 🟡 |
 | Education | Elementary→…→university, **majors, GPA, loans, scholarships, grad school, drop out** | auto school advance + college with 5 degrees + study/tutor | 🟡 |
-| Careers / jobs | 100+ regular jobs, ladders, performance, promotion | 7 jobs, apply/work-harder/promote/quit, salary+raises | 🟡 |
-| **Special careers** | Royalty, military, athlete, musician, actor (fame), mafia, politics | Actor exists as an ordinary job; **no fame/special-career paths** | ❌ |
+| Careers / jobs | 100+ regular jobs, ladders, performance, promotion | 33 jobs across all tiers, apply/work-harder/promote/quit, salary+raises | 🟡 |
+| **Special careers** | Royalty, military, athlete, musician, actor (fame), mafia, politics | Actor/musician/athlete/model/influencer as fame-earning jobs; **no royalty/military/mafia/politics tracks** | 🟡 |
 | Crime | ~10 crimes scaling with risk | shoplift, pickpocket, burglary, steal car, murder (5) | ✅ (good coverage) |
 | Prison | Sentences + **parole, riots, escape, contraband, good behavior** | serve the sentence by aging up; that's it | 🟡 |
 | Casino | Blackjack, slots, roulette, horses, … | slots, blackjack, roulette, horses (4) | ✅ |
@@ -52,12 +53,14 @@ Legend: ✅ solid · 🟡 partial/shallow · ❌ missing
 | **Typed free-form actions (local LLM)** | ❌ not in original | ✅ Gemma interprets → clamped effects | ➕ beyond original |
 | **Generated art (local diffuser)** | ❌ (emoji/clip-art) | ✅ SD 1.5 avatar + scene art, pre-baked + live | ➕ beyond original |
 
-## Concrete content counts (this build)
+## Concrete content counts (v0.7)
 
-- Events: **25** — baby 3, child 5, teen 4, youngAdult 3, adult 4, middleAge 3, senior 3
-- Activities: **20** — mindBody 5, doctor 4, education 2, crime 5, casino 4
-- Careers: **7** · Degrees: **5** · Market assets: **9** (4 stock / 3 crypto / 2 bond)
-- Real estate: **4** · Insider tips: **4** · Achievements: **12** · Countries: **12**
+- Events: **46** — baby 4, child 10, teen 10, youngAdult 6, adult 6, middleAge 5, senior 5
+- Activities: **32** — mindBody 8, doctor 7, education 3, crime 7, casino 7
+- Careers: **33** (entry → special, incl. police/firefighter/pilot/nurse/teacher/architect/CEO and
+  fame paths: actor/musician/athlete/model/influencer) · Degrees: **12**
+- Market assets: **9** (4 stock / 3 crypto / 2 bond) · Real estate: **4** · Insider tips: **4**
+- Ribbons/achievements: **16** (added rich/loaded/thief/licensed) · Countries: **30**
 
 ## Biggest gaps, in priority order
 

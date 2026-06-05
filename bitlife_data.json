@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content. Loaded at boot by bitlife.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100.",
+  "_comment": "BitLife-style premade content (v0.7). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -11,7 +11,7 @@
     { "id": "senior", "min": 65, "max": 200, "label": "Senior" }
   ],
 
-  "COUNTRIES": ["USA", "UK", "Canada", "Japan", "Germany", "France", "Brazil", "India", "Australia", "Nigeria", "Mexico", "South Korea"],
+  "COUNTRIES": ["USA", "UK", "Canada", "Australia", "Ireland", "France", "Germany", "Italy", "Spain", "Netherlands", "Sweden", "Norway", "Denmark", "Switzerland", "Japan", "South Korea", "China", "India", "Singapore", "Brazil", "Mexico", "Argentina", "Nigeria", "South Africa", "Egypt", "Russia", "Turkey", "New Zealand", "Monaco", "UAE"],
 
   "NAME_POOLS": {
     "male": ["Liam", "Noah", "Ethan", "Mason", "Lucas", "James", "Henry", "Leo", "Daniel", "Owen", "Caleb", "Marcus", "Theo", "Samuel", "Oscar"],
@@ -26,26 +26,32 @@
     "scholar":     { "label": "Scholar",       "icon": "🎓", "desc": "Graduated college." },
     "phd":         { "label": "Doctor of Philosophy", "icon": "🧪", "desc": "Earned a graduate degree." },
     "millionaire": { "label": "Millionaire",   "icon": "💰", "desc": "Reached $1,000,000 net worth." },
+    "rich":        { "label": "Rich",          "icon": "💵", "desc": "Reached $2,500,000 net worth." },
+    "loaded":      { "label": "Loaded",        "icon": "🤑", "desc": "Reached $20,000,000 net worth." },
     "lottery":     { "label": "Jackpot",       "icon": "🎰", "desc": "Won big at the casino or lottery." },
     "jailbird":    { "label": "Jailbird",      "icon": "🔒", "desc": "Went to prison." },
+    "thief":       { "label": "Thief",         "icon": "🧤", "desc": "Pulled off 10+ crimes." },
     "wedded":      { "label": "Just Married",  "icon": "💍", "desc": "Got married." },
     "parent":      { "label": "Parenthood",    "icon": "👶", "desc": "Had a child." },
     "famous":      { "label": "Famous",        "icon": "🌟", "desc": "Reached 80+ fame." },
     "petlover":    { "label": "Pet Lover",     "icon": "🐶", "desc": "Adopted a pet." },
-    "homeowner":   { "label": "Homeowner",     "icon": "🏠", "desc": "Bought real estate." }
+    "homeowner":   { "label": "Homeowner",     "icon": "🏠", "desc": "Bought real estate." },
+    "graduate2":   { "label": "Licensed",      "icon": "🚗", "desc": "Got your driver's license." }
   },
 
   "EVENTS": {
     "baby": [
       { "id": "firstWords", "weight": 5, "minAge": 1, "maxAge": 2, "noChoice": true, "text": "You said your first words! Your parents are overjoyed.", "effects": { "happiness": 6, "smarts": 2 } },
       { "id": "colic", "weight": 3, "minAge": 0, "maxAge": 1, "noChoice": true, "text": "You were a fussy, colicky baby and cried all night.", "effects": { "health": -3, "happiness": -3 } },
-      { "id": "firstSteps", "weight": 5, "minAge": 1, "maxAge": 2, "noChoice": true, "text": "You took your first wobbly steps across the living room.", "effects": { "happiness": 5, "health": 2 } }
+      { "id": "firstSteps", "weight": 5, "minAge": 1, "maxAge": 2, "noChoice": true, "text": "You took your first wobbly steps across the living room.", "effects": { "happiness": 5, "health": 2 } },
+      { "id": "peekaboo", "weight": 3, "minAge": 0, "maxAge": 2, "noChoice": true, "text": "Your family played peek-a-boo with you for hours.", "effects": { "happiness": 4, "smarts": 1 } }
     ],
     "child": [
       { "id": "bully", "weight": 7, "minAge": 6, "maxAge": 12, "text": "A bigger kid at school keeps shoving you and stealing your lunch.",
         "choices": [
-          { "label": "Ignore it", "effects": { "happiness": -6 } },
+          { "label": "Do nothing", "effects": { "happiness": -6 } },
           { "label": "Tell a teacher", "effects": { "happiness": 2 }, "outcome": { "chance": 0.55, "success": { "happiness": 7 }, "fail": { "happiness": -5 } } },
+          { "label": "Insult them back", "effects": {}, "outcome": { "chance": 0.5, "success": { "happiness": 5 }, "fail": { "happiness": -6 } } },
           { "label": "Fight back", "effects": {}, "outcome": { "chance": 0.45, "success": { "happiness": 9, "health": -3 }, "fail": { "health": -12, "happiness": -7 } } }
         ] },
       { "id": "adoptPet", "weight": 4, "minAge": 5, "maxAge": 12, "text": "There's a stray puppy outside. Can you keep it?",
@@ -56,27 +62,60 @@
       { "id": "scienceFair", "weight": 4, "minAge": 8, "maxAge": 12, "text": "Your school is holding a science fair.",
         "choices": [
           { "label": "Build a volcano", "effects": { "smarts": 5, "happiness": 4 } },
-          { "label": "Skip it", "effects": { "smarts": -1, "happiness": 1 } }
+          { "label": "Phone it in", "effects": { "smarts": -1, "happiness": 1 } }
         ] },
       { "id": "brokeArm", "weight": 3, "minAge": 4, "maxAge": 12, "noChoice": true, "text": "You fell off the monkey bars and broke your arm.", "effects": { "health": -10, "happiness": -5 } },
       { "id": "classmateActsUp", "weight": 4, "minAge": 7, "maxAge": 12, "text": "A classmate is acting up and disrupting the whole class.",
         "choices": [
-          { "label": "Laugh along", "effects": { "happiness": 3, "smarts": -2 } },
+          { "label": "Laugh at their antics", "effects": { "happiness": 3, "smarts": -2 } },
           { "label": "Report them", "effects": { "smarts": 1 }, "outcome": { "chance": 0.5, "success": { "happiness": 3 }, "fail": { "happiness": -4 } } },
           { "label": "Ignore them", "effects": {} }
+        ] },
+      { "id": "lemonadeStand", "weight": 4, "minAge": 6, "maxAge": 12, "text": "You want to set up a lemonade stand on the corner.",
+        "choices": [
+          { "label": "Set it up", "effects": { "happiness": 4, "smarts": 2 }, "outcome": { "chance": 0.6, "success": { "money": 40, "happiness": 3 }, "fail": { "happiness": -2 } } },
+          { "label": "Don't bother", "effects": {} }
+        ] },
+      { "id": "imaginaryFriend", "weight": 3, "minAge": 3, "maxAge": 8, "text": "You have an imaginary friend who follows you everywhere.",
+        "choices": [
+          { "label": "Play with them", "effects": { "happiness": 5, "smarts": 1 } },
+          { "label": "Ignore them", "effects": { "happiness": -1, "smarts": 1 } }
+        ] },
+      { "id": "birthdayParty", "weight": 3, "minAge": 4, "maxAge": 12, "text": "It's your birthday!",
+        "choices": [
+          { "label": "Throw a big party", "effects": { "happiness": 8, "money": -150 } },
+          { "label": "Keep it small", "effects": { "happiness": 4 } }
+        ] },
+      { "id": "parentsFighting", "weight": 3, "minAge": 5, "maxAge": 12, "text": "Your parents are having a loud argument downstairs.",
+        "choices": [
+          { "label": "Try to break it up", "effects": {}, "outcome": { "chance": 0.4, "success": { "happiness": 4 }, "fail": { "happiness": -7 } } },
+          { "label": "Stay in your room", "effects": { "happiness": -3 } }
+        ] },
+      { "id": "joinClubKid", "weight": 3, "minAge": 8, "maxAge": 12, "text": "You can join an after-school club.",
+        "choices": [
+          { "label": "Art Club", "effects": { "happiness": 4, "looks": 1 } },
+          { "label": "Environmental Club", "effects": { "smarts": 3, "happiness": 2 } },
+          { "label": "Don't join", "effects": {} }
         ] }
     ],
     "teen": [
       { "id": "firstCrush", "weight": 6, "minAge": 13, "maxAge": 17, "text": "You have a crush on someone in your class.",
         "choices": [
           { "label": "Ask them out", "effects": {}, "outcome": { "chance": 0.5, "success": { "happiness": 12, "looks": 2 }, "fail": { "happiness": -6 } } },
+          { "label": "Flirt a little", "effects": {}, "outcome": { "chance": 0.6, "success": { "happiness": 6 }, "fail": { "happiness": -3 } } },
           { "label": "Stay quiet", "effects": { "happiness": -2 } }
         ] },
-      { "id": "cheatTest", "weight": 5, "minAge": 13, "maxAge": 17, "text": "You didn't study and there's a big exam tomorrow.",
+      { "id": "firstKiss", "weight": 4, "minAge": 13, "maxAge": 17, "text": "A classmate leans in for your first kiss.",
         "choices": [
-          { "label": "Cheat off a friend", "effects": {}, "outcome": { "chance": 0.6, "success": { "smarts": 1, "happiness": 3 }, "fail": { "smarts": -2, "happiness": -8, "setFlag": { "caughtCheating": true } } } },
-          { "label": "Pull an all-nighter", "effects": { "smarts": 4, "health": -3 } },
-          { "label": "Wing it", "effects": { "smarts": -1 } }
+          { "label": "Kiss them", "effects": { "happiness": 9, "looks": 1 } },
+          { "label": "Run away", "effects": { "happiness": -4 } }
+        ] },
+      { "id": "cheatTest", "weight": 5, "minAge": 13, "maxAge": 17, "text": "A classmate wants you to help them cheat on tomorrow's exam.",
+        "choices": [
+          { "label": "Help them cheat", "effects": {}, "outcome": { "chance": 0.6, "success": { "happiness": 3 }, "fail": { "smarts": -2, "happiness": -8, "setFlag": { "caughtCheating": true } } } },
+          { "label": "Help them study", "effects": { "smarts": 3, "happiness": 2 } },
+          { "label": "Refuse", "effects": { "happiness": -1, "smarts": 1 } },
+          { "label": "Report them", "effects": {}, "outcome": { "chance": 0.5, "success": { "smarts": 1 }, "fail": { "happiness": -5 } } }
         ] },
       { "id": "joinClub", "weight": 4, "minAge": 13, "maxAge": 17, "text": "Friends want you to join a school club.",
         "choices": [
@@ -87,7 +126,34 @@
       { "id": "underageDrink", "weight": 4, "minAge": 15, "maxAge": 17, "text": "There's a party with alcohol while the parents are away.",
         "choices": [
           { "label": "Party hard", "effects": { "happiness": 7, "health": -4 }, "outcome": { "chance": 0.2, "success": {}, "fail": { "happiness": -10, "setFlag": { "grounded": true } } } },
+          { "label": "Have one drink", "effects": { "happiness": 3, "health": -1 } },
           { "label": "Stay home", "effects": { "happiness": -2, "smarts": 1 } }
+        ] },
+      { "id": "vapePressure", "weight": 3, "minAge": 14, "maxAge": 17, "text": "Someone offers you a vape behind the gym.",
+        "choices": [
+          { "label": "Try it", "effects": { "happiness": 2, "health": -5 }, "outcome": { "chance": 0.3, "success": {}, "fail": { "setFlag": { "addiction": true }, "health": -3 } } },
+          { "label": "Politely decline", "effects": { "smarts": 1 } }
+        ] },
+      { "id": "driversLicense", "weight": 4, "minAge": 16, "maxAge": 17, "text": "You're old enough to take your driver's license test.",
+        "choices": [
+          { "label": "Take the test", "effects": {}, "outcome": { "chance": 0.65, "success": { "happiness": 8, "grantAchievement": "graduate2" }, "fail": { "happiness": -4, "money": -50 } } },
+          { "label": "Wait another year", "effects": {} }
+        ] },
+      { "id": "prom", "weight": 3, "minAge": 16, "maxAge": 17, "text": "It's prom season at your school.",
+        "choices": [
+          { "label": "Ask someone to prom", "effects": {}, "outcome": { "chance": 0.6, "success": { "happiness": 10, "money": -200 }, "fail": { "happiness": -5, "money": -200 } } },
+          { "label": "Go with friends", "effects": { "happiness": 6, "money": -120 } },
+          { "label": "Skip prom", "effects": { "happiness": -2 } }
+        ] },
+      { "id": "socialMedia", "weight": 3, "minAge": 13, "maxAge": 17, "text": "A video you posted is starting to get attention online.",
+        "choices": [
+          { "label": "Lean into it", "effects": { "fame": 4, "happiness": 4 } },
+          { "label": "Keep it private", "effects": { "happiness": 1 } }
+        ] },
+      { "id": "grounded", "weight": 2, "minAge": 13, "maxAge": 17, "text": "Your parents grounded you for missing curfew.",
+        "choices": [
+          { "label": "Accept the punishment", "effects": { "happiness": -3 } },
+          { "label": "Sneak out anyway", "effects": {}, "outcome": { "chance": 0.5, "success": { "happiness": 6 }, "fail": { "happiness": -8 } } }
         ] }
     ],
     "youngAdult": [
@@ -102,7 +168,23 @@
           { "label": "Invest $2,000", "effects": { "money": -2000 }, "outcome": { "chance": 0.35, "success": { "money": 12000, "happiness": 8 }, "fail": { "happiness": -6 } } },
           { "label": "Politely decline", "effects": {} }
         ] },
-      { "id": "speedingTicket", "weight": 4, "minAge": 18, "maxAge": 25, "noChoice": true, "text": "You got pulled over for speeding.", "effects": { "money": -250, "happiness": -3 } }
+      { "id": "speedingTicket", "weight": 4, "minAge": 18, "maxAge": 25, "noChoice": true, "text": "You got pulled over for speeding.", "effects": { "money": -250, "happiness": -3 } },
+      { "id": "juryDuty", "weight": 3, "minAge": 18, "maxAge": 25, "text": "You've been summoned for jury duty.",
+        "choices": [
+          { "label": "Serve your civic duty", "effects": { "happiness": -2, "smarts": 2 } },
+          { "label": "Try to get out of it", "effects": {}, "outcome": { "chance": 0.5, "success": { "happiness": 3 }, "fail": { "happiness": -4, "money": -100 } } }
+        ] },
+      { "id": "scamCall", "weight": 3, "minAge": 18, "maxAge": 25, "text": "You get a call saying your account is compromised and they need your details.",
+        "choices": [
+          { "label": "Hang up", "effects": { "smarts": 1 } },
+          { "label": "Play along", "effects": {}, "outcome": { "chance": 0.3, "success": { "happiness": 2 }, "fail": { "money": -1200, "happiness": -6 } } }
+        ] },
+      { "id": "coworkerDrama", "weight": 3, "minAge": 18, "maxAge": 25, "text": "A coworker keeps taking credit for your work.",
+        "choices": [
+          { "label": "Confront them", "effects": {}, "outcome": { "chance": 0.5, "success": { "happiness": 5 }, "fail": { "happiness": -5 } } },
+          { "label": "Tell your boss", "effects": {}, "outcome": { "chance": 0.55, "success": { "happiness": 6 }, "fail": { "happiness": -4 } } },
+          { "label": "Let it go", "effects": { "happiness": -3 } }
+        ] }
     ],
     "adult": [
       { "id": "promotionOffer", "weight": 4, "minAge": 26, "maxAge": 45, "text": "Your boss hints a promotion is possible if you take on extra work.",
@@ -121,6 +203,17 @@
           { "label": "Donate $1,000", "effects": { "money": -1000, "happiness": 8, "fame": 2 } },
           { "label": "Donate a little ($50)", "effects": { "money": -50, "happiness": 3 } },
           { "label": "Decline", "effects": {} }
+        ] },
+      { "id": "neighborDispute", "weight": 3, "minAge": 26, "maxAge": 45, "text": "Your neighbor's tree is dropping branches all over your yard.",
+        "choices": [
+          { "label": "Talk it out", "effects": {}, "outcome": { "chance": 0.6, "success": { "happiness": 5 }, "fail": { "happiness": -3 } } },
+          { "label": "Call the city", "effects": {}, "outcome": { "chance": 0.5, "success": { "happiness": 3 }, "fail": { "happiness": -4 } } },
+          { "label": "Let it slide", "effects": { "happiness": -1 } }
+        ] },
+      { "id": "scamInvest", "weight": 2, "minAge": 26, "maxAge": 45, "text": "A slick stranger pitches you a 'guaranteed' investment.",
+        "choices": [
+          { "label": "Put in $5,000", "effects": { "money": -5000 }, "outcome": { "chance": 0.25, "success": { "money": 15000, "happiness": 6 }, "fail": { "happiness": -8 } } },
+          { "label": "Walk away", "effects": { "smarts": 1 } }
         ] }
     ],
     "middleAge": [
@@ -138,6 +231,17 @@
         "choices": [
           { "label": "Max out contributions", "effects": { "money": -8000, "happiness": 4, "setFlag": { "hasRetirement": true } } },
           { "label": "Decline for now", "effects": {} }
+        ] },
+      { "id": "midlifeCrisis", "weight": 3, "minAge": 46, "maxAge": 58, "text": "You feel time slipping away and want to do something dramatic.",
+        "choices": [
+          { "label": "Buy a flashy sports car", "effects": { "money": -45000, "happiness": 10, "looks": 2 } },
+          { "label": "Take up a new hobby", "effects": { "happiness": 6, "money": -500 } },
+          { "label": "Just keep going", "effects": { "happiness": -2 } }
+        ] },
+      { "id": "inheritance", "weight": 2, "minAge": 46, "maxAge": 64, "text": "A distant relative passed and left you something in their will.",
+        "choices": [
+          { "label": "Accept the inheritance", "effects": { "money": 18000, "happiness": 3 } },
+          { "label": "Donate it to charity", "effects": { "happiness": 8, "fame": 2 } }
         ] }
     ],
     "senior": [
@@ -151,59 +255,114 @@
         "choices": [
           { "label": "Share your wisdom", "effects": { "happiness": 8, "smarts": 2 } },
           { "label": "Tell them to figure it out", "effects": { "happiness": 1 } }
+        ] },
+      { "id": "retireNow", "weight": 3, "minAge": 65, "maxAge": 72, "text": "You could finally retire, or keep working.",
+        "choices": [
+          { "label": "Retire and relax", "effects": { "happiness": 10, "health": 3 } },
+          { "label": "Keep working", "effects": { "happiness": -2 } }
+        ] },
+      { "id": "nostalgia", "weight": 3, "minAge": 65, "maxAge": 200, "text": "You stumble on an old photo album.",
+        "choices": [
+          { "label": "Reminisce fondly", "effects": { "happiness": 7 } },
+          { "label": "Reconnect with an old friend", "effects": { "happiness": 9, "addRelationship": { "relation": "friend", "name": "Old Friend", "gender": "female" } } }
         ] }
     ]
   },
 
   "ACTIVITIES": {
     "mindBody": [
-      { "id": "gym",      "label": "Go to the gym",   "minAge": 12, "cost": 40,  "effects": { "health": 4, "looks": 2, "happiness": 1 }, "random": { "health": [1, 5] }, "notable": false },
-      { "id": "library",  "label": "Study at library","minAge": 5,  "cost": 0,   "effects": { "smarts": 4, "happiness": -1 }, "random": { "smarts": [0, 3] } },
-      { "id": "meditate", "label": "Meditate",        "minAge": 8,  "cost": 0,   "effects": { "happiness": 5, "health": 1 } },
-      { "id": "spa",      "label": "Spa day",         "minAge": 16, "cost": 300, "effects": { "happiness": 6, "looks": 4, "health": 2 } },
-      { "id": "walk",     "label": "Take a walk",     "minAge": 3,  "cost": 0,   "effects": { "health": 2, "happiness": 2 } }
+      { "id": "gym",         "label": "Go to the gym",     "minAge": 12, "cost": 40,  "effects": { "health": 4, "looks": 2, "happiness": 1 }, "random": { "health": [1, 5] }, "notable": false },
+      { "id": "library",     "label": "Study at library",  "minAge": 5,  "cost": 0,   "effects": { "smarts": 4, "happiness": -1 }, "random": { "smarts": [0, 3] } },
+      { "id": "meditate",    "label": "Meditate",          "minAge": 8,  "cost": 0,   "effects": { "happiness": 5, "health": 1 } },
+      { "id": "spa",         "label": "Spa day",           "minAge": 16, "cost": 300, "effects": { "happiness": 6, "looks": 4, "health": 2 } },
+      { "id": "walk",        "label": "Take a walk",       "minAge": 3,  "cost": 0,   "effects": { "health": 2, "happiness": 2 } },
+      { "id": "martialArts", "label": "Martial arts class", "minAge": 6, "cost": 200, "effects": { "health": 5, "happiness": 2, "smarts": 1 }, "random": { "health": [0, 3] } },
+      { "id": "diet",        "label": "Go on a diet",      "minAge": 12, "cost": 0,   "effects": { "health": 3, "looks": 2, "happiness": -1 } },
+      { "id": "fortune",     "label": "Visit a fortune teller", "minAge": 8, "cost": 50, "effects": { "happiness": 3 }, "random": { "happiness": [-2, 4] } }
     ],
     "doctor": [
-      { "id": "checkup",  "label": "Annual checkup",      "minAge": 1,  "cost": 150,  "effects": { "health": 5 }, "notable": false },
-      { "id": "therapy",  "label": "See a therapist",     "minAge": 12, "cost": 200,  "effects": { "happiness": 8, "health": 1 } },
-      { "id": "surgery",  "label": "Plastic surgery",     "minAge": 18, "cost": 6000, "effects": { "looks": 16, "happiness": 4 }, "random": { "looks": [-4, 6] }, "notable": true },
-      { "id": "dentist",  "label": "Whiten your teeth",   "minAge": 14, "cost": 500,  "effects": { "looks": 6 } }
+      { "id": "checkup",     "label": "Annual checkup",      "minAge": 1,  "cost": 150,  "effects": { "health": 5 }, "notable": false },
+      { "id": "fluShot",     "label": "Get a flu shot",      "minAge": 1,  "cost": 40,   "effects": { "health": 3 } },
+      { "id": "therapy",     "label": "See a therapist",     "minAge": 12, "cost": 200,  "effects": { "happiness": 8, "health": 1 } },
+      { "id": "dentist",     "label": "Whiten your teeth",   "minAge": 14, "cost": 500,  "effects": { "looks": 6 } },
+      { "id": "botox",       "label": "Get Botox",           "minAge": 25, "cost": 800,  "effects": { "looks": 7, "happiness": 2 }, "random": { "looks": [-3, 4] } },
+      { "id": "surgery",     "label": "Plastic surgery",     "minAge": 18, "cost": 6000, "effects": { "looks": 16, "happiness": 4 }, "random": { "looks": [-4, 6] }, "notable": true },
+      { "id": "witchDoctor", "label": "See a witch doctor",  "minAge": 18, "cost": 300,  "effects": { "happiness": 2 }, "random": { "health": [-10, 14] }, "notable": true }
     ],
     "education": [
-      { "id": "studyHarder", "label": "Study harder this year", "minAge": 6, "requires": { "inSchool": true }, "cost": 0, "effects": { "smarts": 5, "happiness": -2 } },
-      { "id": "tutor",       "label": "Hire a private tutor",   "minAge": 6, "requires": { "inSchool": true }, "cost": 1200, "effects": { "smarts": 8 } }
+      { "id": "studyHarder",  "label": "Study harder this year", "minAge": 6,  "requires": { "inSchool": true }, "cost": 0,   "effects": { "smarts": 5, "happiness": -2 } },
+      { "id": "tutor",        "label": "Hire a private tutor",   "minAge": 6,  "requires": { "inSchool": true }, "cost": 1200, "effects": { "smarts": 8 } },
+      { "id": "onlineCourse", "label": "Take an online course",  "minAge": 16, "cost": 500, "effects": { "smarts": 4, "happiness": -1 } }
     ],
     "crime": [
-      { "id": "pettyTheft", "label": "Shoplift",         "minAge": 8,  "payout": [10, 250],     "catchChance": 0.25, "jail": [0, 1] },
-      { "id": "pickpocket", "label": "Pickpocket",       "minAge": 12, "payout": [20, 600],     "catchChance": 0.30, "jail": [0, 2] },
-      { "id": "burglary",   "label": "Burglarize a home","minAge": 16, "payout": [400, 8000],   "catchChance": 0.42, "jail": [1, 6] },
-      { "id": "grandTheft", "label": "Steal a car",      "minAge": 16, "payout": [2000, 30000], "catchChance": 0.5,  "jail": [2, 10] },
-      { "id": "murder",     "label": "Commit murder",    "minAge": 16, "payout": [0, 0],        "catchChance": 0.62, "jail": [15, 60], "killsRelationship": true }
+      { "id": "pettyTheft", "label": "Shoplift",           "minAge": 8,  "payout": [10, 250],      "catchChance": 0.25, "jail": [0, 1] },
+      { "id": "pickpocket", "label": "Pickpocket",         "minAge": 12, "payout": [20, 600],      "catchChance": 0.30, "jail": [0, 2] },
+      { "id": "porchPirate","label": "Steal a porch package","minAge": 12,"payout": [10, 400],     "catchChance": 0.33, "jail": [0, 2] },
+      { "id": "burglary",   "label": "Burglarize a home",  "minAge": 16, "payout": [400, 8000],    "catchChance": 0.42, "jail": [1, 6] },
+      { "id": "grandTheft", "label": "Steal a car",        "minAge": 16, "payout": [2000, 30000],  "catchChance": 0.50, "jail": [2, 10] },
+      { "id": "bankRobbery","label": "Rob a bank",         "minAge": 18, "payout": [5000, 150000], "catchChance": 0.58, "jail": [5, 25] },
+      { "id": "murder",     "label": "Commit murder",      "minAge": 16, "payout": [0, 0],         "catchChance": 0.62, "jail": [15, 60], "killsRelationship": true }
     ],
     "casino": [
-      { "id": "slots",     "label": "Slot machines", "minAge": 18, "winChance": 0.18, "payoutMult": [3, 12], "achievementOnBigWin": "lottery" },
-      { "id": "blackjack", "label": "Blackjack",     "minAge": 18, "winChance": 0.47, "payoutMult": [2, 2] },
-      { "id": "roulette",  "label": "Roulette",      "minAge": 18, "winChance": 0.47, "payoutMult": [2, 2] },
-      { "id": "horses",    "label": "Bet on horses", "minAge": 18, "winChance": 0.28, "payoutMult": [2, 8] }
+      { "id": "slots",        "label": "Slot machines",   "minAge": 18, "winChance": 0.18, "payoutMult": [3, 12], "achievementOnBigWin": "lottery" },
+      { "id": "blackjack",    "label": "Blackjack",       "minAge": 18, "winChance": 0.47, "payoutMult": [2, 2] },
+      { "id": "roulette",     "label": "Roulette",        "minAge": 18, "winChance": 0.47, "payoutMult": [2, 2] },
+      { "id": "craps",        "label": "Craps",           "minAge": 18, "winChance": 0.49, "payoutMult": [2, 2] },
+      { "id": "keno",         "label": "Keno",            "minAge": 18, "winChance": 0.25, "payoutMult": [3, 10], "achievementOnBigWin": "lottery" },
+      { "id": "horses",       "label": "Bet on horses",   "minAge": 18, "winChance": 0.28, "payoutMult": [2, 8] },
+      { "id": "sportsBetting","label": "Sports betting",  "minAge": 18, "winChance": 0.45, "payoutMult": [2, 3] }
     ]
   },
 
   "CAREERS": [
-    { "id": "fastFood", "title": "Fast Food Worker", "baseSalary": 22000, "requires": { "minAge": 16 }, "levels": ["Trainee", "Cook", "Shift Lead", "Manager"], "raisePerLevel": 0.12 },
-    { "id": "retail",   "title": "Retail Associate", "baseSalary": 26000, "requires": { "minAge": 16 }, "levels": ["Associate", "Senior Associate", "Supervisor", "Store Manager"], "raisePerLevel": 0.13 },
-    { "id": "office",   "title": "Office Clerk",     "baseSalary": 38000, "requires": { "minAge": 18, "level": "highGrad" }, "levels": ["Clerk", "Coordinator", "Manager", "Director"], "raisePerLevel": 0.15 },
-    { "id": "engineer", "title": "Software Engineer","baseSalary": 95000, "requires": { "degree": "engineering" }, "levels": ["Junior", "Engineer", "Senior", "Principal", "VP Engineering"], "raisePerLevel": 0.16 },
-    { "id": "doctor",   "title": "Doctor",           "baseSalary": 185000,"requires": { "degree": "medicine" }, "levels": ["Resident", "Attending", "Specialist", "Chief of Medicine"], "raisePerLevel": 0.12 },
-    { "id": "lawyer",   "title": "Lawyer",           "baseSalary": 130000,"requires": { "degree": "law" }, "levels": ["Associate", "Senior Associate", "Partner", "Managing Partner"], "raisePerLevel": 0.14 },
-    { "id": "actor",    "title": "Actor",            "baseSalary": 45000, "requires": { "minAge": 18 }, "levels": ["Extra", "Supporting", "Lead", "Star"], "raisePerLevel": 0.4, "fameGain": 8 }
+    { "id": "fastFood",   "title": "Fast Food Worker",  "baseSalary": 18000,  "requires": { "minAge": 16 }, "levels": ["Trainee", "Cook", "Shift Lead", "Manager"], "raisePerLevel": 0.12 },
+    { "id": "retail",     "title": "Retail Associate",  "baseSalary": 22000,  "requires": { "minAge": 16 }, "levels": ["Associate", "Senior Associate", "Supervisor", "Store Manager"], "raisePerLevel": 0.13 },
+    { "id": "barista",    "title": "Barista",           "baseSalary": 20000,  "requires": { "minAge": 16 }, "levels": ["Trainee", "Barista", "Head Barista", "Cafe Manager"], "raisePerLevel": 0.12 },
+    { "id": "janitor",    "title": "Janitor",           "baseSalary": 19000,  "requires": { "minAge": 18 }, "levels": ["Janitor", "Custodian", "Head Custodian", "Facilities Lead"], "raisePerLevel": 0.11 },
+    { "id": "bartender",  "title": "Bartender",         "baseSalary": 24000,  "requires": { "minAge": 18 }, "levels": ["Barback", "Bartender", "Head Bartender", "Bar Manager"], "raisePerLevel": 0.13 },
+    { "id": "construction","title": "Construction Worker","baseSalary": 35000, "requires": { "minAge": 18 }, "levels": ["Laborer", "Carpenter", "Foreman", "Site Manager"], "raisePerLevel": 0.13 },
+    { "id": "office",     "title": "Office Clerk",      "baseSalary": 38000,  "requires": { "minAge": 18, "level": "highGrad" }, "levels": ["Clerk", "Coordinator", "Manager", "Director"], "raisePerLevel": 0.15 },
+    { "id": "receptionist","title": "Receptionist",     "baseSalary": 32000,  "requires": { "minAge": 18, "level": "highGrad" }, "levels": ["Receptionist", "Senior Receptionist", "Office Coordinator", "Office Manager"], "raisePerLevel": 0.13 },
+    { "id": "sales",      "title": "Salesperson",       "baseSalary": 34000,  "requires": { "minAge": 18, "level": "highGrad" }, "levels": ["Sales Rep", "Senior Rep", "Account Exec", "Sales Director"], "raisePerLevel": 0.18 },
+    { "id": "realEstate", "title": "Real Estate Agent", "baseSalary": 40000,  "requires": { "minAge": 18, "level": "highGrad" }, "levels": ["Agent", "Senior Agent", "Broker", "Managing Broker"], "raisePerLevel": 0.22 },
+    { "id": "police",     "title": "Police Officer",    "baseSalary": 48000,  "requires": { "minAge": 21, "level": "highGrad" }, "levels": ["Cadet", "Officer", "Sergeant", "Lieutenant", "Captain"], "raisePerLevel": 0.14 },
+    { "id": "firefighter","title": "Firefighter",       "baseSalary": 46000,  "requires": { "minAge": 21, "level": "highGrad" }, "levels": ["Recruit", "Firefighter", "Lieutenant", "Captain", "Chief"], "raisePerLevel": 0.14, "fameGain": 1 },
+    { "id": "chef",       "title": "Chef",              "baseSalary": 40000,  "requires": { "minAge": 18, "level": "highGrad" }, "levels": ["Line Cook", "Sous Chef", "Chef", "Executive Chef"], "raisePerLevel": 0.16 },
+    { "id": "flightAtt",  "title": "Flight Attendant",  "baseSalary": 42000,  "requires": { "minAge": 20, "level": "highGrad" }, "levels": ["Trainee", "Attendant", "Senior Attendant", "Purser"], "raisePerLevel": 0.13 },
+    { "id": "pilot",      "title": "Airline Pilot",     "baseSalary": 90000,  "requires": { "minAge": 21, "level": "highGrad" }, "levels": ["Cadet", "First Officer", "Captain", "Senior Captain"], "raisePerLevel": 0.15 },
+    { "id": "engineer",   "title": "Software Engineer", "baseSalary": 95000,  "requires": { "degree": "computerScience" }, "levels": ["Junior Dev", "Developer", "Senior Dev", "Staff", "Principal"], "raisePerLevel": 0.16 },
+    { "id": "civilEng",   "title": "Engineer",          "baseSalary": 78000,  "requires": { "degree": "engineering" }, "levels": ["Junior", "Engineer", "Senior", "Lead", "Principal"], "raisePerLevel": 0.15 },
+    { "id": "nurse",      "title": "Registered Nurse",  "baseSalary": 60000,  "requires": { "degree": "nursing" }, "levels": ["Nurse", "RN", "Charge Nurse", "Nurse Manager"], "raisePerLevel": 0.13, "fameGain": 1 },
+    { "id": "accountant", "title": "Accountant",        "baseSalary": 58000,  "requires": { "degree": "business" }, "levels": ["Junior Accountant", "Accountant", "Senior Accountant", "Controller"], "raisePerLevel": 0.14 },
+    { "id": "teacher",    "title": "Teacher",           "baseSalary": 42000,  "requires": { "degree": "education" }, "levels": ["Student Teacher", "Teacher", "Lead Teacher", "Department Head"], "raisePerLevel": 0.12 },
+    { "id": "architect",  "title": "Architect",         "baseSalary": 70000,  "requires": { "degree": "architecture" }, "levels": ["Intern Architect", "Architect", "Senior Architect", "Principal"], "raisePerLevel": 0.15 },
+    { "id": "professor",  "title": "University Professor","baseSalary": 80000, "requires": { "degree": "arts" }, "levels": ["Lecturer", "Assistant Prof", "Associate Prof", "Professor", "Dean"], "raisePerLevel": 0.13 },
+    { "id": "ceo",        "title": "Corporate Executive","baseSalary": 120000,"requires": { "degree": "business" }, "levels": ["Analyst", "Manager", "Director", "VP", "CEO"], "raisePerLevel": 0.32 },
+    { "id": "doctor",     "title": "Doctor",            "baseSalary": 185000, "requires": { "degree": "medicine" }, "levels": ["Resident", "Attending", "Specialist", "Chief of Medicine"], "raisePerLevel": 0.12, "fameGain": 1 },
+    { "id": "lawyer",     "title": "Lawyer",            "baseSalary": 130000, "requires": { "degree": "law" }, "levels": ["Associate", "Senior Associate", "Partner", "Managing Partner"], "raisePerLevel": 0.14 },
+    { "id": "dentist",    "title": "Dentist",           "baseSalary": 160000, "requires": { "degree": "dentistry" }, "levels": ["Resident", "Dentist", "Senior Dentist", "Practice Owner"], "raisePerLevel": 0.12 },
+    { "id": "pharmacist", "title": "Pharmacist",        "baseSalary": 120000, "requires": { "degree": "pharmacy" }, "levels": ["Intern", "Pharmacist", "Senior Pharmacist", "Pharmacy Director"], "raisePerLevel": 0.12 },
+    { "id": "vet",        "title": "Veterinarian",      "baseSalary": 95000,  "requires": { "degree": "veterinary" }, "levels": ["Resident", "Veterinarian", "Senior Vet", "Clinic Owner"], "raisePerLevel": 0.12 },
+    { "id": "actor",      "title": "Actor",             "baseSalary": 45000,  "requires": { "minAge": 18 }, "levels": ["Extra", "Supporting", "Lead", "Star"], "raisePerLevel": 0.4, "fameGain": 8 },
+    { "id": "musician",   "title": "Musician",          "baseSalary": 36000,  "requires": { "minAge": 16 }, "levels": ["Open Mic", "Gigging Musician", "Recording Artist", "Headliner", "Superstar"], "raisePerLevel": 0.42, "fameGain": 8 },
+    { "id": "athlete",    "title": "Pro Athlete",       "baseSalary": 55000,  "requires": { "minAge": 16 }, "levels": ["Amateur", "Pro Rookie", "Starter", "All-Star", "Legend"], "raisePerLevel": 0.38, "fameGain": 10 },
+    { "id": "model",      "title": "Model",             "baseSalary": 38000,  "requires": { "minAge": 16 }, "levels": ["New Face", "Runway Model", "Brand Model", "Supermodel"], "raisePerLevel": 0.34, "fameGain": 7 },
+    { "id": "influencer", "title": "Social Media Influencer", "baseSalary": 22000, "requires": { "minAge": 14 }, "levels": ["Newbie", "Creator", "Influencer", "Star Creator", "Viral Icon"], "raisePerLevel": 0.5, "fameGain": 9 }
   ],
 
   "DEGREES": [
-    { "id": "engineering", "label": "Engineering", "minSmarts": 60 },
-    { "id": "medicine",    "label": "Medicine",    "minSmarts": 75, "grad": true },
-    { "id": "law",         "label": "Law",         "minSmarts": 70, "grad": true },
-    { "id": "business",    "label": "Business",    "minSmarts": 45 },
-    { "id": "arts",        "label": "Liberal Arts","minSmarts": 35 }
+    { "id": "arts",            "label": "Liberal Arts",     "minSmarts": 35 },
+    { "id": "business",        "label": "Business",         "minSmarts": 45 },
+    { "id": "education",       "label": "Education",        "minSmarts": 45 },
+    { "id": "nursing",         "label": "Nursing",          "minSmarts": 55 },
+    { "id": "architecture",    "label": "Architecture",     "minSmarts": 58 },
+    { "id": "engineering",     "label": "Engineering",      "minSmarts": 60 },
+    { "id": "computerScience", "label": "Computer Science", "minSmarts": 62 },
+    { "id": "pharmacy",        "label": "Pharmacy",         "minSmarts": 70, "grad": true },
+    { "id": "veterinary",      "label": "Veterinary Med",   "minSmarts": 70, "grad": true },
+    { "id": "law",             "label": "Law",              "minSmarts": 70, "grad": true },
+    { "id": "dentistry",       "label": "Dentistry",        "minSmarts": 72, "grad": true },
+    { "id": "medicine",        "label": "Medicine",         "minSmarts": 75, "grad": true }
   ],
 
   "MARKET": {

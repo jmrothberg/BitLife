@@ -189,7 +189,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife</h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.7</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Click to live a life — type anything and a local AI interprets it. Stable Diffusion paints your face and your milestones. The game plays instantly even before the AI finishes loading.<br/><br/><span style="color:var(--accent)">⏳ The AI models are already downloading in the background</span> — pick your name, gender, country and seed while they load. The bar at the top of the screen shows progress.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -478,6 +478,8 @@
     if (effects.grantAchievement) grantAchievement(effects.grantAchievement);
     if (effects.fame >= 80 || c.fame >= 80) grantAchievement("famous");
     if (c.money >= 1000000) grantAchievement("millionaire");
+    if (c.money >= 2500000) grantAchievement("rich");
+    if (c.money >= 20000000) grantAchievement("loaded");
   }
 
   function grantAchievement(id) {
@@ -713,6 +715,7 @@
       sendToPrison(years, cr.label.toLowerCase());
     } else {
       game.crimeRecord.notoriety += 1;
+      if (game.crimeRecord.notoriety >= 10) grantAchievement("thief");
       if (cr.killsRelationship) {
         const victims = game.relationships.filter(r => r.alive && r.relation !== "pet");
         if (victims.length) { const v = rngPick(victims); v.alive = false; log("crime", `You murdered ${v.name} and got away with it. Chilling.`); }
