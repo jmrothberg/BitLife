@@ -170,14 +170,27 @@
     .status-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
     .pill { font-size: 10px; padding: 1px 7px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-muted); }
     .pill.on { color: var(--ok); border-color: var(--ok); }
+
+    /* ── Top-of-page model-load progress bar (visible everywhere until ready) ── */
+    #topbar-load { position: fixed; top: 0; left: 0; right: 0; height: 4px; background: rgba(255,255,255,0.06); z-index: 200; display: none; pointer-events: none; }
+    #topbar-load.on { display: block; }
+    #topbar-load .tlfill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--info)); transition: width 0.4s; box-shadow: 0 0 8px var(--accent); }
+    #topbar-load .tllabel { position: absolute; top: 6px; right: 10px; font-size: 10px; color: var(--text-muted); background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px; white-space: nowrap; }
+
+    /* ── Help / hint feed entries ── */
+    .entry.kind-help { background: rgba(110,181,255,0.06); border-left: 3px solid var(--info); border-radius: 0 8px 8px 0; padding: 8px 10px 6px; margin-left: -4px; }
+    .entry.kind-help .body { color: var(--text); white-space: pre-wrap; font-size: 13.5px; }
+    .entry.kind-help .meta { color: var(--info); font-weight: 600; }
+    #btn-help { flex: none; padding: 9px 11px; }
   </style>
 </head>
 <body>
+  <div id="topbar-load"><div class="tlfill"></div><span class="tllabel" id="tllabel"></span></div>
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
       <h1>JMR's BitLife</h1>
-      <div class="tagline">A life simulator that runs entirely in your browser. Click to live a life — type anything and a local AI interprets it. Stable Diffusion paints your face and your milestones. The game plays instantly even before the AI finishes loading.</div>
+      <div class="tagline">A life simulator that runs entirely in your browser. Click to live a life — type anything and a local AI interprets it. Stable Diffusion paints your face and your milestones. The game plays instantly even before the AI finishes loading.<br/><br/><span style="color:var(--accent)">⏳ The AI models are already downloading in the background</span> — pick your name, gender, country and seed while they load. The bar at the top of the screen shows progress.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
         <h3>Start a New Life</h3>
@@ -248,7 +261,8 @@
         <button id="btn-menu-assets" title="Assets & Investments">💹</button>
       </div>
       <div class="input-row">
-        <input id="action-input" placeholder="Type anything you want to do…" autocomplete="off" />
+        <input id="action-input" placeholder='Type anything to do… or "hint" / "help &lt;topic&gt;"' autocomplete="off" />
+        <button id="btn-help" title="Hint for what to do right now">❓</button>
         <button id="btn-send">Do</button>
       </div>
       <div class="tabbar">
@@ -477,8 +491,9 @@
   // LOG / FEED
   // ═══════════════════════════════════════════════════════════════════════════
   function log(kind, text, sceneKey) {
-    const e = { year: game.market ? game.market.year : 0, age: game.character ? game.character.age : 0, kind, text, imageUrl: null, sceneKey: sceneKey || null };
-    game.log.push(e);
+    const e = { year: game && game.market ? game.market.year : 0, age: game && game.character ? game.character.age : 0, kind, text, imageUrl: null, sceneKey: sceneKey || null };
+    // Help/hint entries are ephemeral — visible in this session but not persisted to the save
+    if (kind !== "help" && game) game.log.push(e);
     renderEntry(e);
     if (sceneKey) maybeSceneImage(e);
     return e;
@@ -1042,11 +1057,14 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   let busy = false;
   async function handleTypedAction(text) {
     text = text.trim(); if (!text || busy) return;
+    // Local help/hint — fast, deterministic, never uses the LLM
+    const helpQ = parseHelpQuery(text);
+    if (helpQ !== null) { runHelp(helpQ); return; }
     if (!game.character.alive) { showToast("Your character has died. Start a new life."); return; }
     if (skipModels || (!llmReady && !useOllama)) {
       const fb = keywordFallback(text);
       if (fb) { log("system", `(${fb})`); }
-      else log("system", `(The AI interpreter isn't loaded — try the menu buttons, or wait for the model to finish loading. You typed: "${text}")`);
+      else log("system", `(The AI interpreter isn't loaded yet — type "hint" for what to do, use the menu buttons, or wait for the model. You typed: "${text}")`);
       return;
     }
     busy = true; setControlsEnabled(false);
@@ -1085,6 +1103,223 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (/job|work|apply/.test(t)) { openModal("careers"); return "Opening Careers menu"; }
     if (/gambl|casino|bet/.test(t)) { openModal("casino"); return "Opening Casino menu"; }
     return null;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HELP / HINT — fast, local, context-aware. Never calls the LLM.
+  //   Topics distilled from README.md + BitLife_README.md + background.md
+  //   so the answer arrives instantly even before any model has loaded.
+  // ═══════════════════════════════════════════════════════════════════════════
+  const HELP_INDEX = [
+    { topic: "stats", aliases: ["bars", "health", "happiness", "smarts", "looks"], text: [
+      "Stats are 0–100 bars: Health ❤️, Happiness 😀, Smarts 🧠, Looks ✨.",
+      "They drift each year and respond to your actions. Health reaching 0 (or extreme old age) ends the run.",
+      "Activities target one stat at a time — gym → health/looks, library → smarts, meditate → happiness."
+    ]},
+    { topic: "money", aliases: ["cash", "salary", "income", "broke", "debt"], text: [
+      "Money comes from your job's yearly salary (after ~22% tax) and from selling assets.",
+      "Spend it on activities, doctor visits, plastic surgery, real estate, gambling, and gifts.",
+      "It can go negative — no game-over for debt, but you'll feel it."
+    ]},
+    { topic: "crime", aliases: ["theft", "shoplift", "burglary", "murder", "jail", "prison", "rob"], tab: "crime", tabLabel: "🦹 Crime", text: [
+      "Each crime has a payoff, a catch chance, and a jail sentence range:",
+      "• Shoplift (8+): low payoff, ~25% caught.",
+      "• Burglary (16+): bigger payoff, ~42% caught.",
+      "• Murder (16+): no money, ~62% caught, 15–60 yr sentence.",
+      "In prison, Age Up serves the years — most actions are locked until you're out."
+    ]},
+    { topic: "casino", aliases: ["slots", "blackjack", "gamble", "bet", "wager"], tab: "casino", tabLabel: "🎰 Casino", text: [
+      "Casino opens at 18. Set a wager, then pick a game.",
+      "• Slots: ~18% win, 3–12× payout — huge wins unlock the 🎰 Jackpot ribbon.",
+      "• Blackjack: ~47% win, 2× payout — lower variance grinding."
+    ]},
+    { topic: "career", aliases: ["job", "work", "salary", "promotion", "jobs", "apply", "doctor"], tab: "careers", tabLabel: "💼 Careers", text: [
+      "Careers have entry requirements (age, education, sometimes a specific degree).",
+      "Work Harder raises your performance; Ask for Promotion advances you up the ladder (more pay).",
+      "Doctor needs a Medicine degree (Smarts ≥ 75 to enroll)."
+    ]},
+    { topic: "education", aliases: ["school", "college", "degree", "study", "major", "graduate"], text: [
+      "School auto-advances each year (elementary → middle → high).",
+      "After graduating high school you can enroll in college from the Activities tab. Each degree has a minimum-smarts requirement.",
+      "Medicine (grad degree) takes very high smarts — start the library habit early."
+    ]},
+    { topic: "stocks", aliases: ["investing", "market", "stock", "crypto", "bonds", "portfolio", "assets", "real estate", "property"], tab: "assets", tabLabel: "💹 Assets", text: [
+      "Buy/sell stocks, crypto, bonds and real estate from the Assets tab.",
+      "Prices move every year — bonds slow & safe, stocks medium, crypto wild.",
+      "Crypto is the only taxable asset on sale."
+    ]},
+    { topic: "insider", aliases: ["tip", "martha", "sec", "insider trading", "whisper"], tab: "assets", tabLabel: "💹 Assets", text: [
+      "Sometimes a family member whispers a stock tip — you'll see a 💡 next to an asset in the Assets tab.",
+      "Buy the tipped asset, then sell after the spike for a 1.6–2.8× gain.",
+      "BUT: each insider trade rolls a ~35% chance the SEC catches you → 2–6 years in prison + the ⚖️ Martha ribbon."
+    ]},
+    { topic: "relationships", aliases: ["family", "marriage", "married", "dating", "kids", "baby", "love", "partner", "spouse", "wife", "husband"], tab: "relationships", tabLabel: "👪 Family", text: [
+      "Family tab lists everyone alive in your life (parents, siblings, partners, kids).",
+      "Compliment / Talk / Spend Time / Gift raise the relationship bar.",
+      "For non-relatives: Date → Propose → Marry → Have Baby. Kids age every year."
+    ]},
+    { topic: "achievements", aliases: ["ribbon", "ribbons", "awards", "rewards", "trophies"], tab: "achievements", tabLabel: "🏅 Awards", text: [
+      "Ribbons unlock for milestone outcomes — Married, Parent, Scholar (graduated), Millionaire, Famous, Jailbird, Centenarian, ⚖️ Martha (insider trading), 🎰 Jackpot (big casino win), Pet Lover, Homeowner.",
+      "Awards tab shows locked + unlocked. Unlocked ones also appear under your name in the header."
+    ]},
+    { topic: "save", aliases: ["load", "slot", "autosave", "saves"], text: [
+      "The game autosaves to your browser (localStorage) after every action. Multiple lives co-exist as save slots.",
+      "Reload the page to pick a saved life, or hit ☰ Menu → Save / New."
+    ]},
+    { topic: "seed", aliases: ["random", "reproducible", "deterministic"], text: [
+      "Every life has a numeric seed. Same seed + same actions = the same life.",
+      "Type a seed before starting to replay a specific run. See your current seed under ☰ Menu."
+    ]},
+    { topic: "ai", aliases: ["llm", "model", "loading", "models", "gemma", "transformers", "download", "progress"], text: [
+      "The local LLM (Gemma 4 E4B, ~3 GB) interprets free-typed actions. It loads in the background; the thin bar at the top of the screen shows progress.",
+      "It only affects the typed-input box. Menus and Age Up never wait on it.",
+      "The image diffuser (Stable Diffusion 1.5, ~2 GB) paints your avatar and scene art — also background-loaded.",
+      "Everything is cached after first load — next visit is instant."
+    ]},
+    { topic: "ollama", aliases: ["local server"], text: [
+      "If you have Ollama running locally (http://127.0.0.1:11434), tick 'Use local Ollama' on the start screen and give a model name (gemma2, llama3.2, qwen2.5…).",
+      "Your typed actions are then interpreted by Ollama instead of the in-browser Gemma — faster on machines that can't run WebGPU well.",
+      "Images still render in-browser."
+    ]},
+    { topic: "skip", aliases: ["skip models", "skip ai", "fast", "instant", "no ai"], text: [
+      "Tick 'Skip loading AI models' on the start screen to play the deterministic engine only.",
+      "No downloads, no typed-AI interpretation, no images — but full BitLife-style menus work instantly."
+    ]},
+    { topic: "ageup", aliases: ["age", "year", "advance", "next year"], text: [
+      "Tap Age Up to advance one year: salary banks, markets move, relationships age, a random event may pop up requiring a choice.",
+      "Age Up is locked while a pending event needs a decision, and disabled if you die."
+    ]},
+    { topic: "death", aliases: ["die", "dying", "end", "live longer", "mortality"], text: [
+      "Health hitting 0 or extreme old age ends the run. Each year past 80 raises mortality.",
+      "Boost survival with regular doctor checkups, meditation, gym, and avoiding crime and risky events.",
+      "Reaching 100 unlocks the 🎂 Centenarian ribbon."
+    ]},
+    { topic: "typed", aliases: ["type", "free text", "input", "what to type", "examples"], text: [
+      "The typed box lets you try anything — \"adopt a stray cat\", \"start a side hustle selling art\", \"run for student council\".",
+      "The LLM returns a short narration + clamped stat/money/relationship effects. It can't break the game (every change is bounded).",
+      "When the LLM isn't loaded, common keywords (gym, study, meditate, steal, invest, gamble, job) still work via keyword fallback."
+    ]}
+  ];
+
+  function findHelpTopic(query) {
+    const q = (query || "").toLowerCase().trim();
+    if (!q) return null;
+    const words = q.split(/\W+/).filter(Boolean);
+    let best = null, bestScore = 0;
+    for (const t of HELP_INDEX) {
+      const keys = [t.topic, ...(t.aliases || [])];
+      let score = 0;
+      for (const k of keys) {
+        if (q === k) score += 20;
+        else if (q.includes(k) || k.includes(q)) score += 8;
+        for (const w of words) {
+          if (w === k) score += 6;
+          else if (w.length >= 3 && (k.includes(w) || w.includes(k))) score += 2;
+        }
+      }
+      if (score > bestScore) { best = t; bestScore = score; }
+    }
+    return bestScore >= 4 ? best : null;
+  }
+
+  function situationalHints() {
+    const c = game && game.character;
+    if (!c) return ["Start (or load) a life on the picker, then come back for hints."];
+
+    const lines = [];
+    lines.push(`You are ${c.name}, age ${c.age} (${lifeStageLabel(c.lifeStage)}, ${c.country}).`);
+    lines.push(`Stats — ❤️ ${c.stats.health}  😀 ${c.stats.happiness}  🧠 ${c.stats.smarts}  ✨ ${c.stats.looks}    💰 ${fmtMoney(c.money)}`);
+
+    if (game.prison && game.prison.inPrison) {
+      const left = Math.max(0, (game.prison.sentenceYears || 0) - (game.prison.yearsServed || 0));
+      lines.push("");
+      lines.push(`🔒 You are in prison — ${left} year${left === 1 ? "" : "s"} left. Tap Age Up to serve the time. Most actions are locked.`);
+      return lines;
+    }
+    if (game.pendingEvent) {
+      lines.push("");
+      lines.push("⚡ A life event is waiting for your choice — pick one of the options to continue.");
+      return lines;
+    }
+
+    lines.push("");
+    lines.push("Suggested next steps:");
+    const stage = c.lifeStage;
+    if (stage === "baby") {
+      lines.push("• Babies can't do much — just tap Age Up. Random events shape your early years.");
+      lines.push("• A doctor checkup (Activities → Doctor) is the one paid action you can do.");
+    } else if (stage === "child") {
+      lines.push("• Study at the library (Activities → Mind & Body) to raise smarts.");
+      lines.push("• Meditate for happiness. Doctor checkup if health is low.");
+      if (c.age >= 8) lines.push("• You're old enough to shoplift (🦹 Crime tab) — risky.");
+    } else if (stage === "teen") {
+      lines.push("• Gym (12+), library, meditate — keep all four bars rising.");
+      lines.push("• Decide carefully on the school events that pop up (bully, crush, etc).");
+    } else if (stage === "youngAdult") {
+      if (!c.job) lines.push("• Apply for a job in 💼 Careers — Fast Food works with no degree.");
+      if (c.education.level === "highGrad" && c.stats.smarts >= 35) lines.push("• Enroll in college (Activities → College) — degrees unlock the best careers.");
+      lines.push("• Casino opens at 18 (🎰 Casino) — bet small at first.");
+      lines.push("• Gym / library / meditate still pay off every year.");
+    } else if (stage === "adult") {
+      if (!c.job) lines.push("• Apply for a higher-paying career in 💼 Careers — degrees unlock the best ones.");
+      lines.push("• Family tab: date → propose → marry → have kids.");
+      lines.push("• Start investing in 💹 Assets (stocks/crypto/bonds, real estate).");
+      lines.push("• Watch for insider tips (💡 next to an asset) — big gains, but the SEC may arrest you.");
+    } else if (stage === "middleAge") {
+      if (c.job) lines.push("• Ask for promotion (💼 Careers → Ask for promotion) — performance matters.");
+      lines.push("• Doctor checkups get more valuable. Keep the portfolio diversified.");
+    } else if (stage === "senior") {
+      lines.push("• Health drifts down faster now — annual checkup + meditate help.");
+      lines.push("• Avoid crime and risky bets.");
+      if (c.age < 100) lines.push("• Reach 100 for the 🎂 Centenarian ribbon.");
+    }
+
+    if (c.stats.health < 40) lines.push(`• ⚠️ Health low (${c.stats.health}) — Activities → Doctor → Annual checkup.`);
+    if (c.stats.happiness < 40) lines.push(`• ⚠️ Happiness low (${c.stats.happiness}) — Meditate (free).`);
+    if (c.stats.smarts < 40 && c.age >= 5) lines.push(`• 💡 Smarts low (${c.stats.smarts}) — Library is free.`);
+    if (c.money < 0) lines.push(`• ⚠️ Money negative (${fmtMoney(c.money)}) — take a job or stop spending.`);
+    if (c.money > 5000 && (game.portfolio || []).length === 0 && c.age >= 18) lines.push(`• 💡 Idle cash (${fmtMoney(c.money)}) — try 💹 Assets to invest.`);
+
+    lines.push("");
+    lines.push('Type "help <topic>" for details — e.g. help crime · help insider · help stocks · help save · help ai.');
+    return lines;
+  }
+
+  function parseHelpQuery(text) {
+    const raw = (text || "").trim();
+    if (!raw) return null;
+    const t = raw.toLowerCase();
+    if (t === "?" || t === "help" || t === "hint" || t === "/help" || t === "/hint") return "";
+    const m = /^(?:\/?(?:help|hint)\s+|\?\s*)(.+)$/i.exec(raw);
+    if (m) return m[1].trim();
+    if (/^what (?:should|can|do) i (?:do|try)/i.test(t)) return "";
+    if (/^how do i\b/i.test(t)) return raw.replace(/^how do i\s*/i, "").trim();
+    if (/^(?:i'?m stuck|stuck|no idea)\b/i.test(t)) return "";
+    return null;
+  }
+
+  function runHelp(query) {
+    const q = (query || "").trim();
+    let body;
+    if (!q) {
+      body = ["💡 Hint — what to do next", ...situationalHints()].join("\n");
+    } else {
+      const hit = findHelpTopic(q);
+      if (hit) {
+        const lines = [`💡 ${hit.topic.charAt(0).toUpperCase() + hit.topic.slice(1)}`, ...hit.text];
+        if (hit.tabLabel) lines.push(`→ Tap the ${hit.tabLabel} tab to open it.`);
+        body = lines.join("\n");
+      } else {
+        body = ["💡 Hint", `No topic matched "${q}". Here's what to do right now:`, "", ...situationalHints(), "",
+          "Topics: stats · money · career · education · crime · casino · stocks · insider · relationships · achievements · save · seed · ageup · death · ai · ollama · skip · typed."
+        ].join("\n");
+      }
+    }
+    log("help", body);
+    if (q) {
+      const hit = findHelpTopic(q);
+      if (hit && hit.tab) setTimeout(() => openModal(hit.tab), 400);
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1552,6 +1787,34 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (pct != null) { $("prog").style.display = "block"; $("prog-fill").style.width = Math.max(0, Math.min(100, pct)) + "%"; }
   }
 
+  // Sticky top-of-page progress bar (visible across overlay + game UI)
+  let llmPct = 0, imgPct = 0;
+  let _hideTopbarTimer = null;
+  function setTopbarLoad(pct, label) {
+    const el = $("topbar-load"); if (!el) return;
+    el.classList.add("on");
+    el.querySelector(".tlfill").style.width = Math.max(0, Math.min(100, pct)) + "%";
+    if (label != null) $("tllabel").textContent = label;
+    if (_hideTopbarTimer) { clearTimeout(_hideTopbarTimer); _hideTopbarTimer = null; }
+    if (pct >= 100) _hideTopbarTimer = setTimeout(() => el.classList.remove("on"), 1200);
+  }
+  function hideTopbarLoad() {
+    const el = $("topbar-load"); if (!el) return;
+    el.classList.remove("on");
+  }
+  function refreshTopbarLoad() {
+    if (skipModels) { hideTopbarLoad(); return; }
+    const wantLlm = !useOllama;
+    const parts = [];
+    if (wantLlm) parts.push(llmPct);
+    parts.push(imgPct); // image is in-browser regardless of Ollama
+    const overall = parts.reduce((a, b) => a + b, 0) / parts.length;
+    const bits = [];
+    if (wantLlm) bits.push(`LLM ${Math.round(llmPct)}%`);
+    bits.push(`Image ${Math.round(imgPct)}%`);
+    setTopbarLoad(overall, bits.join(" · "));
+  }
+
   async function detectLocalModels() {
     if (!["localhost", "127.0.0.1", "0.0.0.0"].includes(location.hostname)) return;
     try {
@@ -1599,20 +1862,83 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }));
   $("use-ollama").addEventListener("change", (e) => $("ollama-fields").classList.toggle("on", e.target.checked));
 
+  // Re-entrant: kicks off LLM + image loads if not already running, otherwise
+  // just attaches the post-load hooks (avatar refresh / pre-gen) once game exists.
+  let llmLoadPromise = null, imgLoadPromise = null;
+
+  function ensureLlmLoading() {
+    if (llmLoadPromise) return llmLoadPromise;
+    setPill("llm", "LLM: loading…", false);
+    llmPct = 0; refreshTopbarLoad();
+    llmLoadPromise = loadLlm((t, p) => {
+      if (typeof p === "number") { llmPct = p; refreshTopbarLoad(); }
+      setPill("llm", t.startsWith("LLM loaded") ? "LLM: ready" : "LLM: loading…", llmReady);
+    }).then(ok => {
+      llmPct = 100; refreshTopbarLoad();
+      setPill("llm", ok ? "LLM: ready" : "LLM: unavailable", ok);
+      return ok;
+    });
+    return llmLoadPromise;
+  }
+
+  function ensureImgLoading() {
+    if (imgLoadPromise) return imgLoadPromise;
+    setPill("img", "Image: loading…", false);
+    imgPct = 0; refreshTopbarLoad();
+    imgLoadPromise = loadImageModel((t, p) => {
+      if (typeof p === "number") { imgPct = p; refreshTopbarLoad(); }
+    }).then(ok => {
+      imgPct = 100; refreshTopbarLoad();
+      setPill("img", ok ? "Image: ready" : "Image: unavailable", ok);
+      if (ok && game) { refreshAvatar(true); enqueuePregen(); }
+      return ok;
+    });
+    return imgLoadPromise;
+  }
+
   async function startModelsBackground() {
-    if (skipModels) { setPill("llm", "LLM: skipped", false); setPill("img", "Image: skipped", false); setPill("art", "Pre-gen: off", false); return; }
-    idb = await openIdb();
+    if (skipModels) {
+      setPill("llm", "LLM: skipped", false);
+      setPill("img", "Image: skipped", false);
+      setPill("art", "Pre-gen: off", false);
+      hideTopbarLoad();
+      return;
+    }
+    idb = idb || await openIdb();
     await loadManifest();
     if (manifest) setPill("art", `Pre-gen: ${Object.keys(manifest).length} static`, true);
-    // LLM
-    if (useOllama) { llmReady = false; setPill("llm", `LLM: Ollama (${ollamaModel || "?"})`, true); }
-    else { setPill("llm", "LLM: loading…", false); loadLlm((t, p) => { setPill("llm", t.startsWith("LLM loaded") ? "LLM: ready" : "LLM: loading…", llmReady); }).then(ok => setPill("llm", ok ? "LLM: ready" : "LLM: unavailable", ok)); }
-    // Image
-    setPill("img", "Image: loading…", false);
-    loadImageModel((t, p) => {}).then(ok => {
-      setPill("img", ok ? "Image: ready" : "Image: unavailable", ok);
-      if (ok) { refreshAvatar(true); enqueuePregen(); }
-    });
+
+    if (useOllama) {
+      llmReady = false;
+      llmPct = 100;
+      setPill("llm", `LLM: Ollama (${ollamaModel || "?"})`, true);
+      refreshTopbarLoad();
+    } else {
+      ensureLlmLoading();
+    }
+    ensureImgLoading();
+    // If the image was already loaded during preload (before game existed), refresh now.
+    if (imgReady && game) { refreshAvatar(true); enqueuePregen(); }
+  }
+
+  // Fired at page boot — start downloading models BEFORE the user clicks "Start Life"
+  // so they're partly (or fully) ready by the time the user finishes choosing options.
+  // Skipped if:
+  //   - the user already pre-ticked "Skip loading AI models"
+  //   - we're not yet crossOriginIsolated (the COI service worker will reload us shortly)
+  async function preloadModelsAtBoot() {
+    if ($("skip-models") && $("skip-models").checked) return;
+    if (!window.crossOriginIsolated) return; // wait for COI SW reload on GH Pages first visit
+    // Use whatever the user has ticked at this moment (defaults are off → in-browser LLM)
+    useOllama = $("use-ollama") ? $("use-ollama").checked : false;
+    skipModels = false;
+    try {
+      idb = idb || await openIdb();
+      await loadManifest();
+      if (manifest) setPill("art", `Pre-gen: ${Object.keys(manifest).length} static`, true);
+    } catch {}
+    if (!useOllama) ensureLlmLoading();
+    ensureImgLoading();
   }
 
   $("btn-start").addEventListener("click", async () => {
@@ -1648,6 +1974,14 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   // controls wiring
   $("btn-ageup").addEventListener("click", ageUp);
   $("btn-send").addEventListener("click", () => { const v = $("action-input").value; $("action-input").value = ""; handleTypedAction(v); });
+  $("btn-help").addEventListener("click", () => {
+    const raw = $("action-input").value.trim();
+    $("action-input").value = "";
+    // Empty box → situational hint. Otherwise treat whatever's in the box as a topic
+    // (stripping any leading "help"/"hint" so the button works the same as typing it).
+    const q = parseHelpQuery(raw);
+    runHelp(q !== null ? q : raw);
+  });
   $("action-input").addEventListener("keydown", (e) => { if (e.key === "Enter") { const v = $("action-input").value; $("action-input").value = ""; handleTypedAction(v); } });
   document.querySelectorAll(".tabbar button[data-tab]").forEach(b => b.addEventListener("click", () => openModal(b.dataset.tab)));
   $("btn-menu-relationships").addEventListener("click", () => openModal("relationships"));
@@ -1655,7 +1989,16 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   $("dbg-toggle").addEventListener("click", () => { const d = $("dbg"); const open = d.style.display === "block"; d.style.display = open ? "none" : "block"; $("dbg-toggle").textContent = (open ? "▸" : "▾") + " Debug"; });
 
   // ── go ──
-  (async () => { const src = await loadData(); await boot(); setProgress(`Content loaded (${src}). Choose how to begin.`); })();
+  (async () => {
+    const src = await loadData();
+    await boot();
+    setProgress(`Content loaded (${src}). Choose how to begin.`);
+    // Start downloading the local LLM + diffuser in the background NOW, so they're
+    // (partly) ready by the time the user clicks "Start Life". On a first GH Pages
+    // visit (before the COI service worker has reloaded), preload skips itself —
+    // it'll run on the auto-reload that follows.
+    preloadModelsAtBoot();
+  })();
   </script>
 </body>
 </html>

@@ -1,3 +1,18 @@
+<p align="center">
+  <a href="https://jmrothberg.github.io/BitLife/">
+    <img src="assets/og.png" alt="JMR's BitLife — play in your browser" width="640" />
+  </a>
+</p>
+
+<h1 align="center">▶ <a href="https://jmrothberg.github.io/BitLife/">Play JMR's BitLife in your browser</a></h1>
+
+<p align="center">
+  <b>https://jmrothberg.github.io/BitLife/</b><br/>
+  No install. No login. Click the link, the game loads, everything runs locally in your browser.
+</p>
+
+---
+
 # BitLife — local-LLM life simulator
 
 A **BitLife-style life simulator** that runs entirely in your browser. The game engine is

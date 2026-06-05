@@ -1,0 +1,14 @@
+{
+  "scene:birth": "scene_birth.png",
+  "scene:firstDay": "scene_firstDay.png",
+  "scene:graduation": "scene_graduation.png",
+  "scene:newJob": "scene_newJob.png",
+  "scene:promotion": "scene_promotion.png",
+  "scene:wedding": "scene_wedding.png",
+  "scene:baby": "scene_baby.png",
+  "scene:prison": "scene_prison.png",
+  "scene:lottery": "scene_lottery.png",
+  "scene:death": "scene_death.png",
+  "scene:homeowner": "scene_homeowner.png",
+  "scene:activity": "scene_activity.png"
+}
