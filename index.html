@@ -6,6 +6,23 @@
   <title>JMR's BitLife — Local LLM Life Sim</title>
   <meta name="description" content="A BitLife-style life simulator running entirely in your browser. Click to live a life; type free actions and a local Gemma model interprets them; Stable Diffusion paints your avatar and life events. No install." />
 
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="JMR's BitLife — Local LLM Life Sim" />
+  <meta property="og:description" content="Play a BitLife-style life simulator in your browser. Deterministic engine, free-typed actions interpreted by a local Gemma model, Stable Diffusion avatars — no install." />
+  <meta property="og:image" content="./assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="JMR's BitLife — Local LLM Life Sim" />
+  <meta name="twitter:description" content="A BitLife-style life sim that runs entirely in your browser." />
+  <meta name="twitter:image" content="./assets/og.png" />
+
+  <!-- Enables crossOriginIsolated (COOP/COEP) on static hosts like GitHub Pages
+       that can't set headers. Required for SharedArrayBuffer / WASM threads used
+       by onnxruntime-web (Transformers.js + web-txt2img). On localhost this is a
+       no-op when serve.py already supplies the headers. -->
+  <script src="./coi-serviceworker.js"></script>
+
   <!--
     JMR's BitLife — a premade, deterministic life-sim you play with buttons (like BitLife),
     with free-typed actions interpreted by a small LOCAL LLM and graphics from a LOCAL diffuser.

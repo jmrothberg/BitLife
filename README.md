@@ -12,10 +12,33 @@ Includes a stock market with stocks, crypto and bonds that move every year, plus
 achievement). Plus real estate, pets, fame, achievements/ribbons, multiple save slots, and seeded
 reproducible lives.
 
-## Run it
+## Play it from GitHub
 
-The in-browser image worker needs the page served over http with COOP/COEP headers. Use the
-included server:
+The repo is set up to be served as a static site straight from GitHub Pages — no install, no
+server. Anyone with the link opens it, the page loads, and from then on everything runs in their
+browser (models stream from the Hugging Face CDN on first load, then live in IndexedDB).
+
+**Live URL (after enabling Pages):** `https://jmrothberg.github.io/BitLife/`
+
+**One-time setup on GitHub:**
+
+1. Push this repo to GitHub.
+2. Repo → **Settings → Pages**.
+3. *Source:* **Deploy from a branch**, branch `main`, folder `/ (root)`. Save.
+4. Wait ~1 min for the first deploy. Drop a 1200×630 PNG at `assets/og.png` for the link-preview
+   card when the URL is pasted into Slack / iMessage / Twitter etc.
+
+**How cross-origin isolation works on Pages.** The in-browser image worker (Stable Diffusion 1.5
+via `onnxruntime-web`) needs `crossOriginIsolated` for SharedArrayBuffer / WASM threads. GitHub
+Pages can't set COOP/COEP headers, so the page registers `coi-serviceworker.js` on first visit —
+it installs a service worker that re-injects those headers, then auto-reloads once. After that,
+WebGPU + threaded WASM both work as if you were running `serve.py` locally. (Requires HTTPS,
+which Pages provides automatically. `.nojekyll` is included so Pages serves every file as-is.)
+
+## Run it locally
+
+For local development you can also use the included server, which sets the same COOP/COEP
+headers directly (no service-worker reload step):
 
 ```bash
 cd ~/BitLife
