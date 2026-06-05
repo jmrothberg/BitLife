@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>JMR's BitLife — Local LLM Life Sim</title>
+  <meta name="description" content="A BitLife-style life simulator running entirely in your browser. Click to live a life; type free actions and a local Gemma model interprets them; Stable Diffusion paints your avatar and life events. No install." />
+
+  <!--
+    JMR's BitLife — a premade, deterministic life-sim you play with buttons (like BitLife),
+    with free-typed actions interpreted by a small LOCAL LLM and graphics from a LOCAL diffuser.
+      LLM:   Gemma 4 E4B (Transformers.js + ONNX Runtime Web / WebGPU)  — only for typed input
+      Image: Stable Diffusion 1.5 (web-txt2img worker + ONNX Runtime Web / WebGPU)
+    Engine + content are 100% deterministic and run with NO models loaded.
+    Image worker bundled in ./vendor/web-txt2img/ (serve from repo root).
+  -->
+  <script type="importmap">
+  {
+    "imports": {
+      "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.bundle.min.mjs",
+      "onnxruntime-web/webgpu": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.bundle.min.mjs",
+      "onnxruntime-web/wasm": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.wasm.bundle.min.mjs",
+      "@huggingface/transformers": "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.0.1/+esm",
+      "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm"
+    }
+  }
+  </script>
+  <style>
+    :root {
+      --bg: #0a0a12; --panel: #14141f; --panel-alt: #1a1a28; --border: #252535;
+      --text: #e2ddd2; --text-muted: #8a8898; --accent: #c9a550; --accent-dim: #8a7535;
+      --info: #6eb5ff; --ok: #7dffb2; --warn: #ffc46e; --err: #ff8a8a;
+      --health: #4caf50; --happy: #ffd54a; --smarts: #6eb5ff; --looks: #ff7eb6; --money: #7dffb2;
+      --bad: #f44336;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 15px; line-height: 1.5;
+      display: flex; flex-direction: column; align-items: center;
+      min-height: 100vh;
+    }
+    button {
+      font-family: inherit; font-size: 14px; cursor: pointer;
+      background: var(--panel-alt); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px;
+      transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+    }
+    button:hover:not(:disabled) { background: #23233a; border-color: var(--accent-dim); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.primary { background: var(--accent); color: #1a1405; border-color: var(--accent); font-weight: 700; }
+    button.primary:hover:not(:disabled) { background: #d8b65e; }
+    input, select, textarea {
+      font-family: inherit; font-size: 14px; background: var(--panel); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; width: 100%;
+    }
+    h1, h2, h3 { margin: 0 0 8px 0; }
+    .app { width: 100%; max-width: 480px; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
+
+    /* ── Loading overlay / picker ── */
+    #overlay {
+      position: fixed; inset: 0; z-index: 50; background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      padding: 28px 18px; overflow-y: auto;
+    }
+    #overlay h1 { color: var(--accent); font-size: 28px; letter-spacing: 0.5px; }
+    #overlay .tagline { color: var(--text-muted); font-size: 13px; text-align: center; max-width: 420px; margin-bottom: 18px; }
+    .card { background: var(--panel); border: 2px solid var(--border); border-radius: 12px; padding: 16px; width: 100%; max-width: 420px; margin-bottom: 12px; }
+    .card.sel { border-color: var(--accent); }
+    .card h3 { color: var(--accent); }
+    .card .hint { color: var(--text-muted); font-size: 12px; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row > * { flex: 1; }
+    .field { margin: 8px 0; }
+    .field label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 3px; }
+    .progress { width: 100%; max-width: 420px; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 10px; display: none; }
+    .progress .fill { height: 100%; width: 0; background: var(--accent); transition: width 0.3s; }
+    #load-status { color: var(--text-muted); font-size: 12px; margin-top: 8px; text-align: center; white-space: pre-line; min-height: 32px; }
+    .saved-list .saved-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; font-size: 13px; }
+    .saved-list .saved-item button { padding: 4px 8px; font-size: 12px; flex: none; }
+    .ollama-fields { display: none; margin-top: 8px; }
+    .ollama-fields.on { display: block; }
+
+    /* ── Game header ── */
+    header.hdr { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 14px; position: sticky; top: 0; z-index: 10; }
+    .hdr-top { display: flex; gap: 12px; align-items: center; }
+    .avatar { width: 84px; height: 84px; border-radius: 12px; background: var(--panel-alt); border: 1px solid var(--border); object-fit: cover; flex: none; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .avatar .ph { font-size: 34px; }
+    .avatar .spin { position: absolute; bottom: 3px; right: 4px; font-size: 10px; color: var(--accent); }
+    .who { flex: 1; min-width: 0; }
+    .who .name { font-size: 18px; font-weight: 700; }
+    .who .sub { font-size: 12px; color: var(--text-muted); }
+    .who .money { font-size: 15px; color: var(--money); font-weight: 700; margin-top: 2px; }
+    .ribbons { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .ribbon { font-size: 11px; background: var(--panel-alt); border: 1px solid var(--accent-dim); border-radius: 10px; padding: 1px 7px; }
+    .bars { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+    .bar-row { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+    .bar-row .lbl { width: 16px; text-align: center; }
+    .bar-track { flex: 1; height: 7px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+
+    /* ── Feed ── */
+    main.feed { flex: 1; overflow-y: auto; padding: 12px 14px 90px; }
+    .entry { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .entry .meta { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+    .entry .body { font-size: 14px; }
+    .entry.kind-event .body { color: var(--text); }
+    .entry.kind-system .body { color: var(--text-muted); font-style: italic; }
+    .entry.kind-llm .body { color: var(--info); }
+    .entry.kind-death .body { color: var(--err); font-weight: 600; }
+    .entry.kind-achievement .body { color: var(--accent); font-weight: 600; }
+    .entry img.scene { width: 100%; max-width: 320px; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-top: 8px; border: 1px solid var(--border); }
+    .entry .imgwait { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .thinking { color: var(--text-muted); font-style: italic; }
+
+    /* ── Bottom controls ── */
+    .bottom { position: sticky; bottom: 0; background: var(--panel); border-top: 1px solid var(--border); padding: 8px 10px; }
+    .age-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .age-row .ageup { flex: 1; font-size: 16px; padding: 12px; }
+    .input-row { display: flex; gap: 6px; margin-bottom: 8px; }
+    .input-row input { flex: 1; }
+    .input-row button { flex: none; }
+    .tabbar { display: flex; gap: 4px; flex-wrap: wrap; justify-content: space-between; }
+    .tabbar button { flex: 1 1 22%; min-width: 0; font-size: 12px; padding: 8px 4px; }
+
+    /* ── Modals ── */
+    #modal-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.6); display: none; align-items: flex-end; justify-content: center; }
+    #modal-bg.on { display: flex; }
+    .modal { background: var(--panel); border: 1px solid var(--border); border-top-left-radius: 16px; border-top-right-radius: 16px; width: 100%; max-width: 480px; max-height: 82vh; overflow-y: auto; padding: 16px 16px 28px; }
+    .modal h2 { color: var(--accent); display: flex; justify-content: space-between; align-items: center; }
+    .modal h2 .x { background: none; border: none; font-size: 20px; color: var(--text-muted); padding: 0 6px; }
+    .modal .sub-h { color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 6px; }
+    .opt { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; }
+    .opt .info { flex: 1; min-width: 0; }
+    .opt .info .t { font-size: 14px; }
+    .opt .info .d { font-size: 11px; color: var(--text-muted); }
+    .opt button { flex: none; }
+    .opt.disabled { opacity: 0.45; }
+    .choice-btn { display: block; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px; }
+    .spark { display: inline-block; vertical-align: middle; }
+    .ach-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ach { padding: 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; }
+    .ach.locked { opacity: 0.4; }
+    .toast { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 60; background: var(--accent); color: #1a1405; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.on { opacity: 1; }
+
+    /* ── Debug ── */
+    .dbg-toggle { font-size: 11px; color: var(--text-muted); cursor: pointer; padding: 4px 0; user-select: none; }
+    #dbg { display: none; font-family: ui-monospace, Menlo, monospace; font-size: 10px; color: var(--text-muted); background: #000; border: 1px solid var(--border); border-radius: 6px; padding: 8px; max-height: 160px; overflow-y: auto; white-space: pre-wrap; }
+    .status-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .pill { font-size: 10px; padding: 1px 7px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-muted); }
+    .pill.on { color: var(--ok); border-color: var(--ok); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- ═══ Loading overlay / new-life picker ═══ -->
+    <div id="overlay">
+      <h1>JMR's BitLife</h1>
+      <div class="tagline">A life simulator that runs entirely in your browser. Click to live a life — type anything and a local AI interprets it. Stable Diffusion paints your face and your milestones. The game plays instantly even before the AI finishes loading.</div>
+
+      <div class="card sel" id="card-new" data-pick="new">
+        <h3>Start a New Life</h3>
+        <div class="hint">Born today. Choose details or randomize.</div>
+        <div class="field"><label>Name</label><input id="nl-name" placeholder="(leave blank to randomize)" /></div>
+        <div class="row">
+          <div class="field"><label>Gender</label>
+            <select id="nl-gender"><option value="random">Random</option><option value="male">Male</option><option value="female">Female</option><option value="nonbinary">Non-binary</option></select>
+          </div>
+          <div class="field"><label>Country</label><select id="nl-country"></select></div>
+        </div>
+        <div class="field"><label>Seed (optional — same seed = same life)</label><input id="nl-seed" placeholder="(random)" inputmode="numeric" /></div>
+      </div>
+
+      <div class="card" id="card-load" data-pick="load">
+        <h3>Load a Saved Life</h3>
+        <div class="hint">Resume a life saved in this browser.</div>
+        <div class="saved-list" id="saved-list"><em class="hint">No saved lives yet.</em></div>
+      </div>
+
+      <div class="card" id="card-ai" data-pick="ai">
+        <h3>AI Options</h3>
+        <div class="hint">Free-typed actions use a local Gemma model. By default it runs in-browser (WebGPU). Optionally route typed actions through a local Ollama server instead.</div>
+        <label style="display:flex;gap:8px;margin-top:10px;font-size:13px;align-items:flex-start;cursor:pointer">
+          <input type="checkbox" id="use-ollama" style="width:auto;margin-top:3px" />
+          <span>Use local Ollama for typed actions (in-browser image gen still runs).</span>
+        </label>
+        <div class="ollama-fields" id="ollama-fields">
+          <div class="field"><label>Ollama URL</label><input id="ollama-base" value="http://127.0.0.1:11434" /></div>
+          <div class="field"><label>Model name</label><input id="ollama-model" placeholder="e.g. gemma2, llama3.2, qwen2.5" /></div>
+        </div>
+        <label style="display:flex;gap:8px;margin-top:10px;font-size:13px;align-items:flex-start;cursor:pointer">
+          <input type="checkbox" id="skip-models" style="width:auto;margin-top:3px" />
+          <span>Skip loading AI models — play the deterministic game only (no typed AI, no images).</span>
+        </label>
+      </div>
+
+      <button class="primary" id="btn-start" style="font-size:16px;padding:13px 30px;margin-top:6px">Start Life</button>
+      <div class="progress" id="prog"><div class="fill" id="prog-fill"></div></div>
+      <div id="load-status"></div>
+      <div class="status-pills" id="status-pills">
+        <span class="pill" id="pill-llm">LLM: idle</span>
+        <span class="pill" id="pill-img">Image: idle</span>
+        <span class="pill" id="pill-art">Pre-gen: idle</span>
+      </div>
+    </div>
+
+    <!-- ═══ Game UI ═══ -->
+    <header class="hdr" id="hdr" style="display:none">
+      <div class="hdr-top">
+        <div class="avatar" id="avatar"><span class="ph" id="avatar-ph">🙂</span></div>
+        <div class="who">
+          <div class="name" id="h-name">—</div>
+          <div class="sub" id="h-sub">—</div>
+          <div class="money" id="h-money">$0</div>
+        </div>
+      </div>
+      <div class="ribbons" id="h-ribbons"></div>
+      <div class="bars" id="h-bars"></div>
+    </header>
+
+    <main class="feed" id="feed" style="display:none"></main>
+
+    <div class="bottom" id="bottom" style="display:none">
+      <div class="age-row">
+        <button class="primary ageup" id="btn-ageup">Age Up +1 🎂</button>
+        <button id="btn-menu-relationships" title="Relationships">👪</button>
+        <button id="btn-menu-assets" title="Assets & Investments">💹</button>
+      </div>
+      <div class="input-row">
+        <input id="action-input" placeholder="Type anything you want to do…" autocomplete="off" />
+        <button id="btn-send">Do</button>
+      </div>
+      <div class="tabbar">
+        <button data-tab="activities">🧠 Activities</button>
+        <button data-tab="careers">💼 Careers</button>
+        <button data-tab="crime">🦹 Crime</button>
+        <button data-tab="casino">🎰 Casino</button>
+        <button data-tab="relationships">👪 Family</button>
+        <button data-tab="assets">💹 Assets</button>
+        <button data-tab="achievements">🏅 Awards</button>
+        <button data-tab="menu">☰ Menu</button>
+      </div>
+      <div class="dbg-toggle" id="dbg-toggle">▸ Debug</div>
+      <div id="dbg"></div>
+    </div>
+  </div>
+
+  <div id="modal-bg"><div class="modal" id="modal"></div></div>
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+  import { pipeline, TextStreamer, env } from "@huggingface/transformers";
+  import { Txt2ImgWorkerClient } from "./vendor/web-txt2img/index.js";
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONFIG
+  // ═══════════════════════════════════════════════════════════════════════════
+  const LLM_MODEL_ID = "onnx-community/gemma-4-E4B-it-ONNX";
+  const IMG_MODEL_ID = "sd-1.5";
+  const LLM_MAX_TOKENS = 384;
+  const LLM_TEMPERATURE = 1.0, LLM_TOP_P = 0.95, LLM_TOP_K = 64;
+  const IMG_STEPS = 20, IMG_GUIDANCE = 7.5;
+  const SD_PROMPT_MAX_CHARS = 195;
+  const LOCAL_MODELS_BASE = "/local_models";
+  const ART_STYLE = "digital portrait illustration, soft lighting, clean background";
+  const SCENE_STYLE = "cinematic illustration, dramatic lighting";
+
+  let useLocalLlm = false, useLocalImg = false, useOllama = false, skipModels = false;
+  let ollamaBase = "", ollamaModel = "";
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONTENT DATA (loaded from bitlife_data.json; FALLBACK keeps game playable offline)
+  // ═══════════════════════════════════════════════════════════════════════════
+  const FALLBACK_DATA = {
+    LIFE_STAGES: [
+      { id: "baby", min: 0, max: 2, label: "Baby" }, { id: "child", min: 3, max: 12, label: "Child" },
+      { id: "teen", min: 13, max: 17, label: "Teen" }, { id: "youngAdult", min: 18, max: 25, label: "Young Adult" },
+      { id: "adult", min: 26, max: 45, label: "Adult" }, { id: "middleAge", min: 46, max: 64, label: "Middle Age" },
+      { id: "senior", min: 65, max: 200, label: "Senior" }
+    ],
+    COUNTRIES: ["USA", "UK", "Canada", "Japan"],
+    NAME_POOLS: { male: ["Liam", "Noah", "James"], female: ["Emma", "Olivia", "Mia"], nonbinary: ["Alex", "Sam", "Jordan"], surnames: ["Smith", "Lee", "Garcia", "Chen"] },
+    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." } },
+    EVENTS: {
+      baby: [{ id: "fw", weight: 5, minAge: 1, maxAge: 2, noChoice: true, text: "You said your first words!", effects: { happiness: 6, smarts: 2 } }],
+      child: [{ id: "bully", weight: 7, minAge: 6, maxAge: 12, text: "A bully keeps shoving you at school.", choices: [{ label: "Ignore it", effects: { happiness: -6 } }, { label: "Tell a teacher", effects: { happiness: 2 }, outcome: { chance: 0.55, success: { happiness: 7 }, fail: { happiness: -5 } } }, { label: "Fight back", effects: {}, outcome: { chance: 0.45, success: { happiness: 9, health: -3 }, fail: { health: -12, happiness: -7 } } }] }],
+      teen: [{ id: "crush", weight: 6, minAge: 13, maxAge: 17, text: "You have a crush at school.", choices: [{ label: "Ask them out", effects: {}, outcome: { chance: 0.5, success: { happiness: 12 }, fail: { happiness: -6 } } }, { label: "Stay quiet", effects: { happiness: -2 } }] }],
+      youngAdult: [{ id: "tix", weight: 4, minAge: 18, maxAge: 25, noChoice: true, text: "You got a speeding ticket.", effects: { money: -250, happiness: -3 } }],
+      adult: [{ id: "charity", weight: 3, minAge: 26, maxAge: 45, text: "A charity asks for a donation.", choices: [{ label: "Donate $1,000", effects: { money: -1000, happiness: 8, fame: 2 } }, { label: "Decline", effects: {} }] }],
+      middleAge: [{ id: "scare", weight: 5, minAge: 46, maxAge: 64, text: "A checkup turns up something concerning.", choices: [{ label: "Follow up", effects: { money: -1200 }, outcome: { chance: 0.7, success: { health: 8 }, fail: { health: -6 } } }, { label: "Ignore it", effects: { health: -12 } }] }],
+      senior: [{ id: "fall", weight: 4, minAge: 70, maxAge: 200, noChoice: true, text: "You took a bad fall.", effects: { health: -14, happiness: -5 } }]
+    },
+    ACTIVITIES: {
+      mindBody: [{ id: "gym", label: "Go to the gym", minAge: 12, cost: 40, effects: { health: 4, looks: 2 }, random: { health: [1, 5] } }, { id: "library", label: "Study at library", minAge: 5, cost: 0, effects: { smarts: 4 } }, { id: "meditate", label: "Meditate", minAge: 8, cost: 0, effects: { happiness: 5, health: 1 } }],
+      doctor: [{ id: "checkup", label: "Annual checkup", minAge: 1, cost: 150, effects: { health: 5 } }, { id: "surgery", label: "Plastic surgery", minAge: 18, cost: 6000, effects: { looks: 16 }, notable: true }],
+      education: [{ id: "studyHarder", label: "Study harder", minAge: 6, requires: { inSchool: true }, cost: 0, effects: { smarts: 5, happiness: -2 } }],
+      crime: [{ id: "pettyTheft", label: "Shoplift", minAge: 8, payout: [10, 250], catchChance: 0.25, jail: [0, 1] }, { id: "burglary", label: "Burglarize a home", minAge: 16, payout: [400, 8000], catchChance: 0.42, jail: [1, 6] }, { id: "murder", label: "Commit murder", minAge: 16, payout: [0, 0], catchChance: 0.62, jail: [15, 60], killsRelationship: true }],
+      casino: [{ id: "slots", label: "Slot machines", minAge: 18, winChance: 0.18, payoutMult: [3, 12], achievementOnBigWin: "lottery" }, { id: "blackjack", label: "Blackjack", minAge: 18, winChance: 0.47, payoutMult: [2, 2] }]
+    },
+    CAREERS: [
+      { id: "fastFood", title: "Fast Food Worker", baseSalary: 22000, requires: { minAge: 16 }, levels: ["Trainee", "Cook", "Shift Lead", "Manager"], raisePerLevel: 0.12 },
+      { id: "office", title: "Office Clerk", baseSalary: 38000, requires: { minAge: 18, level: "highGrad" }, levels: ["Clerk", "Coordinator", "Manager", "Director"], raisePerLevel: 0.15 },
+      { id: "doctor", title: "Doctor", baseSalary: 185000, requires: { degree: "medicine" }, levels: ["Resident", "Attending", "Specialist", "Chief"], raisePerLevel: 0.12 }
+    ],
+    DEGREES: [{ id: "medicine", label: "Medicine", minSmarts: 75, grad: true }, { id: "engineering", label: "Engineering", minSmarts: 60 }, { id: "business", label: "Business", minSmarts: 45 }, { id: "arts", label: "Liberal Arts", minSmarts: 35 }],
+    MARKET: { stocks: [{ id: "APPL", name: "Apex Tech", start: 180, vol: 0.2, drift: 0.05 }, { id: "ROKT", name: "Rocket Dynamics", start: 210, vol: 0.45, drift: 0.07 }], crypto: [{ id: "BTK", name: "Bitcorn", start: 42000, vol: 0.8, drift: 0.1, taxable: true }], bonds: [{ id: "GOVT", name: "Govt Bond", start: 100, vol: 0.02, drift: 0.02 }] },
+    REAL_ESTATE: [{ id: "studio", name: "Studio Apartment", price: 120000, apprec: 0.03 }, { id: "house", name: "Suburban House", price: 350000, apprec: 0.04 }],
+    INSIDER_TIPS: [{ id: "cousinBuyout", source: "cousin", assetType: "stocks", text: "Your cousin at {co} whispers a buyout is coming.", gainMult: [1.6, 2.8], arrestChance: 0.35, sentence: [2, 6], achievement: "martha" }],
+    SCENE_EVENTS: ["birth", "graduation", "newJob", "wedding", "baby", "prison", "lottery", "death"]
+  };
+  let DATA = FALLBACK_DATA;
+
+  async function loadData() {
+    try {
+      const r = await fetch("./bitlife_data.json", { cache: "no-cache" });
+      if (r.ok) { const j = await r.json(); DATA = j; return "json"; }
+    } catch (e) { /* offline / file:// — fall back */ }
+    DATA = FALLBACK_DATA;
+    return "fallback";
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SEEDED RNG (mulberry32 — same family as the image worker)
+  // ═══════════════════════════════════════════════════════════════════════════
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  let _rng = mulberry32(1);
+  function seedRng(s) { game.rngState = s >>> 0; _rng = mulberry32(game.rngState); }
+  function rng() {
+    // advance persisted cursor so saved lives stay reproducible
+    game.rngState = (Math.imul(game.rngState || 1, 1664525) + 1013904223) >>> 0;
+    _rng = mulberry32(game.rngState);
+    return _rng();
+  }
+  const rngFloat = (lo, hi) => lo + rng() * (hi - lo);
+  const rngInt = (lo, hi) => Math.floor(rngFloat(lo, hi + 1));
+  const rngChance = (p) => rng() < p;
+  const rngPick = (arr) => arr[Math.floor(rng() * arr.length)];
+  function rngWeighted(entries) {
+    const total = entries.reduce((s, e) => s + (e.weight || 1), 0);
+    let r = rng() * total;
+    for (const e of entries) { r -= (e.weight || 1); if (r <= 0) return e; }
+    return entries[entries.length - 1];
+  }
+  function gaussian() { // Box-Muller
+    let u = 0, v = 0;
+    while (u === 0) u = rng();
+    while (v === 0) v = rng();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // GAME STATE
+  // ═══════════════════════════════════════════════════════════════════════════
+  let game = null;
+  let relId = 1;
+
+  function lifeStageFor(age) {
+    for (const s of DATA.LIFE_STAGES) if (age >= s.min && age <= s.max) return s.id;
+    return "senior";
+  }
+  function lifeStageLabel(id) { return (DATA.LIFE_STAGES.find(s => s.id === id) || {}).label || id; }
+  function nextLifeStage(id) {
+    const i = DATA.LIFE_STAGES.findIndex(s => s.id === id);
+    return (i >= 0 && i < DATA.LIFE_STAGES.length - 1) ? DATA.LIFE_STAGES[i + 1].id : null;
+  }
+
+  function randomName(gender) {
+    const pool = DATA.NAME_POOLS[gender] || DATA.NAME_POOLS.female;
+    return rngPick(pool) + " " + rngPick(DATA.NAME_POOLS.surnames);
+  }
+
+  function createNewLife(opts) {
+    const seed = (opts.seed && /^\d+$/.test(opts.seed)) ? parseInt(opts.seed, 10) : (Math.floor(Math.random() * 4294967295));
+    game = { schemaVersion: 1, seed: seed >>> 0, rngState: seed >>> 0 };
+    _rng = mulberry32(game.rngState);
+    let gender = opts.gender;
+    if (gender === "random" || !gender) gender = rngPick(["male", "female", "nonbinary"]);
+    const name = (opts.name && opts.name.trim()) ? opts.name.trim() : randomName(gender);
+    const country = opts.country || rngPick(DATA.COUNTRIES);
+    const birthYear = new Date().getFullYear();
+    game.character = {
+      name, gender, country, birthYear, age: 0, lifeStage: "baby", alive: true, causeOfDeath: null,
+      stats: { health: rngInt(70, 95), happiness: rngInt(65, 90), smarts: rngInt(30, 70), looks: rngInt(30, 80) },
+      fame: 0, money: 0,
+      education: { level: "none", inSchool: false, degree: null, major: null },
+      job: null, appearanceHash: ""
+    };
+    game.relationships = [];
+    game.assets = []; game.portfolio = [];
+    game.market = { year: birthYear, prices: {}, history: {} };
+    game.crimeRecord = { arrests: 0, convictions: 0, notoriety: 0 };
+    game.prison = { inPrison: false, sentenceYears: 0, yearsServed: 0, reason: null };
+    game.flags = {}; game.achievements = []; game.pendingEvent = null; game.activeTip = null;
+    game.log = [];
+    game.activitiesThisYear = [];
+    // seed market
+    for (const cls of ["stocks", "crypto", "bonds"]) {
+      for (const a of (DATA.MARKET[cls] || [])) { game.market.prices[a.id] = a.start; game.market.history[a.id] = [a.start]; }
+    }
+    // family
+    const momName = rngPick(DATA.NAME_POOLS.female) + " " + name.split(" ")[1];
+    const dadName = rngPick(DATA.NAME_POOLS.male) + " " + name.split(" ")[1];
+    addRelationship({ relation: "mother", name: momName, gender: "female", age: rngInt(22, 40), bar: rngInt(60, 95) });
+    addRelationship({ relation: "father", name: dadName, gender: "male", age: rngInt(24, 45), bar: rngInt(55, 90) });
+    if (rngChance(0.5)) {
+      const sg = rngPick(["male", "female"]);
+      addRelationship({ relation: "sibling", name: rngPick(DATA.NAME_POOLS[sg]) + " " + name.split(" ")[1], gender: sg, age: rngInt(0, 6), bar: rngInt(40, 85) });
+    }
+    log("system", `${name} was born in ${country}.`, "birth");
+    return game;
+  }
+
+  function addRelationship(r) {
+    const rel = Object.assign({ id: relId++, alive: true, flags: {}, isPlayerChild: false }, r);
+    if (rel.bar == null) rel.bar = 50;
+    if (rel.age == null) rel.age = 0;
+    game.relationships.push(rel);
+    return rel;
+  }
+
+  // ── canonical mutators ──
+  const clampStat = (v) => Math.max(0, Math.min(100, Math.round(v)));
+  function applyEffects(effects) {
+    if (!effects) return;
+    const c = game.character, st = c.stats;
+    for (const k of ["health", "happiness", "smarts", "looks"]) {
+      if (typeof effects[k] === "number") st[k] = clampStat(st[k] + effects[k]);
+    }
+    if (typeof effects.fame === "number") c.fame = clampStat(c.fame + effects.fame);
+    if (typeof effects.money === "number") c.money = Math.round(c.money + effects.money);
+    if (effects.random) { for (const [k, [lo, hi]] of Object.entries(effects.random)) { if (k in st) st[k] = clampStat(st[k] + rngInt(lo, hi)); } }
+    if (effects.setFlag) Object.assign(game.flags, effects.setFlag);
+    if (effects.addRelationship) addRelationship(effects.addRelationship);
+    if (effects.grantAchievement) grantAchievement(effects.grantAchievement);
+    if (effects.fame >= 80 || c.fame >= 80) grantAchievement("famous");
+    if (c.money >= 1000000) grantAchievement("millionaire");
+  }
+
+  function grantAchievement(id) {
+    if (!id || game.achievements.includes(id)) return;
+    if (!DATA.ACHIEVEMENTS[id]) return;
+    game.achievements.push(id);
+    const a = DATA.ACHIEVEMENTS[id];
+    showToast(`🏅 ${a.icon || ""} ${a.label} unlocked!`);
+    log("achievement", `Achievement unlocked: ${a.icon || ""} ${a.label} — ${a.desc}`);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LOG / FEED
+  // ═══════════════════════════════════════════════════════════════════════════
+  function log(kind, text, sceneKey) {
+    const e = { year: game.market ? game.market.year : 0, age: game.character ? game.character.age : 0, kind, text, imageUrl: null, sceneKey: sceneKey || null };
+    game.log.push(e);
+    renderEntry(e);
+    if (sceneKey) maybeSceneImage(e);
+    return e;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ENGINE: AGE UP + EVENTS
+  // ═══════════════════════════════════════════════════════════════════════════
+  function ageUp() {
+    if (!game.character.alive || game.pendingEvent) return;
+    const c = game.character;
+    c.age += 1;
+    game.market.year += 1;
+    game.activitiesThisYear = [];
+
+    // life stage change
+    const newStage = lifeStageFor(c.age);
+    if (newStage !== c.lifeStage) {
+      c.lifeStage = newStage;
+      log("system", `You are now a ${lifeStageLabel(newStage)} (age ${c.age}).`);
+      refreshAvatar(true);
+    }
+
+    // schooling auto-advance
+    advanceEducation();
+
+    // natural stat drift
+    driftStats();
+
+    // markets + salary
+    advanceMarkets();
+    if (!game.prison.inPrison && c.job) {
+      const net = Math.round(c.job.salary * 0.78);
+      c.money += net;
+      c.job.yearsHeld = (c.job.yearsHeld || 0) + 1;
+    }
+    // prison time
+    if (game.prison.inPrison) {
+      game.prison.yearsServed += 1;
+      applyEffects({ happiness: -4, health: -1 });
+      if (game.prison.yearsServed >= game.prison.sentenceYears) {
+        game.prison.inPrison = false;
+        log("system", `You were released from prison after ${game.prison.yearsServed} year(s).`);
+        game.prison.reason = null;
+      } else {
+        log("system", `Year ${game.prison.yearsServed} of ${game.prison.sentenceYears} in prison.`);
+      }
+    }
+
+    // age relationships, roll their deaths
+    ageRelationships();
+
+    // maybe an insider tip
+    maybeInsiderTip();
+
+    // yearly random event
+    fireYearlyEvent();
+
+    checkDeath();
+    autosave();
+    renderAll();
+  }
+
+  function driftStats() {
+    const c = game.character, st = c.stats;
+    const ageFactor = c.age > 50 ? (c.age - 50) * 0.18 : 0;
+    st.health = clampStat(st.health + Math.round(gaussian() * 2) - Math.round(ageFactor));
+    st.happiness = clampStat(st.happiness + Math.round(gaussian() * 3));
+    st.looks = clampStat(st.looks + Math.round(gaussian() * 1.2) - (c.age > 40 ? 1 : 0));
+    if (c.education.inSchool) st.smarts = clampStat(st.smarts + rngInt(0, 2));
+  }
+
+  function advanceEducation() {
+    const c = game.character, ed = c.education;
+    if (c.age === 5) { ed.level = "elementary"; ed.inSchool = true; log("system", "You started school.", "firstDay"); }
+    else if (c.age === 11) { ed.level = "middle"; }
+    else if (c.age === 14) { ed.level = "high"; }
+    else if (c.age === 18 && ed.inSchool && ["high", "middle", "elementary"].includes(ed.level)) {
+      ed.level = "highGrad"; ed.inSchool = false;
+      log("event", "You graduated high school! 🎓", "graduation"); grantAchievement("scholar");
+    }
+    // college handled via Activities (apply) and graduation tick
+    if (ed.level === "college" && ed.inSchool) {
+      ed._collegeYears = (ed._collegeYears || 0) + 1;
+      if (ed._collegeYears >= 4) {
+        ed.inSchool = false; ed.level = ed.degree && DATA.DEGREES.find(d => d.id === ed.degree && d.grad) ? "gradGrad" : "collegeGrad";
+        log("event", `You graduated college with a degree in ${(DATA.DEGREES.find(d => d.id === ed.degree) || {}).label || "your field"}! 🎓`, "graduation");
+        grantAchievement("scholar");
+        if (DATA.DEGREES.find(d => d.id === ed.degree && d.grad)) grantAchievement("phd");
+      }
+    }
+  }
+
+  function fireYearlyEvent() {
+    const stage = game.character.lifeStage;
+    const pool = (DATA.EVENTS[stage] || []).filter(e => game.character.age >= (e.minAge ?? 0) && game.character.age <= (e.maxAge ?? 999));
+    if (!pool.length || rngChance(0.25)) return; // some quiet years
+    const ev = rngWeighted(pool);
+    if (ev.noChoice) {
+      applyEffects(ev.effects);
+      log("event", ev.text);
+    } else {
+      game.pendingEvent = ev;
+      renderAll();
+      openChoicePopup(ev);
+    }
+  }
+
+  function applyChoice(eventId, choiceIndex) {
+    const ev = game.pendingEvent;
+    if (!ev || ev.id !== eventId) return;
+    const ch = ev.choices[choiceIndex];
+    applyEffects(ch.effects);
+    let resultText = `${ev.text} → You chose: ${ch.label}.`;
+    if (ch.outcome) {
+      const ok = rngChance(ch.outcome.chance);
+      applyEffects(ok ? ch.outcome.success : ch.outcome.fail);
+      resultText += ok ? " It worked out." : " It backfired.";
+    }
+    game.pendingEvent = null;
+    closeModal();
+    log("event", resultText);
+    checkDeath();
+    autosave();
+    renderAll();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ENGINE: ACTIVITIES
+  // ═══════════════════════════════════════════════════════════════════════════
+  function requirementsMet(req) {
+    if (!req) return true;
+    const c = game.character;
+    if (req.minAge != null && c.age < req.minAge) return false;
+    if (req.inSchool && !c.education.inSchool) return false;
+    if (req.level && c.education.level !== req.level &&
+        !(req.level === "highGrad" && ["highGrad", "college", "collegeGrad", "gradGrad"].includes(c.education.level))) return false;
+    if (req.degree && c.education.degree !== req.degree) return false;
+    return true;
+  }
+
+  function doActivity(category, id) {
+    if (game.prison.inPrison) { showToast("You're in prison."); return; }
+    const act = (DATA.ACTIVITIES[category] || []).find(a => a.id === id);
+    if (!act) return;
+    if (act.minAge != null && game.character.age < act.minAge) { showToast(`Must be ${act.minAge}+`); return; }
+    if (act.requires && !requirementsMet(act.requires)) { showToast("Requirement not met."); return; }
+    if (act.cost && game.character.money < act.cost) { showToast("Not enough money."); return; }
+    if (act.cost) game.character.money -= act.cost;
+    applyEffects(act.effects);
+    if (act.random) applyEffects({ random: act.random });
+    log("event", `You did: ${act.label}.`, act.notable ? "activity" : null);
+    closeModal(); autosave(); renderAll();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ENGINE: CAREERS
+  // ═══════════════════════════════════════════════════════════════════════════
+  function eligibleCareers() { return DATA.CAREERS.filter(c => requirementsMet(c.requires)); }
+  function applyJob(careerId) {
+    const car = DATA.CAREERS.find(c => c.id === careerId);
+    if (!car || !requirementsMet(car.requires)) { showToast("You don't qualify."); return; }
+    const got = rngChance(0.55 + game.character.stats.smarts / 250);
+    if (!got) { log("event", `You applied to be a ${car.title} but didn't get the job.`); closeModal(); renderAll(); return; }
+    game.character.job = { id: car.id, title: car.title, salary: car.baseSalary, level: 0, levelName: car.levels[0], performance: 50, yearsHeld: 0, fameGain: car.fameGain || 0 };
+    log("event", `You got hired as a ${car.levels[0]} ${car.title} ($${car.baseSalary.toLocaleString()}/yr)!`, "newJob");
+    closeModal(); autosave(); renderAll();
+  }
+  function workHarder() {
+    const j = game.character.job; if (!j) return;
+    j.performance = clampStat(j.performance + rngInt(4, 12));
+    applyEffects({ happiness: -2, health: -1 });
+    if (j.fameGain) applyEffects({ fame: Math.round(j.fameGain / 2) });
+    log("event", `You worked hard this year. (performance ${j.performance})`);
+    closeModal(); autosave(); renderAll();
+  }
+  function askPromotion() {
+    const j = game.character.job; if (!j) return;
+    const car = DATA.CAREERS.find(c => c.id === j.id);
+    if (j.level >= car.levels.length - 1) { showToast("Already at the top."); return; }
+    if (j.performance >= 65 && (j.yearsHeld || 0) >= 1 && rngChance(0.6)) {
+      j.level += 1; j.levelName = car.levels[j.level];
+      j.salary = Math.round(j.salary * (1 + car.raisePerLevel));
+      j.performance = 45;
+      log("event", `Promoted to ${j.levelName} ${car.title}! New salary $${j.salary.toLocaleString()}.`, "promotion");
+    } else {
+      log("event", "Your promotion request was denied. Work harder first.");
+    }
+    closeModal(); autosave(); renderAll();
+  }
+  function quitJob() { if (game.character.job) { log("event", `You quit your job as ${game.character.job.title}.`); game.character.job = null; closeModal(); autosave(); renderAll(); } }
+
+  function applyCollege(degreeId) {
+    const c = game.character;
+    if (c.education.level !== "highGrad") { showToast("Need to finish high school."); return; }
+    const deg = DATA.DEGREES.find(d => d.id === degreeId);
+    if (c.stats.smarts < deg.minSmarts) { showToast(`Need ${deg.minSmarts} smarts for ${deg.label}.`); return; }
+    c.education.level = "college"; c.education.inSchool = true; c.education.degree = degreeId; c.education._collegeYears = 0;
+    log("event", `You enrolled in college to study ${deg.label}.`);
+    closeModal(); autosave(); renderAll();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ENGINE: CRIME / CASINO
+  // ═══════════════════════════════════════════════════════════════════════════
+  function commitCrime(id) {
+    if (game.prison.inPrison) { showToast("You're in prison."); return; }
+    const cr = DATA.ACTIVITIES.crime.find(x => x.id === id);
+    if (!cr || game.character.age < cr.minAge) { showToast(`Must be ${cr ? cr.minAge : "?"}+`); return; }
+    if (rngChance(cr.catchChance)) {
+      game.crimeRecord.arrests += 1; game.crimeRecord.convictions += 1;
+      const years = rngInt(cr.jail[0], cr.jail[1]);
+      log("crime", `You attempted to ${cr.label.toLowerCase()} but got caught!`);
+      sendToPrison(years, cr.label.toLowerCase());
+    } else {
+      game.crimeRecord.notoriety += 1;
+      if (cr.killsRelationship) {
+        const victims = game.relationships.filter(r => r.alive && r.relation !== "pet");
+        if (victims.length) { const v = rngPick(victims); v.alive = false; log("crime", `You murdered ${v.name} and got away with it. Chilling.`); }
+        else log("crime", `You committed murder and got away with it.`);
+        applyEffects({ happiness: -6 });
+      } else {
+        const loot = rngInt(cr.payout[0], cr.payout[1]);
+        game.character.money += loot;
+        log("crime", `You pulled off ${cr.label.toLowerCase()} and got away with $${loot.toLocaleString()}.`);
+      }
+    }
+    closeModal(); autosave(); renderAll();
+  }
+
+  function sendToPrison(years, reason) {
+    game.prison = { inPrison: true, sentenceYears: Math.max(1, years), yearsServed: 0, reason };
+    game.character.job = null;
+    grantAchievement("jailbird");
+    log("death", `Sentenced to ${game.prison.sentenceYears} year(s) in prison for ${reason}.`, "prison");
+  }
+
+  function gamble(id, wager) {
+    const g = DATA.ACTIVITIES.casino.find(x => x.id === id);
+    if (!g) return;
+    wager = Math.max(1, Math.floor(wager || 0));
+    if (game.character.money < wager) { showToast("Not enough money."); return; }
+    game.character.money -= wager;
+    if (rngChance(g.winChance)) {
+      const mult = rngFloat(g.payoutMult[0], g.payoutMult[1]);
+      const win = Math.round(wager * mult);
+      game.character.money += win;
+      log("casino", `You bet $${wager.toLocaleString()} on ${g.label} and won $${win.toLocaleString()}! 🎉`, win >= 50000 ? "lottery" : null);
+      if (g.achievementOnBigWin && mult >= 8) grantAchievement(g.achievementOnBigWin);
+      if (win >= 100000) grantAchievement("lottery");
+    } else {
+      log("casino", `You bet $${wager.toLocaleString()} on ${g.label} and lost it.`);
+    }
+    autosave(); renderAll(); openModal("casino"); // keep casino open
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ENGINE: MARKETS / INVESTING / INSIDER TRADING
+  // ═══════════════════════════════════════════════════════════════════════════
+  function allMarketAssets() { return [...(DATA.MARKET.stocks || []), ...(DATA.MARKET.crypto || []), ...(DATA.MARKET.bonds || [])]; }
+  function assetMeta(id) { return allMarketAssets().find(a => a.id === id); }
+
+  function advanceMarkets() {
+    for (const a of allMarketAssets()) {
+      const p = game.market.prices[a.id] ?? a.start;
+      const np = Math.max(a.start * 0.05, p * (1 + a.drift + a.vol * gaussian()));
+      game.market.prices[a.id] = Math.round(np * 100) / 100;
+      const h = game.market.history[a.id] || (game.market.history[a.id] = []);
+      h.push(game.market.prices[a.id]);
+      if (h.length > 8) h.shift();
+    }
+    for (const asset of game.assets) {
+      if (asset.apprec) asset.currentValue = Math.round(asset.currentValue * (1 + asset.apprec + 0.02 * gaussian()));
+    }
+  }
+
+  function holdingFor(id) { return game.portfolio.find(h => h.assetId === id); }
+  function buyAsset(id, shares) {
+    shares = Math.max(0, Math.floor(shares || 0));
+    const price = game.market.prices[id]; if (!price || !shares) return;
+    const cost = price * shares;
+    if (game.character.money < cost) { showToast("Not enough money."); return; }
+    game.character.money -= cost;
+    let h = holdingFor(id);
+    if (!h) { h = { assetId: id, shares: 0, avgCost: 0 }; game.portfolio.push(h); }
+    h.avgCost = (h.avgCost * h.shares + cost) / (h.shares + shares);
+    h.shares += shares;
+    // record buy in case it follows an insider tip for this asset
+    if (game.activeTip && game.activeTip.assetId === id) game.activeTip.boughtShares = (game.activeTip.boughtShares || 0) + shares;
+    log("market", `Bought ${shares} ${assetMeta(id).name} @ $${fmtPrice(price)} (-$${Math.round(cost).toLocaleString()}).`);
+    autosave(); renderAll(); openModal("assets");
+  }
+  function sellAsset(id, shares) {
+    const h = holdingFor(id); if (!h) return;
+    shares = Math.min(h.shares, Math.max(0, Math.floor(shares || 0)));
+    if (!shares) return;
+    const price = game.market.prices[id];
+    let proceeds = price * shares;
+    const gain = proceeds - h.avgCost * shares;
+    const meta = assetMeta(id);
+    if (meta.taxable && gain > 0) { const tax = Math.round(gain * 0.2); proceeds -= tax; }
+    game.character.money += proceeds;
+    h.shares -= shares; if (h.shares <= 0) game.portfolio = game.portfolio.filter(x => x !== h);
+    log("market", `Sold ${shares} ${meta.name} @ $${fmtPrice(price)} (+$${Math.round(proceeds).toLocaleString()}, ${gain >= 0 ? "gain" : "loss"} $${Math.round(Math.abs(gain)).toLocaleString()}).`);
+    // insider-trading SEC roll if this sell realizes a tip-driven gain
+    if (game.activeTip && game.activeTip.assetId === id && game.activeTip.boughtShares > 0 && gain > 0) {
+      runInsiderTip(game.activeTip, gain);
+    }
+    autosave(); renderAll(); openModal("assets");
+  }
+
+  function maybeInsiderTip() {
+    if (game.activeTip || game.character.age < 18 || game.prison.inPrison) return;
+    if (!rngChance(0.16)) return;
+    const tip = Object.assign({}, rngPick(DATA.INSIDER_TIPS));
+    const cls = tip.assetType || "stocks";
+    const asset = rngPick(DATA.MARKET[cls] || DATA.MARKET.stocks);
+    tip.assetId = asset.id; tip.boughtShares = 0;
+    tip.targetGain = rngFloat(tip.gainMult[0], tip.gainMult[1]);
+    game.activeTip = tip;
+    // pre-bias the asset to spike next year so acting on the tip pays off
+    game.flags["_tipSpike_" + asset.id] = tip.targetGain;
+    const text = tip.text.replace("{co}", asset.name);
+    log("event", `💡 INSIDER TIP from your ${tip.source}: ${text} (Buy now in Assets, then sell after it spikes — but the SEC may be watching.)`);
+  }
+
+  function runInsiderTip(tip, realizedGain) {
+    game.activeTip = null;
+    if (rngChance(tip.arrestChance)) {
+      const years = rngInt(tip.sentence[0], tip.sentence[1]);
+      grantAchievement(tip.achievement || "martha");
+      log("crime", `🚨 The SEC investigated your suspiciously-timed trade. You're charged with insider trading!`);
+      sendToPrison(years, "insider trading");
+    } else {
+      log("event", `You sold on the tip and pocketed the gain — and the SEC never noticed. 😏`);
+    }
+  }
+
+  function buyRealEstate(id) {
+    const re = DATA.REAL_ESTATE.find(r => r.id === id); if (!re) return;
+    if (game.character.money < re.price) { showToast("Not enough money."); return; }
+    game.character.money -= re.price;
+    game.assets.push({ id: "re_" + relId++, type: "realEstate", name: re.name, purchasePrice: re.price, currentValue: re.price, apprec: re.apprec, yearBought: game.market.year });
+    grantAchievement("homeowner");
+    log("event", `You bought a ${re.name} for $${re.price.toLocaleString()}! 🏠`, "homeowner");
+    autosave(); renderAll(); openModal("assets");
+  }
+  function sellRealEstate(assetId) {
+    const a = game.assets.find(x => x.id === assetId); if (!a) return;
+    game.character.money += a.currentValue;
+    game.assets = game.assets.filter(x => x !== a);
+    log("event", `You sold your ${a.name} for $${a.currentValue.toLocaleString()}.`);
+    autosave(); renderAll(); openModal("assets");
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ENGINE: RELATIONSHIPS
+  // ═══════════════════════════════════════════════════════════════════════════
+  function ageRelationships() {
+    for (const r of game.relationships) {
+      if (!r.alive) continue;
+      r.age += 1;
+      r.bar = clampStat(r.bar - rngInt(0, 2)); // relationships decay slightly without attention
+      const mort = r.relation === "pet" ? Math.max(0, (r.age - 10) * 0.06) : Math.max(0, (r.age - 60) * 0.012);
+      if (mort > 0 && rngChance(mort)) {
+        r.alive = false;
+        applyEffects({ happiness: r.relation === "pet" ? -6 : -10 });
+        log("event", `${r.name} (your ${r.relation}) passed away.`);
+      }
+    }
+  }
+
+  function interact(rid, action) {
+    const r = game.relationships.find(x => x.id === rid); if (!r || !r.alive) return;
+    const c = game.character;
+    switch (action) {
+      case "compliment": r.bar = clampStat(r.bar + rngInt(2, 7)); applyEffects({ happiness: 1 }); log("relationship", `You complimented ${r.name}.`); break;
+      case "conversation": r.bar = clampStat(r.bar + rngInt(3, 8)); applyEffects({ happiness: 2 }); log("relationship", `You had a nice conversation with ${r.name}.`); break;
+      case "spendTime": r.bar = clampStat(r.bar + rngInt(5, 12)); applyEffects({ happiness: 3, health: 1 }); log("relationship", `You spent quality time with ${r.name}.`); break;
+      case "gift": if (c.money < 200) { showToast("Need $200."); return; } c.money -= 200; r.bar = clampStat(r.bar + rngInt(6, 14)); log("relationship", `You gave ${r.name} a $200 gift.`); break;
+      case "giveMoney": if (c.money < 1000) { showToast("Need $1,000."); return; } c.money -= 1000; r.bar = clampStat(r.bar + rngInt(8, 18)); log("relationship", `You gave ${r.name} $1,000.`); break;
+      case "insult": r.bar = clampStat(r.bar - rngInt(8, 18)); applyEffects({ happiness: -2 }); log("relationship", `You insulted ${r.name}.`); break;
+      case "date":
+        if (c.age < 16) { showToast("Too young."); return; }
+        if (rngChance(0.4 + c.stats.looks / 250 + r.bar / 400)) { r.flags.dating = true; r.relation = "partner"; r.bar = clampStat(r.bar + 10); log("relationship", `${r.name} agreed to date you! 💕`); }
+        else log("relationship", `${r.name} turned you down.`);
+        break;
+      case "propose":
+        if (r.bar < 60) { showToast("They're not ready."); return; }
+        if (rngChance(0.5 + r.bar / 300)) { r.flags.married = true; r.relation = "spouse"; r.bar = clampStat(r.bar + 15); applyEffects({ happiness: 12 }); grantAchievement("wedded"); log("event", `${r.name} said YES! You're married! 💍`, "wedding"); }
+        else log("relationship", `${r.name} declined your proposal.`);
+        break;
+      case "haveBaby": {
+        if (!(r.flags.married || r.flags.dating)) { showToast("Need a partner/spouse."); return; }
+        const bg = rngPick(["male", "female"]);
+        const baby = addRelationship({ relation: "child", name: rngPick(DATA.NAME_POOLS[bg]) + " " + c.name.split(" ")[1], gender: bg, age: 0, bar: 80, isPlayerChild: true });
+        applyEffects({ happiness: 10, money: -2000 }); grantAchievement("parent");
+        log("event", `You and ${r.name} had a baby: ${baby.name}! 👶`, "baby");
+        break;
+      }
+      case "breakUp": r.flags.dating = false; r.flags.married = false; r.relation = "friend"; r.bar = clampStat(r.bar - 20); applyEffects({ happiness: -5 }); log("relationship", `You broke up with ${r.name}.`); break;
+    }
+    autosave(); renderAll(); openModal("relationships");
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ENGINE: DEATH
+  // ═══════════════════════════════════════════════════════════════════════════
+  function checkDeath() {
+    const c = game.character; if (!c.alive) return;
+    let cause = null;
+    if (c.stats.health <= 0) cause = "poor health";
+    else {
+      const mort = Math.max(0, (c.age - 60) * 0.012) + (c.stats.health < 25 ? 0.06 : 0) + (c.age > 90 ? (c.age - 90) * 0.04 : 0);
+      if (c.age >= 120) cause = "extreme old age";
+      else if (mort > 0 && rngChance(mort)) cause = "old age";
+    }
+    if (cause) {
+      c.alive = false; c.causeOfDeath = cause;
+      if (c.age >= 100) grantAchievement("centenarian");
+      log("death", `💀 You died at age ${c.age} of ${cause}.`, "death");
+      autosave();
+      renderAll();
+      setTimeout(showDeathScreen, 600);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LLM (typed input only) — reuses adventure's Transformers.js approach
+  // ═══════════════════════════════════════════════════════════════════════════
+  let llmPipe = null, llmReady = false;
+
+  async function ensureLlmChatTemplate(onProgress) {
+    const tok = llmPipe?.tokenizer; if (!tok) return;
+    if (tok.chat_template != null && String(tok.chat_template).trim() !== "") return;
+    onProgress && onProgress("LLM: loading chat template…");
+    const hfUrl = `https://huggingface.co/${LLM_MODEL_ID}/resolve/main/chat_template.jinja`;
+    const urls = useLocalLlm ? [`${LOCAL_MODELS_BASE}/${LLM_MODEL_ID}/chat_template.jinja`, hfUrl] : [hfUrl];
+    let lastErr = null;
+    for (const url of urls) { try { const r = await fetch(url); if (r.ok) { tok.chat_template = await r.text(); return; } lastErr = new Error(`${r.status}`); } catch (e) { lastErr = e; } }
+    throw lastErr || new Error("chat_template.jinja unavailable");
+  }
+
+  async function loadLlm(onProgress) {
+    if (useLocalLlm) { env.allowLocalModels = true; env.localModelPath = LOCAL_MODELS_BASE + "/"; } else { env.allowLocalModels = false; }
+    const device = navigator.gpu ? "webgpu" : "wasm";
+    onProgress && onProgress(`Loading Gemma (${device})…`);
+    try {
+      llmPipe = await pipeline("text-generation", LLM_MODEL_ID, {
+        dtype: "q4", device,
+        progress_callback: (r) => { if (r?.status === "progress" && typeof r.progress === "number") onProgress && onProgress(`LLM: ${r.progress.toFixed(0)}%`, r.progress); }
+      });
+      await ensureLlmChatTemplate(onProgress);
+      llmReady = true; onProgress && onProgress("LLM loaded.", 100); return true;
+    } catch (e) {
+      if (device === "webgpu") {
+        onProgress && onProgress("WebGPU failed, trying WASM…");
+        try {
+          llmPipe = await pipeline("text-generation", LLM_MODEL_ID, { dtype: "q4", device: "wasm", progress_callback: (r) => { if (r?.status === "progress") onProgress && onProgress(`LLM (WASM): ${r.progress?.toFixed(0)}%`, r.progress); } });
+          await ensureLlmChatTemplate(onProgress); llmReady = true; onProgress && onProgress("LLM loaded (WASM).", 100); return true;
+        } catch (e2) { onProgress && onProgress(`LLM load failed: ${e2.message}`); return false; }
+      }
+      onProgress && onProgress(`LLM load failed: ${e.message}`); return false;
+    }
+  }
+
+  async function generateLlmResponse(systemPrompt, userPrompt) {
+    if (useOllama) return runOllamaGeneration(systemPrompt, userPrompt);
+    if (!llmPipe) return "(LLM not loaded)";
+    let text = "";
+    const streamer = new TextStreamer(llmPipe.tokenizer, { skip_prompt: true, callback_function: (p) => { text += p; } });
+    await llmPipe([{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+      { max_new_tokens: LLM_MAX_TOKENS, temperature: LLM_TEMPERATURE, top_p: LLM_TOP_P, top_k: LLM_TOP_K, do_sample: true, streamer });
+    return text;
+  }
+
+  async function runOllamaGeneration(systemMsg, userMsg) {
+    const base = ollamaBase.replace(/\/+$/, "");
+    const body = { model: ollamaModel, messages: [{ role: "system", content: systemMsg }, { role: "user", content: userMsg }], stream: false, format: "json", options: { temperature: 0.7, num_predict: LLM_MAX_TOKENS, top_p: 0.95, top_k: 64 } };
+    const res = await fetch(`${base}/api/chat`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(`Ollama HTTP ${res.status}`);
+    const data = await res.json();
+    const msg = data.message;
+    if (msg && typeof msg.content === "string") return msg.content;
+    if (typeof data.response === "string") return data.response;
+    return "";
+  }
+
+  // JSON parsing (reused from adventure)
+  function fixCommonJsonErrors(s) {
+    s = s.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
+    let ob = 0, cb = 0, osq = 0, csq = 0;
+    for (const ch of s) { if (ch === "{") ob++; else if (ch === "}") cb++; else if (ch === "[") osq++; else if (ch === "]") csq++; }
+    while (cb < ob) { s += "}"; cb++; } while (csq < osq) { s += "]"; csq++; }
+    return s;
+  }
+  function tryParseJson(s) { try { const o = JSON.parse(s); if (o && typeof o === "object") return o; } catch {} try { const o = JSON.parse(fixCommonJsonErrors(s)); if (o && typeof o === "object") return o; } catch {} return null; }
+  function extractFirstJson(text) {
+    const fence = /```(?:json)?\s*([\s\S]*?)```/i.exec(text);
+    if (fence) { const p = tryParseJson(fence[1].trim()); if (p) return p; }
+    let depth = 0, start = -1;
+    for (let i = 0; i < text.length; i++) { if (text[i] === "{") { if (depth === 0) start = i; depth++; } else if (text[i] === "}") { depth--; if (depth === 0 && start >= 0) { const p = tryParseJson(text.slice(start, i + 1)); if (p) return p; start = -1; } } }
+    return null;
+  }
+  function cleanNarration(text) {
+    text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/<\|channel>thought[\s\S]*?<channel\|>/gi, "");
+    text = text.replace(/```(?:json)?[\s\S]*?```/gi, "");
+    text = text.replace(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, "");
+    return text.replace(/\n{3,}/g, "\n\n").trim();
+  }
+
+  const BITLIFE_SYSTEM = `You are the engine of a BitLife-style life simulator. The player types a free-form action; you decide a realistic outcome for their character and return it as JSON.
+
+Write ONE vivid paragraph of narration (2-4 sentences) describing what happens, then output EXACTLY ONE json code block with this shape:
+\`\`\`json
+{
+  "narration": "what happened, one short paragraph",
+  "effects": { "health": 0, "happiness": 0, "smarts": 0, "looks": 0, "money": 0, "fame": 0 },
+  "relationship_changes": [ { "name": "Mom", "bar": 0 } ],
+  "set_flags": {},
+  "grant_achievement": null,
+  "event_image": "short concrete visual phrase, max 10 words, or null"
+}
+\`\`\`
+Rules: effects are DELTAS only (never set absolute values). Keep each stat delta between -15 and +15. Keep money realistic for the character's wealth. Only reference relationships that exist in the state. event_image must be a concrete scene description (no names) under 10 words, or null. Output valid JSON: double quotes, no trailing commas.`;
+
+  function buildBitlifeUserPrompt(text) {
+    const c = game.character;
+    const rels = game.relationships.filter(r => r.alive).slice(0, 8).map(r => ({ name: r.name, relation: r.relation }));
+    const snap = {
+      name: c.name, age: c.age, gender: c.gender, lifeStage: c.lifeStage,
+      stats: c.stats, money: c.money, fame: c.fame,
+      job: c.job ? c.job.title : "none", education: c.education.level,
+      inPrison: game.prison.inPrison, relationships: rels,
+      recent: game.log.slice(-3).map(e => e.text)
+    };
+    return `Current character state:\n${JSON.stringify(snap)}\n\nThe player types: "${text}"\n\nDecide what realistically happens and respond with narration + the json block.`;
+  }
+
+  const ALLOWED_FLAGS = new Set(["hasTattoo", "vegetarian", "religious", "startedBusiness", "movedAbroad", "wentViral"]);
+  function sanitizeLlmEffects(parsed) {
+    const out = { effects: {}, narration: "", relationship_changes: [], set_flags: {}, grant_achievement: null, event_image: null };
+    if (!parsed || typeof parsed !== "object") return out;
+    out.narration = typeof parsed.narration === "string" ? parsed.narration : "";
+    const e = parsed.effects || {};
+    for (const k of ["health", "happiness", "smarts", "looks", "fame"]) { let v = Number(e[k]); if (Number.isFinite(v)) out.effects[k] = Math.max(-20, Math.min(20, Math.round(v))); }
+    let m = Number(e.money);
+    if (Number.isFinite(m)) { const band = Math.max(5000, Math.abs(game.character.money) * 0.5 + 20000); out.effects.money = Math.max(-band, Math.min(band, Math.round(m))); }
+    if (Array.isArray(parsed.relationship_changes)) {
+      for (const rc of parsed.relationship_changes) {
+        const r = game.relationships.find(x => x.alive && x.name.toLowerCase() === String(rc.name || "").toLowerCase());
+        let b = Number(rc.bar); if (r && Number.isFinite(b)) out.relationship_changes.push({ id: r.id, bar: Math.max(-25, Math.min(25, Math.round(b))) });
+      }
+    }
+    if (parsed.set_flags && typeof parsed.set_flags === "object") { for (const [k, v] of Object.entries(parsed.set_flags)) { if (ALLOWED_FLAGS.has(k)) out.set_flags[k] = !!v; } }
+    if (typeof parsed.grant_achievement === "string" && DATA.ACHIEVEMENTS[parsed.grant_achievement]) out.grant_achievement = parsed.grant_achievement;
+    if (typeof parsed.event_image === "string" && parsed.event_image.trim() && parsed.event_image !== "null") out.event_image = parsed.event_image.trim();
+    return out;
+  }
+
+  let busy = false;
+  async function handleTypedAction(text) {
+    text = text.trim(); if (!text || busy) return;
+    if (!game.character.alive) { showToast("Your character has died. Start a new life."); return; }
+    if (skipModels || (!llmReady && !useOllama)) {
+      const fb = keywordFallback(text);
+      if (fb) { log("system", `(${fb})`); }
+      else log("system", `(The AI interpreter isn't loaded — try the menu buttons, or wait for the model to finish loading. You typed: "${text}")`);
+      return;
+    }
+    busy = true; setControlsEnabled(false);
+    const thinking = log("system", "…thinking…");
+    let raw;
+    const t0 = performance.now();
+    try { raw = await generateLlmResponse(BITLIFE_SYSTEM, buildBitlifeUserPrompt(text)); }
+    catch (e) {
+      removeEntry(thinking);
+      const oom = /buffer|memory|allocat/i.test(e.message || "");
+      log("system", oom ? "(The AI ran out of memory. Try a shorter action.)" : `(AI error: ${e.message})`);
+      busy = false; setControlsEnabled(true); return;
+    }
+    removeEntry(thinking);
+    const parsed = extractFirstJson(raw);
+    const san = sanitizeLlmEffects(parsed);
+    const narration = san.narration || cleanNarration(raw) || "Something happened.";
+    applyEffects(san.effects);
+    for (const rc of san.relationship_changes) { const r = game.relationships.find(x => x.id === rc.id); if (r) r.bar = clampStat(r.bar + rc.bar); }
+    Object.assign(game.flags, san.set_flags);
+    if (san.grant_achievement) grantAchievement(san.grant_achievement);
+    const entry = log("llm", `“${text}” — ${narration}`);
+    setDebug([`typed: ${text}`, `llm: ${raw.length} chars in ${Math.round(performance.now() - t0)}ms`, `json: ${parsed ? "parsed" : "none"}`, `effects: ${JSON.stringify(san.effects)}`]);
+    if (san.event_image) generateAndAttach(entry, composeScenePrompt(san.event_image), "scene");
+    busy = false; setControlsEnabled(true);
+    checkDeath(); autosave(); renderAll();
+  }
+
+  function keywordFallback(text) {
+    const t = text.toLowerCase();
+    if (/gym|work ?out|exercise/.test(t)) { doActivity("mindBody", "gym"); return "Interpreted as: go to the gym"; }
+    if (/study|library|learn|read/.test(t)) { doActivity("mindBody", "library"); return "Interpreted as: study at the library"; }
+    if (/meditat|relax|calm/.test(t)) { doActivity("mindBody", "meditate"); return "Interpreted as: meditate"; }
+    if (/steal|shoplift|rob/.test(t)) { openModal("crime"); return "Opening Crime menu"; }
+    if (/invest|stock|buy shares/.test(t)) { openModal("assets"); return "Opening Assets menu"; }
+    if (/job|work|apply/.test(t)) { openModal("careers"); return "Opening Careers menu"; }
+    if (/gambl|casino|bet/.test(t)) { openModal("casino"); return "Opening Casino menu"; }
+    return null;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // IMAGE ENGINE + ART PRE-GENERATION
+  //   priority on every request: static asset  →  IndexedDB cache  →  live generate (then cache)
+  // ═══════════════════════════════════════════════════════════════════════════
+  let imgClient = null, imgReady = false, manifest = null;
+  const memCache = new Map(); // key -> objectURL (this session)
+  const pregenQueue = []; let pregenRunning = false;
+
+  // ── IndexedDB blob cache (persists across reloads & playthroughs) ──
+  let idb = null;
+  function openIdb() {
+    return new Promise((resolve) => {
+      try {
+        const req = indexedDB.open("bitlife-art", 1);
+        req.onupgradeneeded = () => { req.result.createObjectStore("img"); };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      } catch { resolve(null); }
+    });
+  }
+  async function idbGet(key) {
+    if (!idb) return null;
+    return new Promise((resolve) => { try { const tx = idb.transaction("img", "readonly").objectStore("img").get(key); tx.onsuccess = () => resolve(tx.result || null); tx.onerror = () => resolve(null); } catch { resolve(null); } });
+  }
+  async function idbPut(key, blob) { if (!idb) return; try { idb.transaction("img", "readwrite").objectStore("img").put(blob, key); } catch {} }
+
+  async function loadImageModel(onProgress) {
+    onProgress && onProgress("Loading Stable Diffusion 1.5…");
+    try {
+      imgClient = Txt2ImgWorkerClient.createDefault();
+      const wasmBase = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/";
+      const opts = { backendPreference: ["webgpu", "wasm"], wasmPaths: wasmBase, wasmNumThreads: navigator.hardwareConcurrency ? Math.min(4, navigator.hardwareConcurrency) : 2, wasmSimd: true };
+      if (useLocalImg) opts.modelBaseUrl = `${LOCAL_MODELS_BASE}/microsoft/stable-diffusion-v1.5-webnn`;
+      const res = await imgClient.load(IMG_MODEL_ID, opts, (p) => { onProgress && onProgress(`SD 1.5: ${p?.message || "loading"}${p?.pct != null ? " " + p.pct + "%" : ""}`, p?.pct); });
+      if (res && res.ok) { imgReady = true; onProgress && onProgress("SD 1.5 loaded.", 100); return true; }
+      onProgress && onProgress(`SD 1.5 load failed: ${res?.message || "?"}`); return false;
+    } catch (e) { onProgress && onProgress(`SD 1.5 load failed: ${e.message}`); return false; }
+  }
+
+  async function rawGenerate(prompt) {
+    if (!imgClient || !imgReady) return null;
+    const seed = Math.floor(Math.random() * 2147483647);
+    try {
+      const { promise } = imgClient.generate({ model: IMG_MODEL_ID, prompt, seed, steps: IMG_STEPS, guidanceScale: IMG_GUIDANCE }, () => {}, { busyPolicy: "queue", debounceMs: 200 });
+      const res = await promise;
+      if (res && res.ok && res.blob) return res.blob;
+    } catch (e) { console.warn("img gen failed", e); }
+    return null;
+  }
+
+  // Resolve an image by cache key. Returns an object URL or null.
+  async function getImage(key, prompt) {
+    if (memCache.has(key)) return memCache.get(key);
+    // 1) static asset shipped in ./assets via manifest
+    if (manifest && manifest[key]) { const url = "./assets/" + manifest[key]; memCache.set(key, url); return url; }
+    // 2) IndexedDB persistent cache
+    const cached = await idbGet(key);
+    if (cached) { const url = URL.createObjectURL(cached); memCache.set(key, url); return url; }
+    // 3) live generate
+    if (!imgReady) return null;
+    const blob = await rawGenerate(prompt);
+    if (!blob) return null;
+    idbPut(key, blob);
+    const url = URL.createObjectURL(blob);
+    memCache.set(key, url);
+    return url;
+  }
+
+  // ── prompt composition (subject-first, capped for CLIP 77 tokens) ──
+  function bucket(v, names) { return names[Math.min(names.length - 1, Math.floor(v / (100 / names.length)))]; }
+  function composeAvatarPrompt(c) {
+    const looks = bucket(c.stats.looks, ["plain", "average-looking", "attractive", "stunning"]);
+    const wealth = c.money > 1000000 ? "wealthy, fine clothes" : c.money > 100000 ? "well-off" : c.money < 0 ? "struggling" : "ordinary";
+    const stage = { baby: "baby", child: "young child", teen: "teenager", youngAdult: "young adult", adult: "adult", middleAge: "middle-aged person", senior: "elderly person" }[c.lifeStage] || "person";
+    const job = c.job ? `, ${c.job.title}` : "";
+    let p = `portrait of a ${looks} ${c.gender} ${stage}${job}, ${wealth}, head and shoulders, ${ART_STYLE}`;
+    return p.slice(0, SD_PROMPT_MAX_CHARS);
+  }
+  function composeScenePrompt(desc) {
+    let p = `${desc}, ${SCENE_STYLE}`;
+    return p.slice(0, SD_PROMPT_MAX_CHARS);
+  }
+  const SCENE_PROMPTS = {
+    birth: "a newborn baby in a hospital, joyful parents",
+    firstDay: "a child on their first day of school with a backpack",
+    graduation: "a graduate in cap and gown holding a diploma",
+    newJob: "a person in work uniform on their first day at a new job",
+    promotion: "a happy professional celebrating a promotion in an office",
+    wedding: "a couple getting married at a wedding ceremony",
+    baby: "happy parents holding a newborn baby",
+    prison: "a person in an orange jumpsuit behind prison bars",
+    lottery: "a person celebrating with a shower of money, jackpot",
+    death: "a quiet graveyard with a single tombstone at dusk",
+    homeowner: "a person holding keys in front of a new house",
+    activity: "a person engaged in a life activity"
+  };
+
+  function appearanceHash(c) {
+    return [c.lifeStage, c.gender, bucket(c.stats.looks, ["a", "b", "c", "d"]), c.job ? c.job.id : "none", c.money > 1000000 ? "rich" : c.money > 100000 ? "well" : c.money < 0 ? "debt" : "mid"].join("|");
+  }
+  async function refreshAvatar(force) {
+    const c = game.character;
+    const hash = appearanceHash(c);
+    if (!force && hash === c.appearanceHash && memCache.has("avatar:" + hash)) return;
+    c.appearanceHash = hash;
+    const key = "avatar:" + hash;
+    setAvatarSpinner(true);
+    const url = await getImage(key, composeAvatarPrompt(c));
+    setAvatarSpinner(false);
+    if (url) setAvatarImg(url);
+  }
+
+  function maybeSceneImage(entry) {
+    if (!entry.sceneKey) return;
+    const promptDesc = SCENE_PROMPTS[entry.sceneKey] || entry.sceneKey;
+    const key = "scene:" + entry.sceneKey;
+    generateAndAttach(entry, composeScenePrompt(promptDesc), "scene", key);
+  }
+
+  async function generateAndAttach(entry, prompt, kind, key) {
+    if (skipModels) return;
+    key = key || (kind + ":" + simpleHash(prompt));
+    // if cached/static we can show instantly even before SD finishes loading
+    const cachedStatic = (manifest && manifest[key]) || memCache.has(key) || await idbGet(key);
+    if (!imgReady && !cachedStatic) return; // nothing to show yet; idle pre-gen may fill later
+    markEntryGenerating(entry);
+    const url = await getImage(key, prompt);
+    if (url) { entry.imageUrl = url; updateEntryImage(entry, url); }
+    else clearEntryGenerating(entry);
+  }
+
+  function simpleHash(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = (Math.imul(31, h) + s.charCodeAt(i)) | 0; } return (h >>> 0).toString(36); }
+
+  // ── idle background pre-generation: current+next avatar + common scenes ──
+  function enqueuePregen() {
+    if (skipModels) return;
+    const c = game.character;
+    // avatars for current + next life stage
+    const stages = [c.lifeStage, nextLifeStage(c.lifeStage)].filter(Boolean);
+    for (const stage of stages) {
+      const probe = Object.assign({}, c, { lifeStage: stage });
+      const h = appearanceHash(probe);
+      pregenQueue.push({ key: "avatar:" + h, prompt: composeAvatarPrompt(probe) });
+    }
+    // common life-event scenes
+    for (const k of (DATA.SCENE_EVENTS || [])) {
+      pregenQueue.push({ key: "scene:" + k, prompt: composeScenePrompt(SCENE_PROMPTS[k] || k) });
+    }
+    runPregen();
+  }
+  async function runPregen() {
+    if (pregenRunning || !imgReady) return;
+    pregenRunning = true;
+    setPill("art", "Pre-gen: running", false);
+    const idle = (cb) => (window.requestIdleCallback ? requestIdleCallback(cb, { timeout: 1500 }) : setTimeout(cb, 300));
+    const step = async () => {
+      // pause while the player's action needs the GPU
+      if (busy) { idle(step); return; }
+      const job = pregenQueue.shift();
+      if (!job) { pregenRunning = false; setPill("art", `Pre-gen: ${memCache.size} ready`, true); return; }
+      if (!memCache.has(job.key) && !(manifest && manifest[job.key]) && !(await idbGet(job.key))) {
+        await getImage(job.key, job.prompt); // generates + caches in IndexedDB
+      }
+      idle(step);
+    };
+    idle(step);
+  }
+
+  async function loadManifest() {
+    try { const r = await fetch("./assets/manifest.json", { cache: "no-cache" }); if (r.ok) { manifest = await r.json(); return Object.keys(manifest).length; } } catch {}
+    manifest = null; return 0;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SAVE / LOAD (localStorage) — pattern from adventure
+  // ═══════════════════════════════════════════════════════════════════════════
+  const SAVE_INDEX = "bitlife_saves_index";
+  function stripTransient(g) {
+    const clone = JSON.parse(JSON.stringify(g, (k, v) => (k === "imageUrl") ? null : v));
+    return clone;
+  }
+  function listSavedLives() { try { return JSON.parse(localStorage.getItem(SAVE_INDEX) || "[]"); } catch { return []; } }
+  function autosave() {
+    if (!game) return;
+    try {
+      const slot = game._slot || (game._slot = "s" + Date.now().toString(36));
+      localStorage.setItem("bitlife_save_" + slot, JSON.stringify(stripTransient(game)));
+      const idx = listSavedLives().filter(x => x.slot !== slot);
+      idx.unshift({ slot, name: game.character.name, age: game.character.age, alive: game.character.alive, ts: Date.now() });
+      localStorage.setItem(SAVE_INDEX, JSON.stringify(idx.slice(0, 12)));
+    } catch (e) { /* quota */ }
+  }
+  function loadLife(slot) {
+    try {
+      const raw = localStorage.getItem("bitlife_save_" + slot); if (!raw) return false;
+      game = JSON.parse(raw); game._slot = slot;
+      _rng = mulberry32(game.rngState || game.seed || 1);
+      relId = Math.max(1, ...game.relationships.map(r => r.id || 0)) + 1;
+      return true;
+    } catch { return false; }
+  }
+  function deleteLife(slot) { localStorage.removeItem("bitlife_save_" + slot); localStorage.setItem(SAVE_INDEX, JSON.stringify(listSavedLives().filter(x => x.slot !== slot))); }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // UI RENDERING
+  // ═══════════════════════════════════════════════════════════════════════════
+  const $ = (id) => document.getElementById(id);
+  const fmtMoney = (n) => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString();
+  const fmtPrice = (p) => p >= 1 ? p.toLocaleString(undefined, { maximumFractionDigits: 2 }) : p.toFixed(4);
+
+  const BAR_DEFS = [["health", "❤️", "var(--health)"], ["happiness", "😀", "var(--happy)"], ["smarts", "🧠", "var(--smarts)"], ["looks", "✨", "var(--looks)"]];
+  function renderHeader() {
+    const c = game.character;
+    $("h-name").textContent = c.name;
+    $("h-sub").textContent = `Age ${c.age} · ${lifeStageLabel(c.lifeStage)} · ${c.country}${c.job ? " · " + c.job.levelName + " " + c.job.title : ""}${game.prison.inPrison ? " · 🔒 PRISON" : ""}`;
+    $("h-money").textContent = fmtMoney(c.money);
+    const bars = $("h-bars"); bars.innerHTML = "";
+    for (const [k, icon, color] of BAR_DEFS) {
+      const v = c.stats[k];
+      const row = document.createElement("div"); row.className = "bar-row";
+      row.innerHTML = `<span class="lbl">${icon}</span><div class="bar-track"><div class="bar-fill" style="width:${v}%;background:${color}"></div></div><span style="width:24px;text-align:right">${v}</span>`;
+      bars.appendChild(row);
+    }
+    if (c.fame > 0) { const row = document.createElement("div"); row.className = "bar-row"; row.innerHTML = `<span class="lbl">🌟</span><div class="bar-track"><div class="bar-fill" style="width:${c.fame}%;background:var(--accent)"></div></div><span style="width:24px;text-align:right">${c.fame}</span>`; bars.appendChild(row); }
+    const rib = $("h-ribbons"); rib.innerHTML = "";
+    for (const id of game.achievements) { const a = DATA.ACHIEVEMENTS[id]; if (a) { const s = document.createElement("span"); s.className = "ribbon"; s.textContent = `${a.icon || "🏅"} ${a.label}`; rib.appendChild(s); } }
+  }
+
+  function renderEntry(e) {
+    const feed = $("feed");
+    const div = document.createElement("div");
+    div.className = "entry kind-" + e.kind;
+    div.dataset.eidx = game.log.indexOf(e);
+    div.innerHTML = `<div class="meta">Age ${e.age} · ${e.year}</div><div class="body"></div>`;
+    div.querySelector(".body").textContent = e.text;
+    if (e.imageUrl) { const img = document.createElement("img"); img.className = "scene"; img.src = e.imageUrl; div.appendChild(img); }
+    feed.appendChild(div);
+    feed.scrollTop = feed.scrollHeight;
+    e._el = div;
+  }
+  function removeEntry(e) { if (e && e._el) e._el.remove(); const i = game.log.indexOf(e); if (i >= 0) game.log.splice(i, 1); }
+  function markEntryGenerating(e) { if (!e._el || e._el.querySelector(".imgwait") || e._el.querySelector("img.scene")) return; const d = document.createElement("div"); d.className = "imgwait"; d.textContent = "🎨 painting this moment…"; e._el.appendChild(d); }
+  function clearEntryGenerating(e) { const w = e._el && e._el.querySelector(".imgwait"); if (w) w.remove(); }
+  function updateEntryImage(e, url) { clearEntryGenerating(e); if (!e._el) return; let img = e._el.querySelector("img.scene"); if (!img) { img = document.createElement("img"); img.className = "scene"; e._el.appendChild(img); } img.src = url; $("feed").scrollTop = $("feed").scrollHeight; }
+
+  function renderFeed() { const feed = $("feed"); feed.innerHTML = ""; for (const e of game.log) renderEntry(e); }
+  function renderAll() { renderHeader(); updateAgeButton(); }
+  function updateAgeButton() {
+    const dead = !game.character.alive, pend = !!game.pendingEvent;
+    $("btn-ageup").disabled = dead || pend || busy;
+    $("btn-ageup").textContent = dead ? "💀 You have died" : pend ? "Resolve the event…" : "Age Up +1 🎂";
+  }
+
+  function setAvatarImg(url) { const a = $("avatar"); a.innerHTML = `<img src="${url}" alt="avatar"/>`; }
+  function setAvatarSpinner(on) { const ph = $("avatar-ph"); if (ph && !$("avatar").querySelector("img")) ph.textContent = on ? "⏳" : avatarEmoji(); else { let s = $("avatar").querySelector(".spin"); if (on && !s) { s = document.createElement("span"); s.className = "spin"; s.textContent = "🎨"; $("avatar").appendChild(s); } else if (!on && s) s.remove(); } }
+  function avatarEmoji() { const c = game.character; const map = { baby: "👶", child: "🧒", teen: "🧑", youngAdult: "🧑", adult: "🧑", middleAge: "🧑", senior: "🧓" }; return map[c.lifeStage] || "🙂"; }
+
+  function setControlsEnabled(on) { $("btn-send").disabled = !on; $("action-input").disabled = !on; updateAgeButton(); }
+  function setDebug(lines) { $("dbg").textContent = (Array.isArray(lines) ? lines : [lines]).join("\n"); }
+
+  function showToast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("on"), 2200); }
+  function setPill(which, text, on) { const el = $("pill-" + which); if (!el) return; el.textContent = text; el.classList.toggle("on", !!on); }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MODALS
+  // ═══════════════════════════════════════════════════════════════════════════
+  function closeModal() { $("modal-bg").classList.remove("on"); }
+  function modalShell(title, bodyHtml) {
+    $("modal").innerHTML = `<h2>${title}<button class="x" id="modal-x">✕</button></h2>${bodyHtml}`;
+    $("modal-bg").classList.add("on");
+    $("modal-x").onclick = closeModal;
+  }
+  $("modal-bg").addEventListener("click", (e) => { if (e.target === $("modal-bg")) closeModal(); });
+
+  function optRow(title, desc, btnLabel, onClick, disabled) {
+    const div = document.createElement("div"); div.className = "opt" + (disabled ? " disabled" : "");
+    div.innerHTML = `<div class="info"><div class="t">${title}</div><div class="d">${desc || ""}</div></div>`;
+    const b = document.createElement("button"); b.textContent = btnLabel; b.disabled = !!disabled; b.onclick = onClick;
+    div.appendChild(b); return div;
+  }
+
+  function openModal(tab) {
+    if (tab === "menu") return openMenuModal();
+    if (tab === "activities") return openActivities();
+    if (tab === "careers") return openCareers();
+    if (tab === "crime") return openCrime();
+    if (tab === "casino") return openCasino();
+    if (tab === "relationships") return openRelationships();
+    if (tab === "assets") return openAssets();
+    if (tab === "achievements") return openAchievements();
+  }
+
+  function effectsLabel(act) {
+    const parts = [];
+    for (const [k, v] of Object.entries(act.effects || {})) parts.push(`${k} ${v > 0 ? "+" : ""}${v}`);
+    if (act.cost) parts.unshift(fmtMoney(-act.cost));
+    return parts.join(", ");
+  }
+
+  function openActivities() {
+    modalShell("🧠 Activities", `<div id="acts"></div>`);
+    const wrap = $("acts");
+    const sections = [["Mind & Body", "mindBody"], ["Doctor", "doctor"], ["Education", "education"]];
+    for (const [label, cat] of sections) {
+      const h = document.createElement("div"); h.className = "sub-h"; h.textContent = label; wrap.appendChild(h);
+      for (const act of (DATA.ACTIVITIES[cat] || [])) {
+        const gated = (act.minAge != null && game.character.age < act.minAge) || (act.requires && !requirementsMet(act.requires));
+        wrap.appendChild(optRow(act.label, effectsLabel(act) + (act.minAge ? ` · ${act.minAge}+` : ""), "Do", () => doActivity(cat, act.id), gated || game.prison.inPrison));
+      }
+    }
+    // college enrollment
+    if (game.character.education.level === "highGrad") {
+      const h = document.createElement("div"); h.className = "sub-h"; h.textContent = "College"; wrap.appendChild(h);
+      for (const d of DATA.DEGREES) wrap.appendChild(optRow("Study " + d.label, `needs ${d.minSmarts} smarts${d.grad ? " · grad degree" : ""}`, "Enroll", () => applyCollege(d.id), game.character.stats.smarts < d.minSmarts));
+    }
+  }
+
+  function openCareers() {
+    const c = game.character;
+    let html = "";
+    if (c.job) html += `<div class="sub-h">Current Job</div><div class="opt"><div class="info"><div class="t">${c.job.levelName} ${c.job.title}</div><div class="d">$${c.job.salary.toLocaleString()}/yr · performance ${c.job.performance} · ${c.job.yearsHeld||0}y</div></div></div>
+      <div class="row" style="margin-bottom:10px"><button id="j-work">Work harder</button><button id="j-promo">Ask for promotion</button><button id="j-quit">Quit</button></div>`;
+    html += `<div class="sub-h">Open Positions</div><div id="job-list"></div>`;
+    modalShell("💼 Careers", html);
+    if (c.job) { $("j-work").onclick = workHarder; $("j-promo").onclick = askPromotion; $("j-quit").onclick = quitJob; }
+    const list = $("job-list");
+    for (const car of DATA.CAREERS) {
+      const ok = requirementsMet(car.requires);
+      const req = car.requires.degree ? `degree: ${car.requires.degree}` : car.requires.level ? car.requires.level : `${car.requires.minAge||0}+`;
+      list.appendChild(optRow(car.title, `$${car.baseSalary.toLocaleString()}/yr · needs ${req}`, "Apply", () => applyJob(car.id), !ok || game.prison.inPrison));
+    }
+  }
+
+  function openCrime() {
+    modalShell("🦹 Crime", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Higher payoffs mean higher chance of prison.</div><div id="crime-list"></div>`);
+    for (const cr of DATA.ACTIVITIES.crime) {
+      const gated = game.character.age < cr.minAge || game.prison.inPrison;
+      const desc = cr.id === "murder" ? `${Math.round(cr.catchChance*100)}% caught · ${cr.jail[0]}-${cr.jail[1]}y` : `$${cr.payout[0]}-${cr.payout[1].toLocaleString()} · ${Math.round(cr.catchChance*100)}% caught · ${cr.jail[0]}-${cr.jail[1]}y`;
+      $("crime-list").appendChild(optRow(cr.label, desc + ` · ${cr.minAge}+`, "Attempt", () => commitCrime(cr.id), gated));
+    }
+  }
+
+  function openCasino() {
+    const wager = (window._lastWager || 100);
+    modalShell("🎰 Casino", `<div class="field"><label>Wager ($)</label><input id="wager" type="number" value="${wager}" min="1" /></div><div id="casino-list"></div>`);
+    $("wager").oninput = (e) => { window._lastWager = parseInt(e.target.value || "0", 10); };
+    for (const g of DATA.ACTIVITIES.casino) {
+      const gated = game.character.age < g.minAge;
+      $("casino-list").appendChild(optRow(g.label, `${Math.round(g.winChance*100)}% win · ${g.payoutMult[0]}-${g.payoutMult[1]}x · ${g.minAge}+`, "Play", () => gamble(g.id, parseInt($("wager").value || "0", 10)), gated));
+    }
+  }
+
+  function openRelationships() {
+    modalShell("👪 Relationships", `<div id="rel-list"></div>`);
+    const list = $("rel-list");
+    const alive = game.relationships.filter(r => r.alive);
+    if (!alive.length) { list.innerHTML = `<div class="hint" style="color:var(--text-muted)">No living relationships.</div>`; }
+    for (const r of alive) {
+      const div = document.createElement("div"); div.className = "opt"; div.style.flexWrap = "wrap";
+      div.innerHTML = `<div class="info" style="flex-basis:100%"><div class="t">${r.name} <span style="color:var(--text-muted);font-size:11px">(${r.relation}, age ${r.age})</span></div><div class="bar-track" style="margin-top:4px"><div class="bar-fill" style="width:${r.bar}%;background:var(--looks)"></div></div></div>`;
+      const acts = document.createElement("div"); acts.style.cssText = "display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;flex-basis:100%";
+      const add = (label, action) => { const b = document.createElement("button"); b.textContent = label; b.style.cssText = "flex:1 1 30%;font-size:12px;padding:6px"; b.onclick = () => interact(r.id, action); acts.appendChild(b); };
+      add("Compliment", "compliment"); add("Talk", "conversation"); add("Spend time", "spendTime"); add("Gift $200", "gift"); add("Give $1k", "giveMoney"); add("Insult", "insult");
+      if (!["mother", "father", "sibling", "child", "pet", "grandparent"].includes(r.relation)) add("Date", "date");
+      if (r.flags.dating && !r.flags.married) add("Propose", "propose");
+      if (r.flags.married || r.flags.dating) { add("Have baby", "haveBaby"); add("Break up", "breakUp"); }
+      div.appendChild(acts); list.appendChild(div);
+    }
+  }
+
+  function sparkline(hist) {
+    if (!hist || hist.length < 2) return "";
+    const w = 60, h = 18, min = Math.min(...hist), max = Math.max(...hist), span = (max - min) || 1;
+    const pts = hist.map((v, i) => `${(i / (hist.length - 1) * w).toFixed(1)},${(h - (v - min) / span * h).toFixed(1)}`).join(" ");
+    const up = hist[hist.length - 1] >= hist[0];
+    return `<svg class="spark" width="${w}" height="${h}"><polyline points="${pts}" fill="none" stroke="${up ? "var(--ok)" : "var(--err)"}" stroke-width="1.5"/></svg>`;
+  }
+
+  function openAssets() {
+    let html = `<div class="sub-h">Your money: ${fmtMoney(game.character.money)}</div>`;
+    html += `<div id="asset-body"></div>`;
+    modalShell("💹 Assets & Investments", html);
+    const body = $("asset-body");
+    const groups = [["Stocks", DATA.MARKET.stocks], ["Crypto", DATA.MARKET.crypto], ["Bonds", DATA.MARKET.bonds]];
+    for (const [label, arr] of groups) {
+      const h = document.createElement("div"); h.className = "sub-h"; h.textContent = label; body.appendChild(h);
+      for (const a of (arr || [])) {
+        const price = game.market.prices[a.id], hold = holdingFor(a.id);
+        const div = document.createElement("div"); div.className = "opt"; div.style.flexWrap = "wrap";
+        const tip = game.activeTip && game.activeTip.assetId === a.id ? " 💡" : "";
+        div.innerHTML = `<div class="info" style="flex-basis:100%;display:flex;justify-content:space-between;align-items:center">
+          <div><div class="t">${a.name}${tip} <span style="color:var(--text-muted);font-size:11px">$${fmtPrice(price)}</span></div>
+          <div class="d">${hold ? `you own ${hold.shares} (avg $${fmtPrice(hold.avgCost)}, val ${fmtMoney(hold.shares*price)})` : "not held"}${a.taxable ? " · taxable" : ""}</div></div>
+          ${sparkline(game.market.history[a.id])}</div>`;
+        const ctr = document.createElement("div"); ctr.style.cssText = "display:flex;gap:4px;margin-top:6px;flex-basis:100%;align-items:center";
+        const qty = document.createElement("input"); qty.type = "number"; qty.value = "1"; qty.min = "1"; qty.style.cssText = "flex:1;padding:6px";
+        const buy = document.createElement("button"); buy.textContent = "Buy"; buy.style.flex = "none"; buy.onclick = () => buyAsset(a.id, parseInt(qty.value || "0", 10));
+        const sell = document.createElement("button"); sell.textContent = "Sell"; sell.style.flex = "none"; sell.disabled = !hold; sell.onclick = () => sellAsset(a.id, parseInt(qty.value || "0", 10));
+        ctr.appendChild(qty); ctr.appendChild(buy); ctr.appendChild(sell);
+        div.appendChild(ctr); body.appendChild(div);
+      }
+    }
+    // real estate
+    const h = document.createElement("div"); h.className = "sub-h"; h.textContent = "Real Estate"; body.appendChild(h);
+    for (const re of DATA.REAL_ESTATE) body.appendChild(optRow(re.name, `${fmtMoney(re.price)} · +${Math.round(re.apprec*100)}%/yr`, "Buy", () => buyRealEstate(re.id), game.character.money < re.price));
+    for (const owned of game.assets.filter(a => a.type === "realEstate")) body.appendChild(optRow("🏠 " + owned.name + " (owned)", `value ${fmtMoney(owned.currentValue)}`, "Sell", () => sellRealEstate(owned.id)));
+  }
+
+  function openAchievements() {
+    let html = `<div class="ach-grid">`;
+    for (const [id, a] of Object.entries(DATA.ACHIEVEMENTS)) {
+      const got = game.achievements.includes(id);
+      html += `<div class="ach ${got ? "" : "locked"}"><div style="font-size:16px">${a.icon || "🏅"}</div><div style="font-weight:600">${a.label}</div><div style="color:var(--text-muted)">${got ? a.desc : "Locked"}</div></div>`;
+    }
+    html += `</div>`;
+    modalShell("🏅 Achievements", html);
+  }
+
+  function openMenuModal() {
+    const html = `<div class="opt"><div class="info"><div class="t">Save this life</div><div class="d">Auto-saves every action; this forces a save.</div></div><button id="m-save">Save</button></div>
+      <div class="opt"><div class="info"><div class="t">New life</div><div class="d">Abandon this life and start fresh.</div></div><button id="m-new">New</button></div>
+      <div class="opt"><div class="info"><div class="t">Seed</div><div class="d">${game.seed} (same seed reproduces this life)</div></div></div>`;
+    modalShell("☰ Menu", html);
+    $("m-save").onclick = () => { autosave(); showToast("Saved."); closeModal(); };
+    $("m-new").onclick = () => { if (confirm("Abandon this life and start a new one?")) location.reload(); };
+  }
+
+  function openChoicePopup(ev) {
+    let html = `<div style="margin-bottom:12px">${ev.text}</div>`;
+    modalShell("⚡ Life Event", html + `<div id="choices"></div>`);
+    $("modal-x").style.display = "none"; // must choose
+    const wrap = $("choices");
+    ev.choices.forEach((ch, i) => { const b = document.createElement("button"); b.className = "choice-btn"; b.textContent = ch.label; b.onclick = () => applyChoice(ev.id, i); wrap.appendChild(b); });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DEATH SCREEN
+  // ═══════════════════════════════════════════════════════════════════════════
+  function showDeathScreen() {
+    const c = game.character;
+    const ribbons = game.achievements.map(id => { const a = DATA.ACHIEVEMENTS[id]; return a ? `${a.icon} ${a.label}` : ""; }).filter(Boolean).join(" · ") || "none";
+    const html = `<div style="text-align:center">
+      <div style="font-size:40px">💀</div>
+      <div style="font-size:18px;font-weight:700;margin:6px 0">${c.name}</div>
+      <div style="color:var(--text-muted)">${c.birthYear} – ${game.market.year} · died at ${c.age} of ${c.causeOfDeath}</div>
+      <div style="margin:12px 0;text-align:left">
+        Final money: ${fmtMoney(c.money)}<br/>
+        Health ${c.stats.health} · Happiness ${c.stats.happiness} · Smarts ${c.stats.smarts} · Looks ${c.stats.looks}<br/>
+        Achievements: ${ribbons}
+      </div>
+    </div>
+    <button class="primary" id="d-new" style="width:100%;margin-top:8px">Start a New Life</button>`;
+    modalShell("The End", html);
+    $("modal-x").onclick = () => { closeModal(); };
+    $("d-new").onclick = () => location.reload();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BOOT / FLOW
+  // ═══════════════════════════════════════════════════════════════════════════
+  function setProgress(text, pct) {
+    if (text != null) $("load-status").textContent = text;
+    if (pct != null) { $("prog").style.display = "block"; $("prog-fill").style.width = Math.max(0, Math.min(100, pct)) + "%"; }
+  }
+
+  async function detectLocalModels() {
+    if (!["localhost", "127.0.0.1", "0.0.0.0"].includes(location.hostname)) return;
+    try {
+      const [llmOk, imgOk] = await Promise.all([
+        fetch(`${LOCAL_MODELS_BASE}/${LLM_MODEL_ID}/config.json`, { method: "HEAD" }).then(r => r.ok).catch(() => false),
+        fetch(`${LOCAL_MODELS_BASE}/microsoft/stable-diffusion-v1.5-webnn/text-encoder.onnx`, { method: "HEAD" }).then(r => r.ok).catch(() => false)
+      ]);
+      useLocalLlm = llmOk; useLocalImg = imgOk;
+    } catch {}
+  }
+
+  function startGameUI() {
+    $("overlay").style.display = "none";
+    $("hdr").style.display = ""; $("feed").style.display = ""; $("bottom").style.display = "";
+    renderFeed(); renderAll();
+    refreshAvatar(true);
+  }
+
+  async function boot() {
+    // populate country select
+    const csel = $("nl-country"); csel.innerHTML = `<option value="">Random</option>` + DATA.COUNTRIES.map(c => `<option>${c}</option>`).join("");
+    // saved lives
+    renderSavedList();
+  }
+
+  function renderSavedList() {
+    const list = $("saved-list"); const saves = listSavedLives();
+    if (!saves.length) { list.innerHTML = `<em class="hint">No saved lives yet.</em>`; return; }
+    list.innerHTML = "";
+    for (const s of saves) {
+      const div = document.createElement("div"); div.className = "saved-item";
+      div.innerHTML = `<span>${s.name} · age ${s.age} ${s.alive ? "" : "💀"}</span>`;
+      const wrap = document.createElement("div");
+      const load = document.createElement("button"); load.textContent = "Load"; load.onclick = () => startFromSlot(s.slot);
+      const del = document.createElement("button"); del.textContent = "✕"; del.onclick = () => { deleteLife(s.slot); renderSavedList(); };
+      wrap.appendChild(load); wrap.appendChild(del); div.appendChild(wrap); list.appendChild(div);
+    }
+  }
+
+  // picker card selection
+  document.querySelectorAll(".card[data-pick]").forEach(card => card.addEventListener("click", (e) => {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "OPTION") return;
+    document.querySelectorAll(".card[data-pick]").forEach(c => c.classList.remove("sel"));
+    card.classList.add("sel");
+  }));
+  $("use-ollama").addEventListener("change", (e) => $("ollama-fields").classList.toggle("on", e.target.checked));
+
+  async function startModelsBackground() {
+    if (skipModels) { setPill("llm", "LLM: skipped", false); setPill("img", "Image: skipped", false); setPill("art", "Pre-gen: off", false); return; }
+    idb = await openIdb();
+    await loadManifest();
+    if (manifest) setPill("art", `Pre-gen: ${Object.keys(manifest).length} static`, true);
+    // LLM
+    if (useOllama) { llmReady = false; setPill("llm", `LLM: Ollama (${ollamaModel || "?"})`, true); }
+    else { setPill("llm", "LLM: loading…", false); loadLlm((t, p) => { setPill("llm", t.startsWith("LLM loaded") ? "LLM: ready" : "LLM: loading…", llmReady); }).then(ok => setPill("llm", ok ? "LLM: ready" : "LLM: unavailable", ok)); }
+    // Image
+    setPill("img", "Image: loading…", false);
+    loadImageModel((t, p) => {}).then(ok => {
+      setPill("img", ok ? "Image: ready" : "Image: unavailable", ok);
+      if (ok) { refreshAvatar(true); enqueuePregen(); }
+    });
+  }
+
+  $("btn-start").addEventListener("click", async () => {
+    skipModels = $("skip-models").checked;
+    useOllama = $("use-ollama").checked;
+    ollamaBase = $("ollama-base").value.trim(); ollamaModel = $("ollama-model").value.trim();
+    if (useOllama && !ollamaModel) { showToast("Enter an Ollama model name."); return; }
+
+    const picked = document.querySelector(".card.sel")?.dataset.pick || "new";
+    await detectLocalModels();
+
+    if (picked === "load") {
+      const saves = listSavedLives();
+      if (!saves.length) { showToast("No saved lives — start a new one."); return; }
+      return startFromSlot(saves[0].slot);
+    }
+    // new life
+    createNewLife({ name: $("nl-name").value, gender: $("nl-gender").value, country: $("nl-country").value, seed: $("nl-seed").value });
+    startGameUI();
+    startModelsBackground();
+  });
+
+  function startFromSlot(slot) {
+    skipModels = $("skip-models").checked;
+    useOllama = $("use-ollama").checked;
+    ollamaBase = $("ollama-base").value.trim(); ollamaModel = $("ollama-model").value.trim();
+    if (!loadLife(slot)) { showToast("Failed to load."); return; }
+    startGameUI();
+    startModelsBackground();
+    if (!game.character.alive) setTimeout(showDeathScreen, 400);
+  }
+
+  // controls wiring
+  $("btn-ageup").addEventListener("click", ageUp);
+  $("btn-send").addEventListener("click", () => { const v = $("action-input").value; $("action-input").value = ""; handleTypedAction(v); });
+  $("action-input").addEventListener("keydown", (e) => { if (e.key === "Enter") { const v = $("action-input").value; $("action-input").value = ""; handleTypedAction(v); } });
+  document.querySelectorAll(".tabbar button[data-tab]").forEach(b => b.addEventListener("click", () => openModal(b.dataset.tab)));
+  $("btn-menu-relationships").addEventListener("click", () => openModal("relationships"));
+  $("btn-menu-assets").addEventListener("click", () => openModal("assets"));
+  $("dbg-toggle").addEventListener("click", () => { const d = $("dbg"); const open = d.style.display === "block"; d.style.display = open ? "none" : "block"; $("dbg-toggle").textContent = (open ? "▸" : "▾") + " Debug"; });
+
+  // ── go ──
+  (async () => { const src = await loadData(); await boot(); setProgress(`Content loaded (${src}). Choose how to begin.`); })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+import type { BackendId, Capabilities, GenerateParams, GenerateResult, LoadOptions, LoadResult, ModelId, ModelInfo } from './types.js';
+export type { Capabilities, BackendId, ModelId, ModelInfo, LoadOptions, LoadResult, GenerateParams, GenerateResult } from './types.js';
+import { getModelInfo } from './registry.js';
+export declare function detectCapabilities(): Promise<Capabilities>;
+export declare function listBackends(): BackendId[];
+export declare function listSupportedModels(): ModelInfo[];
+export { getModelInfo };
+export declare function loadModel(id: ModelId, options?: LoadOptions): Promise<LoadResult>;
+export declare function isModelLoaded(id: ModelId): boolean;
+export declare function unloadModel(id: ModelId): Promise<void>;
+export declare function purgeModelCache(id: ModelId): Promise<void>;
+export declare function purgeAllCaches(): Promise<void>;
+export declare function generateImage(params: GenerateParams): Promise<GenerateResult>;
+export { Txt2ImgWorkerClient, createTxt2ImgWorker } from './worker/client.js';
+export type { WorkerRequest, WorkerResponse, WorkerBusyPolicy } from './worker/protocol.js';
