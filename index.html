@@ -235,6 +235,7 @@
         <span class="pill" id="pill-llm">LLM: idle</span>
         <span class="pill" id="pill-img">Image: idle</span>
         <span class="pill" id="pill-art">Pre-gen: idle</span>
+        <span class="pill" id="pill-offline">Offline: caching…</span>
       </div>
     </div>
 
@@ -1176,6 +1177,12 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       "The image diffuser (Stable Diffusion 1.5, ~2 GB) paints your avatar and scene art — also background-loaded.",
       "Everything is cached after first load — next visit is instant."
     ]},
+    { topic: "offline", aliases: ["internet", "connection", "disconnect", "no internet", "download once", "cache", "cached", "airplane"], text: [
+      "Download once, then play forever offline. On your first visit the page, the local LLM and the diffuser are cached in your browser.",
+      "Watch the 'Offline-ready ✓' pill (and the toast). Once it appears, you can disconnect from the internet entirely — the game, the typed-AI, and image generation all keep working.",
+      "The big model weights live in your browser's storage; clearing site data is the only thing that forces a re-download.",
+      "Same-origin files update automatically when you're online and reload; nothing phones home during play."
+    ]},
     { topic: "ollama", aliases: ["local server"], text: [
       "If you have Ollama running locally (http://127.0.0.1:11434), tick 'Use local Ollama' on the start screen and give a model name (gemma2, llama3.2, qwen2.5…).",
       "Your typed actions are then interpreted by Ollama instead of the in-browser Gemma — faster on machines that can't run WebGPU well.",
@@ -1554,7 +1561,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const feed = $("feed");
     const div = document.createElement("div");
     div.className = "entry kind-" + e.kind;
-    div.dataset.eidx = game.log.indexOf(e);
+    div.dataset.eidx = game ? game.log.indexOf(e) : -1; // help/hint can render before a life exists
     div.innerHTML = `<div class="meta">Age ${e.age} · ${e.year}</div><div class="body"></div>`;
     div.querySelector(".body").textContent = e.text;
     if (e.imageUrl) { const img = document.createElement("img"); img.className = "scene"; img.src = e.imageUrl; div.appendChild(img); }
@@ -1584,6 +1591,30 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
 
   function showToast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("on"), 2200); }
   function setPill(which, text, on) { const el = $("pill-" + which); if (!el) return; el.textContent = text; el.classList.toggle("on", !!on); }
+
+  // ── Offline-ready signal ──
+  // True once the service worker controls the page AND everything needed to run
+  // disconnected has finished downloading (libraries cache the weights; our SW
+  // caches the app shell + CDN). Then the user can close the network entirely.
+  let _announcedOffline = false;
+  function isOfflineReady() {
+    const swActive = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+    if (!swActive) return false;
+    if (skipModels) return true;               // deterministic game only — works offline
+    const llmOk = useOllama || llmReady;       // Ollama is local too (no internet needed)
+    return llmOk && imgReady;
+  }
+  function updateOfflineReady() {
+    const ready = isOfflineReady();
+    const swActive = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+    setPill("offline", ready ? "Offline-ready ✓" : (swActive ? "Offline: caching…" : "Offline: n/a"), ready);
+    if (ready && !_announcedOffline) {
+      _announcedOffline = true;
+      showToast(skipModels
+        ? "✓ Cached — the game now works fully offline."
+        : "✓ Models cached — you can disconnect; everything runs offline now.");
+    }
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // MODALS
@@ -1876,6 +1907,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     }).then(ok => {
       llmPct = 100; refreshTopbarLoad();
       setPill("llm", ok ? "LLM: ready" : "LLM: unavailable", ok);
+      updateOfflineReady();
       return ok;
     });
     return llmLoadPromise;
@@ -1891,6 +1923,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       imgPct = 100; refreshTopbarLoad();
       setPill("img", ok ? "Image: ready" : "Image: unavailable", ok);
       if (ok && game) { refreshAvatar(true); enqueuePregen(); }
+      updateOfflineReady();
       return ok;
     });
     return imgLoadPromise;
@@ -1902,6 +1935,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       setPill("img", "Image: skipped", false);
       setPill("art", "Pre-gen: off", false);
       hideTopbarLoad();
+      updateOfflineReady();
       return;
     }
     idb = idb || await openIdb();
@@ -1993,6 +2027,13 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const src = await loadData();
     await boot();
     setProgress(`Content loaded (${src}). Choose how to begin.`);
+    // Reflect offline-cache status as soon as we boot, and again if/when the
+    // service worker takes control of the page.
+    updateOfflineReady();
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.addEventListener("controllerchange", updateOfflineReady);
+      navigator.serviceWorker.ready.then(updateOfflineReady).catch(() => {});
+    }
     // Start downloading the local LLM + diffuser in the background NOW, so they're
     // (partly) ready by the time the user clicks "Start Life". On a first GH Pages
     // visit (before the COI service worker has reloaded), preload skips itself —

@@ -31,9 +31,18 @@ reproducible lives.
 
 The repo is set up to be served as a static site straight from GitHub Pages — no install, no
 server. Anyone with the link opens it, the page loads, and from then on everything runs in their
-browser (models stream from the Hugging Face CDN on first load, then live in IndexedDB).
+browser (models stream from the Hugging Face CDN on first load, then live in browser storage).
 
 **Live URL (after enabling Pages):** `https://jmrothberg.github.io/BitLife/`
+
+**Download once, then play offline.** The deterministic game starts instantly while the local LLM
+(~3 GB) and diffuser (~2 GB) download in the background — a progress bar at the top of the screen
+shows how far along they are. Once the **"Offline-ready ✓"** pill (and toast) appear, the one-time
+download is complete and **you can disconnect from the internet entirely** — the game, the
+typed-AI interpreter, and live image generation all keep working with no connection. The service
+worker (`coi-serviceworker.js`) caches the app shell + CDN runtime, while Transformers.js and the
+image worker cache the model weights in the browser's Cache Storage; clearing site data is the only
+thing that forces a re-download.
 
 **One-time setup on GitHub:**
 
@@ -43,12 +52,17 @@ browser (models stream from the Hugging Face CDN on first load, then live in Ind
 4. Wait ~1 min for the first deploy. Drop a 1200×630 PNG at `assets/og.png` for the link-preview
    card when the URL is pasted into Slack / iMessage / Twitter etc.
 
-**How cross-origin isolation works on Pages.** The in-browser image worker (Stable Diffusion 1.5
-via `onnxruntime-web`) needs `crossOriginIsolated` for SharedArrayBuffer / WASM threads. GitHub
-Pages can't set COOP/COEP headers, so the page registers `coi-serviceworker.js` on first visit —
-it installs a service worker that re-injects those headers, then auto-reloads once. After that,
-WebGPU + threaded WASM both work as if you were running `serve.py` locally. (Requires HTTPS,
-which Pages provides automatically. `.nojekyll` is included so Pages serves every file as-is.)
+**How cross-origin isolation + offline caching work on Pages.** The in-browser image worker (Stable
+Diffusion 1.5 via `onnxruntime-web`) needs `crossOriginIsolated` for SharedArrayBuffer / WASM
+threads. GitHub Pages can't set COOP/COEP headers, so the page registers `coi-serviceworker.js` on
+first visit — it installs a service worker that re-injects those headers, then auto-reloads once.
+That same service worker doubles as an **offline app-shell cache**: it precaches the page, content
+data and pre-baked art, and runtime-caches the CDN modules + WASM, falling back to cache when
+there's no network. It deliberately skips the multi-GB model weights (`.onnx`/`.bin`/etc.) because
+Transformers.js and the image worker already persist those in their own caches — so nothing is
+stored twice. After that, WebGPU + threaded WASM both work as if you were running `serve.py`
+locally. (Requires HTTPS, which Pages provides automatically. `.nojekyll` is included so Pages
+serves every file as-is.)
 
 ## Run it locally
 
