@@ -278,6 +278,7 @@
       </div>
       <div class="dbg-toggle" id="dbg-toggle">▸ Debug</div>
       <div id="dbg"></div>
+      <button id="dbg-copy" style="display:none;font-size:11px;padding:4px 8px;margin-top:4px">⧉ Copy debug</button>
     </div>
   </div>
 
@@ -606,7 +607,8 @@
   function applyChoice(eventId, choiceIndex) {
     const ev = game.pendingEvent;
     if (!ev || ev.id !== eventId) return;
-    const ch = ev.choices[choiceIndex];
+    const ch = ev.choices && ev.choices[choiceIndex];
+    if (!ch) { game.pendingEvent = null; closeModal(); autosave(); renderAll(); return; } // malformed → don't get stuck
     applyEffects(ch.effects);
     let resultText = `${ev.text} → You chose: ${ch.label}.`;
     if (ch.outcome) {
@@ -1575,11 +1577,13 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   function updateEntryImage(e, url) { clearEntryGenerating(e); if (!e._el) return; let img = e._el.querySelector("img.scene"); if (!img) { img = document.createElement("img"); img.className = "scene"; e._el.appendChild(img); } img.src = url; $("feed").scrollTop = $("feed").scrollHeight; }
 
   function renderFeed() { const feed = $("feed"); feed.innerHTML = ""; for (const e of game.log) renderEntry(e); }
-  function renderAll() { renderHeader(); updateAgeButton(); }
+  function renderAll() { renderHeader(); updateAgeButton(); renderDebug(); }
   function updateAgeButton() {
     const dead = !game.character.alive, pend = !!game.pendingEvent;
-    $("btn-ageup").disabled = dead || pend || busy;
-    $("btn-ageup").textContent = dead ? "💀 You have died" : pend ? "Resolve the event…" : "Age Up +1 🎂";
+    // When an event is pending, keep the button ENABLED so it can re-open the
+    // popup (recovery if it was dismissed or the life was loaded mid-event).
+    $("btn-ageup").disabled = dead || busy;
+    $("btn-ageup").textContent = dead ? "💀 You have died" : pend ? "⚡ Resolve the event" : "Age Up +1 🎂";
   }
 
   function setAvatarImg(url) { const a = $("avatar"); a.innerHTML = `<img src="${url}" alt="avatar"/>`; }
@@ -1587,7 +1591,45 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   function avatarEmoji() { const c = game.character; const map = { baby: "👶", child: "🧒", teen: "🧑", youngAdult: "🧑", adult: "🧑", middleAge: "🧑", senior: "🧓" }; return map[c.lifeStage] || "🙂"; }
 
   function setControlsEnabled(on) { $("btn-send").disabled = !on; $("action-input").disabled = !on; updateAgeButton(); }
-  function setDebug(lines) { $("dbg").textContent = (Array.isArray(lines) ? lines : [lines]).join("\n"); }
+
+  // ── Debug panel: a live, compact snapshot of the whole game + AI/cache state ──
+  // Kept terse (one line per subsystem) so it's actually scannable while debugging.
+  let _lastTyped = [];            // last typed-action trace (prompt/resp/json/effects)
+  const _errors = [];             // last few uncaught errors / rejections (most recent last)
+  function noteError(msg) { _errors.push(msg); while (_errors.length > 6) _errors.shift(); try { renderDebug(); } catch {} }
+  window.addEventListener("error", (e) => noteError(`ERR ${e.message} @ ${(e.filename || "").split("/").pop()}:${e.lineno || "?"}`));
+  window.addEventListener("unhandledrejection", (e) => noteError(`REJECT ${(e.reason && (e.reason.message || e.reason)) || "?"}`));
+  function setDebug(lines) { _lastTyped = Array.isArray(lines) ? lines : [lines]; renderDebug(); }
+  // Build the snapshot string (works regardless of panel visibility). Wrapped in
+  // try/catch per line so a broken subsystem can't blank out the whole report.
+  function buildDebugText() {
+    const L = [];
+    const safe = (fn) => { try { L.push(fn()); } catch (e) { L.push("(debug line failed: " + e.message + ")"); } };
+    safe(() => `SYS   coi=${self.crossOriginIsolated} sw=${!!(navigator.serviceWorker && navigator.serviceWorker.controller)} offline=${isOfflineReady()} online=${navigator.onLine} ${location.host}`);
+    safe(() => `AI    llm=${useOllama ? "ollama:" + (ollamaModel || "?") : (llmReady ? "ready" : Math.round(llmPct) + "%")} img=${imgReady ? "ready" : Math.round(imgPct) + "%"} skip=${skipModels} localLlm=${useLocalLlm} localImg=${useLocalImg}`);
+    safe(() => `ART   manifest=${manifest ? Object.keys(manifest).length : 0} memCache=${memCache.size} pregenQ=${pregenQueue.length} idb=${idb ? "open" : "-"} busy=${busy}`);
+    if (game) {
+      const c = game.character, st = c.stats;
+      safe(() => `CHAR  ${c.name} ${c.gender} age=${c.age} ${c.lifeStage} ${c.country} ${c.alive ? "alive" : "DEAD(" + c.causeOfDeath + ")"}`);
+      safe(() => `STAT  H${st.health} Ha${st.happiness} S${st.smarts} L${st.looks} fame${c.fame} ${fmtMoney(c.money)}`);
+      safe(() => `EDU   ${c.education.level}${c.education.inSchool ? "(in school)" : ""} deg=${c.education.degree || "-"} major=${c.education.major || "-"}  JOB ${c.job ? `${c.job.levelName || ""} ${c.job.title} $${(c.job.salary / 1000).toFixed(0)}k perf=${c.job.performance} ${c.job.yearsHeld || 0}y` : "-"}`);
+      safe(() => `ENG   seed=${game.seed} rng=${game.rngState} year=${game.market.year} pending=${game.pendingEvent ? game.pendingEvent.id : "-"} tip=${game.activeTip ? game.activeTip.assetId + "(" + (game.activeTip.boughtShares || 0) + "sh)" : "-"}`);
+      safe(() => { const pr = game.prison || {}; return `LAW   prison=${pr.inPrison ? `${pr.yearsServed || 0}/${pr.sentenceYears}y (${pr.reason})` : "free"} arrests=${game.crimeRecord ? game.crimeRecord.arrests : 0} convictions=${game.crimeRecord ? game.crimeRecord.convictions : 0}`; });
+      safe(() => `CNT   rel=${game.relationships.filter(r => r.alive).length}/${game.relationships.length} portfolio=${game.portfolio.length} assets=${game.assets.length} ach=${game.achievements.length}/${Object.keys(DATA.ACHIEVEMENTS).length} log=${game.log.length} flags=${Object.keys(game.flags || {}).length} slot=${game._slot || "-"}`);
+    } else {
+      L.push("CHAR  (no life started)");
+    }
+    if (_lastTyped.length) L.push("LLM   " + _lastTyped.join(" | "));
+    if (_errors.length) { L.push("───── errors (newest last) ─────"); for (const e of _errors) L.push(e); }
+    return L.join("\n");
+  }
+  // Console hook: type bitlifeDebug() anytime (even if the panel is hidden/broken)
+  // to get a copy-pasteable snapshot.
+  window.bitlifeDebug = () => { const t = buildDebugText(); console.log(t); return t; };
+  function renderDebug() {
+    const el = $("dbg"); if (!el || el.style.display === "none") return; // skip work when collapsed
+    el.textContent = buildDebugText();
+  }
 
   function showToast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("on"), 2200); }
   function setPill(which, text, on) { const el = $("pill-" + which); if (!el) return; el.textContent = text; el.classList.toggle("on", !!on); }
@@ -1608,6 +1650,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const ready = isOfflineReady();
     const swActive = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
     setPill("offline", ready ? "Offline-ready ✓" : (swActive ? "Offline: caching…" : "Offline: n/a"), ready);
+    renderDebug();
     if (ready && !_announcedOffline) {
       _announcedOffline = true;
       showToast(skipModels
@@ -1625,7 +1668,9 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     $("modal-bg").classList.add("on");
     $("modal-x").onclick = closeModal;
   }
-  $("modal-bg").addEventListener("click", (e) => { if (e.target === $("modal-bg")) closeModal(); });
+  // Tapping the backdrop closes ordinary modals — but NOT a mandatory life-event
+  // popup (that would strand pendingEvent and freeze "Resolve the event…").
+  $("modal-bg").addEventListener("click", (e) => { if (e.target === $("modal-bg") && !(game && game.pendingEvent)) closeModal(); });
 
   function optRow(title, desc, btnLabel, onClick, disabled) {
     const div = document.createElement("div"); div.className = "opt" + (disabled ? " disabled" : "");
@@ -1781,12 +1826,24 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
 
   function openChoicePopup(ev) {
-    let html = `<div style="margin-bottom:12px">${ev.text}</div>`;
+    const choices = Array.isArray(ev && ev.choices) ? ev.choices : [];
+    let html = `<div style="margin-bottom:12px">${(ev && ev.text) || "A life event occurred."}</div>`;
     modalShell("⚡ Life Event", html + `<div id="choices"></div>`);
     $("modal-x").style.display = "none"; // must choose
     const wrap = $("choices");
-    ev.choices.forEach((ch, i) => { const b = document.createElement("button"); b.className = "choice-btn"; b.textContent = ch.label; b.onclick = () => applyChoice(ev.id, i); wrap.appendChild(b); });
+    // Stale/malformed event (e.g. a save from before a data change): offer a safe exit
+    // so the player is never stuck on an unresolvable popup.
+    if (!choices.length) {
+      const b = document.createElement("button"); b.className = "choice-btn"; b.textContent = "Continue";
+      b.onclick = () => { game.pendingEvent = null; closeModal(); autosave(); renderAll(); };
+      wrap.appendChild(b); return;
+    }
+    choices.forEach((ch, i) => { const b = document.createElement("button"); b.className = "choice-btn"; b.textContent = ch.label; b.onclick = () => applyChoice(ev.id, i); wrap.appendChild(b); });
   }
+
+  // Recovery: re-open the popup for a pending event (after a dismissed popup, a
+  // reload, or a loaded save). The full event object is stored in pendingEvent.
+  function reopenPendingEvent() { if (game && game.pendingEvent) openChoicePopup(game.pendingEvent); }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // DEATH SCREEN
@@ -1844,6 +1901,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (wantLlm) bits.push(`LLM ${Math.round(llmPct)}%`);
     bits.push(`Image ${Math.round(imgPct)}%`);
     setTopbarLoad(overall, bits.join(" · "));
+    renderDebug(); // live AI % in the debug panel when it's open (cheap; no-ops when collapsed)
   }
 
   async function detectLocalModels() {
@@ -1862,6 +1920,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     $("hdr").style.display = ""; $("feed").style.display = ""; $("bottom").style.display = "";
     renderFeed(); renderAll();
     refreshAvatar(true);
+    // If this life was saved mid-event, re-open the choice popup so it can be resolved.
+    if (game.pendingEvent) openChoicePopup(game.pendingEvent);
   }
 
   async function boot() {
@@ -2006,7 +2066,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
 
   // controls wiring
-  $("btn-ageup").addEventListener("click", ageUp);
+  $("btn-ageup").addEventListener("click", () => { if (game && game.pendingEvent) { reopenPendingEvent(); return; } ageUp(); });
   $("btn-send").addEventListener("click", () => { const v = $("action-input").value; $("action-input").value = ""; handleTypedAction(v); });
   $("btn-help").addEventListener("click", () => {
     const raw = $("action-input").value.trim();
@@ -2020,7 +2080,12 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   document.querySelectorAll(".tabbar button[data-tab]").forEach(b => b.addEventListener("click", () => openModal(b.dataset.tab)));
   $("btn-menu-relationships").addEventListener("click", () => openModal("relationships"));
   $("btn-menu-assets").addEventListener("click", () => openModal("assets"));
-  $("dbg-toggle").addEventListener("click", () => { const d = $("dbg"); const open = d.style.display === "block"; d.style.display = open ? "none" : "block"; $("dbg-toggle").textContent = (open ? "▸" : "▾") + " Debug"; });
+  $("dbg-toggle").addEventListener("click", () => { const d = $("dbg"); const open = d.style.display === "block"; d.style.display = open ? "none" : "block"; $("dbg-copy").style.display = open ? "none" : "inline-block"; $("dbg-toggle").textContent = (open ? "▸" : "▾") + " Debug"; if (!open) renderDebug(); });
+  $("dbg-copy").addEventListener("click", async () => {
+    const t = buildDebugText();
+    try { await navigator.clipboard.writeText(t); showToast("Debug copied — paste it to report a bug."); }
+    catch { renderDebug(); const r = document.createRange(); r.selectNode($("dbg")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); showToast("Select-all + copy the debug text."); }
+  });
 
   // ── go ──
   (async () => {
