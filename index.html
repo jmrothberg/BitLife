@@ -195,12 +195,21 @@
       <div class="card sel" id="card-new" data-pick="new">
         <h3>Start a New Life</h3>
         <div class="hint">Born today. Choose details or randomize.</div>
-        <div class="field"><label>Name</label><input id="nl-name" placeholder="(leave blank to randomize)" /></div>
+        <div class="row">
+          <div class="field"><label>First name</label><input id="nl-first" placeholder="(random)" /></div>
+          <div class="field"><label>Surname</label><input id="nl-last" placeholder="(random)" /></div>
+        </div>
         <div class="row">
           <div class="field"><label>Gender</label>
             <select id="nl-gender"><option value="random">Random</option><option value="male">Male</option><option value="female">Female</option><option value="nonbinary">Non-binary</option></select>
           </div>
           <div class="field"><label>Country</label><select id="nl-country"></select></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Special talent</label>
+            <select id="nl-talent"><option value="">None</option><option value="acting">Acting</option><option value="singing">Singing</option><option value="musical">Musical</option><option value="athletic">Athletic</option><option value="genius">Genius</option></select>
+          </div>
+          <div class="field"><label>Birthday (zodiac)</label><input id="nl-bday" type="date" /></div>
         </div>
         <div class="field"><label>Seed (optional — same seed = same life)</label><input id="nl-seed" placeholder="(random)" inputmode="numeric" /></div>
       </div>
@@ -222,6 +231,10 @@
           <div class="field"><label>Ollama URL</label><input id="ollama-base" value="http://127.0.0.1:11434" /></div>
           <div class="field"><label>Model name</label><input id="ollama-model" placeholder="e.g. gemma2, llama3.2, qwen2.5" /></div>
         </div>
+        <label style="display:flex;gap:8px;margin-top:10px;font-size:13px;align-items:flex-start;cursor:pointer">
+          <input type="checkbox" id="ai-narrator" checked style="width:auto;margin-top:3px" />
+          <span>AI narrator — let the local LLM add a short comment on your life as you age up (flavor only, no stat changes).</span>
+        </label>
         <label style="display:flex;gap:8px;margin-top:10px;font-size:13px;align-items:flex-start;cursor:pointer">
           <input type="checkbox" id="skip-models" style="width:auto;margin-top:3px" />
           <span>Skip loading AI models — play the deterministic game only (no typed AI, no images).</span>
@@ -304,6 +317,7 @@
 
   let useLocalLlm = false, useLocalImg = false, useOllama = false, skipModels = false;
   let ollamaBase = "", ollamaModel = "";
+  let aiNarrator = true; // local LLM adds flavor commentary as you age up
 
   // ═══════════════════════════════════════════════════════════════════════════
   // CONTENT DATA (loaded from bitlife_data.json; FALLBACK keeps game playable offline)
@@ -413,17 +427,44 @@
     return rngPick(pool) + " " + rngPick(DATA.NAME_POOLS.surnames);
   }
 
+  // Western zodiac from month (1-12) + day.
+  function zodiacFor(month, day) {
+    const cutoff = [20, 19, 21, 20, 21, 21, 23, 23, 23, 23, 22, 22];
+    const signs = ["Capricorn", "Aquarius", "Pisces", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius"];
+    return day < cutoff[month - 1] ? signs[month - 1] : signs[month % 12];
+  }
+  const ZODIAC_EMOJI = { Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋", Leo: "♌", Virgo: "♍", Libra: "♎", Scorpio: "♏", Sagittarius: "♐", Capricorn: "♑", Aquarius: "♒", Pisces: "♓" };
+  const TALENTS = {
+    acting:   { label: "Acting",   boost: { looks: 10, happiness: 5 } },
+    singing:  { label: "Singing",  boost: { looks: 6, happiness: 8 } },
+    musical:  { label: "Musical",  boost: { smarts: 6, happiness: 8 } },
+    athletic: { label: "Athletic", boost: { health: 12, looks: 6 } },
+    genius:   { label: "Genius",   boost: { smarts: 18 } }
+  };
+
   function createNewLife(opts) {
     const seed = (opts.seed && /^\d+$/.test(opts.seed)) ? parseInt(opts.seed, 10) : (Math.floor(Math.random() * 4294967295));
     game = { schemaVersion: 1, seed: seed >>> 0, rngState: seed >>> 0 };
     _rng = mulberry32(game.rngState);
     let gender = opts.gender;
     if (gender === "random" || !gender) gender = rngPick(["male", "female", "nonbinary"]);
-    const name = (opts.name && opts.name.trim()) ? opts.name.trim() : randomName(gender);
+    // first / last name (single-field opts.name still supported for back-compat)
+    let first = (opts.first || "").trim(), last = (opts.last || "").trim();
+    if (!first && !last && opts.name && opts.name.trim()) { const p = opts.name.trim().split(/\s+/); first = p[0]; last = p.slice(1).join(" "); }
+    if (!first) first = rngPick(DATA.NAME_POOLS[gender] || DATA.NAME_POOLS.female);
+    if (!last) last = rngPick(DATA.NAME_POOLS.surnames);
+    const name = `${first} ${last}`;
     const country = opts.country || rngPick(DATA.COUNTRIES);
     const birthYear = new Date().getFullYear();
+    // birthday → zodiac (use picked date, else a seeded one)
+    let bMonth, bDay;
+    if (opts.bday && /^\d{4}-\d{2}-\d{2}$/.test(opts.bday)) { const d = opts.bday.split("-"); bMonth = +d[1]; bDay = +d[2]; }
+    else { bMonth = rngInt(1, 12); bDay = rngInt(1, 28); }
+    const zodiac = zodiacFor(bMonth, bDay);
+    const talent = TALENTS[opts.talent] ? opts.talent : null;
     game.character = {
-      name, gender, country, birthYear, age: 0, lifeStage: "baby", alive: true, causeOfDeath: null,
+      name, first, last, gender, country, birthYear, birthMonth: bMonth, birthDay: bDay, zodiac, talent,
+      age: 0, lifeStage: "baby", alive: true, causeOfDeath: null,
       stats: { health: rngInt(70, 95), happiness: rngInt(65, 90), smarts: rngInt(30, 70), looks: rngInt(30, 80) },
       fame: 0, money: 0,
       education: { level: "none", inSchool: false, degree: null, major: null },
@@ -437,20 +478,22 @@
     game.flags = {}; game.achievements = []; game.pendingEvent = null; game.activeTip = null;
     game.log = [];
     game.activitiesThisYear = [];
+    if (talent) applyEffects(TALENTS[talent].boost); // head start toward the matching career
     // seed market
     for (const cls of ["stocks", "crypto", "bonds"]) {
       for (const a of (DATA.MARKET[cls] || [])) { game.market.prices[a.id] = a.start; game.market.history[a.id] = [a.start]; }
     }
     // family
-    const momName = rngPick(DATA.NAME_POOLS.female) + " " + name.split(" ")[1];
-    const dadName = rngPick(DATA.NAME_POOLS.male) + " " + name.split(" ")[1];
+    const momName = rngPick(DATA.NAME_POOLS.female) + " " + last;
+    const dadName = rngPick(DATA.NAME_POOLS.male) + " " + last;
     addRelationship({ relation: "mother", name: momName, gender: "female", age: rngInt(22, 40), bar: rngInt(60, 95) });
     addRelationship({ relation: "father", name: dadName, gender: "male", age: rngInt(24, 45), bar: rngInt(55, 90) });
     if (rngChance(0.5)) {
       const sg = rngPick(["male", "female"]);
-      addRelationship({ relation: "sibling", name: rngPick(DATA.NAME_POOLS[sg]) + " " + name.split(" ")[1], gender: sg, age: rngInt(0, 6), bar: rngInt(40, 85) });
+      addRelationship({ relation: "sibling", name: rngPick(DATA.NAME_POOLS[sg]) + " " + last, gender: sg, age: rngInt(0, 6), bar: rngInt(40, 85) });
     }
-    log("system", `${name} was born in ${country}.`, "birth");
+    const talentBit = talent ? ` Born with a gift for ${TALENTS[talent].label.toLowerCase()}.` : "";
+    log("system", `${name} was born in ${country} under ${ZODIAC_EMOJI[zodiac] || ""} ${zodiac}.${talentBit}`, "birth");
     return game;
   }
 
@@ -559,6 +602,8 @@
     checkDeath();
     autosave();
     renderAll();
+    // optional LLM flavor commentary (runs in background; skips if an event popup is up)
+    maybeNarrate();
   }
 
   function driftStats() {
@@ -624,6 +669,7 @@
     checkDeath();
     autosave();
     renderAll();
+    maybeNarrate(); // optional LLM flavor on how the event played out
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -966,19 +1012,31 @@
     }
   }
 
-  async function generateLlmResponse(systemPrompt, userPrompt) {
-    if (useOllama) return runOllamaGeneration(systemPrompt, userPrompt);
-    if (!llmPipe) return "(LLM not loaded)";
-    let text = "";
-    const streamer = new TextStreamer(llmPipe.tokenizer, { skip_prompt: true, callback_function: (p) => { text += p; } });
-    await llmPipe([{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-      { max_new_tokens: LLM_MAX_TOKENS, temperature: LLM_TEMPERATURE, top_p: LLM_TOP_P, top_k: LLM_TOP_K, do_sample: true, streamer });
-    return text;
-  }
+  // Serialize all in-browser pipe calls — the Transformers.js pipeline is not
+  // reentrant, so the AI narrator and typed actions must not run concurrently.
+  let _llmChain = Promise.resolve();
+  function withLlmLock(fn) { const run = _llmChain.then(fn, fn); _llmChain = run.then(() => {}, () => {}); return run; }
 
-  async function runOllamaGeneration(systemMsg, userMsg) {
+  // opts: { maxTokens, json }  (json=true forces a JSON response on the Ollama path)
+  async function llmGenerate(systemPrompt, userPrompt, opts = {}) {
+    const maxTokens = opts.maxTokens || LLM_MAX_TOKENS;
+    if (useOllama) return runOllamaGeneration(systemPrompt, userPrompt, { maxTokens, json: opts.json !== false });
+    if (!llmPipe) return "(LLM not loaded)";
+    return withLlmLock(async () => {
+      let text = "";
+      const streamer = new TextStreamer(llmPipe.tokenizer, { skip_prompt: true, callback_function: (p) => { text += p; } });
+      await llmPipe([{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+        { max_new_tokens: maxTokens, temperature: LLM_TEMPERATURE, top_p: LLM_TOP_P, top_k: LLM_TOP_K, do_sample: true, streamer });
+      return text;
+    });
+  }
+  // Typed-action path: full JSON directive.
+  function generateLlmResponse(systemPrompt, userPrompt) { return llmGenerate(systemPrompt, userPrompt, { maxTokens: LLM_MAX_TOKENS, json: true }); }
+
+  async function runOllamaGeneration(systemMsg, userMsg, opts = {}) {
     const base = ollamaBase.replace(/\/+$/, "");
-    const body = { model: ollamaModel, messages: [{ role: "system", content: systemMsg }, { role: "user", content: userMsg }], stream: false, format: "json", options: { temperature: 0.7, num_predict: LLM_MAX_TOKENS, top_p: 0.95, top_k: 64 } };
+    const body = { model: ollamaModel, messages: [{ role: "system", content: systemMsg }, { role: "user", content: userMsg }], stream: false, options: { temperature: 0.7, num_predict: opts.maxTokens || LLM_MAX_TOKENS, top_p: 0.95, top_k: 64 } };
+    if (opts.json !== false) body.format = "json";
     const res = await fetch(`${base}/api/chat`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!res.ok) throw new Error(`Ollama HTTP ${res.status}`);
     const data = await res.json();
@@ -986,6 +1044,26 @@
     if (msg && typeof msg.content === "string") return msg.content;
     if (typeof data.response === "string") return data.response;
     return "";
+  }
+
+  // ── AI narrator: optional, non-blocking, FLAVOR ONLY (never changes stats) ──
+  const NARRATOR_SYSTEM = "You are a witty, vivid narrator for a life-simulation game. Given a character's current situation, reply with ONE short sentence (max 25 words) of in-the-moment narration. No lists, no JSON, no stats, no quotation marks — just the single sentence.";
+  let narrating = false;
+  async function maybeNarrate() {
+    if (!aiNarrator || skipModels || busy || narrating) return;
+    if (!llmReady && !useOllama) return;
+    if (!game || !game.character.alive || game.pendingEvent) return;
+    narrating = true;
+    try {
+      const c = game.character;
+      const recent = game.log.slice(-3).map(e => e.text).join(" ");
+      const user = `Character: ${c.name}, age ${c.age}, a ${lifeStageLabel(c.lifeStage)} in ${c.country}${c.job ? `, working as a ${c.job.title}` : ""}. ${game.prison.inPrison ? "Currently in prison. " : ""}Money: ${fmtMoney(c.money)}. Recently: ${recent || "nothing notable"}. Narrate this moment in one sentence.`;
+      const raw = await llmGenerate(NARRATOR_SYSTEM, user, { maxTokens: 70, json: false });
+      let line = cleanNarration(raw).split("\n").map(s => s.trim()).filter(Boolean)[0] || "";
+      line = line.replace(/^["'""]+|["'""]+$/g, "").slice(0, 240);
+      if (line && game.character.alive) log("llm", `📖 ${line}`);
+    } catch (e) { /* narration is best-effort; never disrupt play */ }
+    narrating = false;
   }
 
   // JSON parsing (reused from adventure)
@@ -1548,7 +1626,9 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   function renderHeader() {
     const c = game.character;
     $("h-name").textContent = c.name;
-    $("h-sub").textContent = `Age ${c.age} · ${lifeStageLabel(c.lifeStage)} · ${c.country}${c.job ? " · " + c.job.levelName + " " + c.job.title : ""}${game.prison.inPrison ? " · 🔒 PRISON" : ""}`;
+    const zodiacBit = c.zodiac ? ` · ${ZODIAC_EMOJI[c.zodiac] || ""}${c.zodiac}` : "";
+    const talentBit = c.talent && TALENTS[c.talent] ? ` · 🌟${TALENTS[c.talent].label}` : "";
+    $("h-sub").textContent = `Age ${c.age} · ${lifeStageLabel(c.lifeStage)} · ${c.country}${zodiacBit}${talentBit}${c.job ? " · " + c.job.levelName + " " + c.job.title : ""}${game.prison.inPrison ? " · 🔒 PRISON" : ""}`;
     $("h-money").textContent = fmtMoney(c.money);
     const bars = $("h-bars"); bars.innerHTML = "";
     for (const [k, icon, color] of BAR_DEFS) {
@@ -1609,11 +1689,11 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const L = [];
     const safe = (fn) => { try { L.push(fn()); } catch (e) { L.push("(debug line failed: " + e.message + ")"); } };
     safe(() => `SYS   coi=${self.crossOriginIsolated} sw=${!!(navigator.serviceWorker && navigator.serviceWorker.controller)} offline=${isOfflineReady()} online=${navigator.onLine} ${location.host}`);
-    safe(() => `AI    llm=${useOllama ? "ollama:" + (ollamaModel || "?") : (llmReady ? "ready" : Math.round(llmPct) + "%")} img=${imgReady ? "ready" : Math.round(imgPct) + "%"} skip=${skipModels} localLlm=${useLocalLlm} localImg=${useLocalImg}`);
+    safe(() => `AI    llm=${useOllama ? "ollama:" + (ollamaModel || "?") : (llmReady ? "ready" : Math.round(llmPct) + "%")} img=${imgReady ? "ready" : Math.round(imgPct) + "%"} skip=${skipModels} narrator=${aiNarrator}${narrating ? "(running)" : ""} localLlm=${useLocalLlm} localImg=${useLocalImg}`);
     safe(() => `ART   manifest=${manifest ? Object.keys(manifest).length : 0} memCache=${memCache.size} pregenQ=${pregenQueue.length} idb=${idb ? "open" : "-"} busy=${busy}`);
     if (game) {
       const c = game.character, st = c.stats;
-      safe(() => `CHAR  ${c.name} ${c.gender} age=${c.age} ${c.lifeStage} ${c.country} ${c.alive ? "alive" : "DEAD(" + c.causeOfDeath + ")"}`);
+      safe(() => `CHAR  ${c.name} ${c.gender} age=${c.age} ${c.lifeStage} ${c.country} ${c.zodiac || "-"}${c.talent ? "/" + c.talent : ""} ${c.alive ? "alive" : "DEAD(" + c.causeOfDeath + ")"}`);
       safe(() => `STAT  H${st.health} Ha${st.happiness} S${st.smarts} L${st.looks} fame${c.fame} ${fmtMoney(c.money)}`);
       safe(() => `EDU   ${c.education.level}${c.education.inSchool ? "(in school)" : ""} deg=${c.education.degree || "-"} major=${c.education.major || "-"}  JOB ${c.job ? `${c.job.levelName || ""} ${c.job.title} $${(c.job.salary / 1000).toFixed(0)}k perf=${c.job.performance} ${c.job.yearsHeld || 0}y` : "-"}`);
       safe(() => `ENG   seed=${game.seed} rng=${game.rngState} year=${game.market.year} pending=${game.pendingEvent ? game.pendingEvent.id : "-"} tip=${game.activeTip ? game.activeTip.assetId + "(" + (game.activeTip.boughtShares || 0) + "sh)" : "-"}`);
@@ -2038,10 +2118,15 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     ensureImgLoading();
   }
 
-  $("btn-start").addEventListener("click", async () => {
+  function readAiOptions() {
     skipModels = $("skip-models").checked;
     useOllama = $("use-ollama").checked;
+    aiNarrator = $("ai-narrator").checked;
     ollamaBase = $("ollama-base").value.trim(); ollamaModel = $("ollama-model").value.trim();
+  }
+
+  $("btn-start").addEventListener("click", async () => {
+    readAiOptions();
     if (useOllama && !ollamaModel) { showToast("Enter an Ollama model name."); return; }
 
     const picked = document.querySelector(".card.sel")?.dataset.pick || "new";
@@ -2053,15 +2138,17 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       return startFromSlot(saves[0].slot);
     }
     // new life
-    createNewLife({ name: $("nl-name").value, gender: $("nl-gender").value, country: $("nl-country").value, seed: $("nl-seed").value });
+    createNewLife({
+      first: $("nl-first").value, last: $("nl-last").value,
+      gender: $("nl-gender").value, country: $("nl-country").value,
+      talent: $("nl-talent").value, bday: $("nl-bday").value, seed: $("nl-seed").value
+    });
     startGameUI();
     startModelsBackground();
   });
 
   function startFromSlot(slot) {
-    skipModels = $("skip-models").checked;
-    useOllama = $("use-ollama").checked;
-    ollamaBase = $("ollama-base").value.trim(); ollamaModel = $("ollama-model").value.trim();
+    readAiOptions();
     if (!loadLife(slot)) { showToast("Failed to load."); return; }
     startGameUI();
     startModelsBackground();
