@@ -38,7 +38,8 @@
       "onnxruntime-web/webgpu": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.webgpu.bundle.min.mjs",
       "onnxruntime-web/wasm": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.wasm.bundle.min.mjs",
       "@huggingface/transformers": "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.0.1/+esm",
-      "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm"
+      "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm",
+      "three": "./vendor/three/three.module.min.js"
     }
   }
   </script>
@@ -259,6 +260,9 @@
     .hr-pick button .odds { color: var(--accent); font-weight: 700; }
     .hr-pick button.sel { background: var(--accent); color: #1a1405; border-color: var(--accent); font-weight: 700; }
     .hr-pick button.sel .odds { color: #1a1405; }
+
+    /* ── Full-screen mini-game host (Three.js etc.) ── */
+    .mg-host { position: fixed; inset: 0; z-index: 120; background: #05060c; overflow: hidden; }
   </style>
 </head>
 <body>
@@ -266,7 +270,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8.3</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8.4</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -410,7 +414,7 @@
     ],
     COUNTRIES: ["USA", "UK", "Canada", "Japan"],
     NAME_POOLS: { male: ["Liam", "Noah", "James"], female: ["Emma", "Olivia", "Mia"], nonbinary: ["Alex", "Sam", "Jordan"], surnames: ["Smith", "Lee", "Garcia", "Chen"] },
-    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." } },
+    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." } },
     EVENTS: {
       baby: [{ id: "fw", weight: 5, minAge: 1, maxAge: 2, noChoice: true, text: "You said your first words!", effects: { happiness: 6, smarts: 2 } }],
       child: [{ id: "bully", weight: 7, minAge: 6, maxAge: 12, text: "A bully keeps shoving you at school.", choices: [{ label: "Ignore it", effects: { happiness: -6 } }, { label: "Tell a teacher", effects: { happiness: 2 }, outcome: { chance: 0.55, success: { happiness: 7 }, fail: { happiness: -5 } } }, { label: "Fight back", effects: {}, outcome: { chance: 0.45, success: { happiness: 9, health: -3 }, fail: { health: -12, happiness: -7 } } }] }],
@@ -1425,6 +1429,121 @@
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // MINI-GAME LAUNCHER  (richer / 3D mini-games live in their own ES modules)
+  // ═══════════════════════════════════════════════════════════════════════════
+  // The casino games above are simple enough to live inline. Bigger, interactive
+  // mini-games (e.g. the Three.js prison break) are self-contained ES modules in
+  // ./minigames/ and are LAZY-loaded only when launched — so they never touch the
+  // boot path and the core game still starts instantly. To add one:
+  //   1. drop  ./minigames/<name>.js  exporting  start(host, api) → cleanup
+  //      (see ./minigames/prison_escape.js — it documents the contract).
+  //   2. register it below.
+  //   3. call  launchMiniGame("<id>", { onWin, onLose })  from anywhere.
+  // Each module imports "three" (vendored at ./vendor/three/, precached for
+  // offline). Modules are pure UI: the HOST decides what win/lose means.
+  const MINIGAMES = {
+    prisonEscape: { module: "./minigames/prison_escape.js", title: "Prison Break" }
+  };
+  let _mgActive = false;
+  async function launchMiniGame(id, handlers = {}) {
+    if (_mgActive) return;
+    const def = MINIGAMES[id];
+    if (!def) { showToast("Unknown mini-game."); return; }
+    _mgActive = true;
+    const host = document.createElement("div");
+    host.className = "mg-host";
+    document.body.appendChild(host);
+    let cleanup = null, settled = false;
+    const finish = (result) => {
+      if (settled) return; settled = true;
+      try { cleanup && cleanup(); } catch (e) { console.error(e); }
+      if (host.parentNode) host.remove();
+      _mgActive = false;
+      if (result === "win") handlers.onWin && handlers.onWin();
+      else if (result === "lose") handlers.onLose && handlers.onLose();
+      else handlers.onQuit && handlers.onQuit();
+    };
+    try {
+      const mod = await import(def.module);
+      cleanup = mod.start(host, { finish, difficulty: handlers.difficulty || 1 });
+    } catch (e) {
+      console.error("Mini-game failed to load:", e);
+      if (host.parentNode) host.remove();
+      _mgActive = false;
+      showToast("Mini-game couldn't load (needs the 3D engine).");
+      handlers.onError && handlers.onError();
+    }
+  }
+
+  // Prison break: launch the escape mini-game; the host maps win/lose to freedom
+  // or a stiffer sentence. Deterministic-stream-safe — it never calls rng().
+  function attemptPrisonEscape() {
+    if (!game || !game.prison || !game.prison.inPrison) { showToast("You're not in prison."); return; }
+    closeModal();
+    launchMiniGame("prisonEscape", {
+      onWin: () => {
+        game.prison.inPrison = false; game.prison.reason = null;
+        game.prison.sentenceYears = 0; game.prison.yearsServed = 0;
+        game.flags = game.flags || {}; game.flags.escapedPrison = true;
+        if (game.crimeRecord) game.crimeRecord.notoriety = (game.crimeRecord.notoriety || 0) + 1;
+        grantAchievement("escapee");
+        applyEffects({ happiness: 12 });
+        log("crime", "🪜 You threaded the searchlights and went over the wall — you're free! An escaped convict now.");
+        autosave(); renderAll();
+      },
+      onLose: () => {
+        game.prison.sentenceYears = (game.prison.sentenceYears || 1) + 2;
+        applyEffects({ happiness: -8, health: -3 });
+        log("crime", "🚨 A searchlight caught you at the wall. Dragged back — 2 years added to your sentence.");
+        autosave(); renderAll();
+      },
+      onQuit: () => { showToast("You slipped back to your cell."); },
+      onError: () => { showToast("Couldn't start the escape — try again."); }
+    });
+  }
+
+  // ── Test bench ────────────────────────────────────────────────────────────
+  // Deep-link straight to any mini-game for quick testing — no need to live a
+  // whole life to reach the casino or prison. Open index.html#test for a menu,
+  // or index.html#test=<id> to launch one directly. Spins up a sandbox life
+  // (age 30, $1M, in prison) so every game has valid state.
+  const TEST_GAMES = {
+    slots:     { label: "🎰 Slots",        run: () => openSlots() },
+    blackjack: { label: "🃏 Blackjack",    run: () => openBlackjack() },
+    roulette:  { label: "🎡 Roulette",     run: () => openRoulette() },
+    horses:    { label: "🏇 Horse Racing", run: () => openHorseRace() },
+    prison:    { label: "🪜 Prison Break", run: () => attemptPrisonEscape() }
+  };
+  function testIdFromHash() {
+    const m = (location.hash || "").toLowerCase().match(/^#test(?:=([a-z]+))?$/);
+    return m ? { test: true, id: m[1] || "" } : { test: false, id: "" };
+  }
+  function openTestMenu() {
+    modalShell("🧪 Mini-game test bench", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Sandbox life · age 30 · $1,000,000 · in prison. Launch any game directly, or deep-link with <code>#test=&lt;id&gt;</code>.</div><div id="test-list"></div>`);
+    for (const [id, g] of Object.entries(TEST_GAMES)) {
+      $("test-list").appendChild(optRow(g.label, "#test=" + id, "Launch", () => g.run(), false));
+    }
+  }
+  function startTestMode(id) {
+    skipModels = true;                       // test bench never needs the AI models
+    createNewLife({ first: "Test", last: "Subject", gender: "random", seed: "testbench" });
+    game.character.age = 30;
+    game.character.lifeStage = lifeStageFor(30);
+    game.character.money = 1000000;
+    game.prison = { inPrison: true, sentenceYears: 12, yearsServed: 1, reason: "testing the escape" };
+    startGameUI();
+    startModelsBackground();
+    if (id && TEST_GAMES[id]) setTimeout(() => TEST_GAMES[id].run(), 250);
+    else setTimeout(openTestMenu, 250);
+  }
+  // Allow switching games by editing the hash after load too.
+  window.addEventListener("hashchange", () => {
+    const t = testIdFromHash(); if (!t.test) return;
+    if (!game) return startTestMode(t.id);
+    if (t.id && TEST_GAMES[t.id]) TEST_GAMES[t.id].run(); else openTestMenu();
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // ENGINE: MARKETS / INVESTING / INSIDER TRADING
   // ═══════════════════════════════════════════════════════════════════════════
   function allMarketAssets() { return [...(DATA.MARKET.stocks || []), ...(DATA.MARKET.crypto || []), ...(DATA.MARKET.bonds || [])]; }
@@ -1811,6 +1930,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (/blackjack|black jack|\b21\b/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openBlackjack(); } return "Opening the blackjack table"; }
     if (/roulette|the wheel/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openRoulette(); } return "Opening the roulette wheel"; }
     if (/horse|racing|the track|race/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openHorseRace(); } return "Opening the horse racing track"; }
+    if (/escape|break out|jail.?break|over the wall/.test(t)) { if (game.prison && game.prison.inPrison) { attemptPrisonEscape(); return "Starting the prison break"; } showToast("You're not in prison."); return "You're not in prison"; }
     if (/gambl|casino|bet/.test(t)) { openModal("casino"); return "Opening Casino menu"; }
     return null;
   }
@@ -2465,6 +2585,10 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
 
   function openCrime() {
     modalShell("🦹 Crime", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Higher payoffs mean higher chance of prison.</div><div id="crime-list"></div>`);
+    if (game.prison.inPrison) {
+      $("crime-list").appendChild(optRow("🪜 Attempt to escape", "Sneak across the floodlit yard to the gate — skill-based. Fail and your sentence grows.", "Escape", () => attemptPrisonEscape(), false));
+      const hint = document.createElement("div"); hint.className = "sub-h"; hint.textContent = "While locked up"; $("crime-list").prepend(hint);
+    }
     for (const cr of DATA.ACTIVITIES.crime) {
       const gated = game.character.age < cr.minAge || game.prison.inPrison;
       const desc = cr.id === "murder" ? `${Math.round(cr.catchChance*100)}% caught · ${cr.jail[0]}-${cr.jail[1]}y` : `$${cr.payout[0]}-${cr.payout[1].toLocaleString()} · ${Math.round(cr.catchChance*100)}% caught · ${cr.jail[0]}-${cr.jail[1]}y`;
@@ -2851,6 +2975,10 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   (async () => {
     const src = await loadData();
     await boot();
+    // Test bench: index.html#test (or #test=<id>) jumps straight into a sandbox
+    // life and launches a mini-game — skips the normal start screen entirely.
+    const t = testIdFromHash();
+    if (t.test) { startTestMode(t.id); return; }
     setProgress(`Content loaded (${src}). Choose how to begin.`);
     // Reflect offline-cache status as soon as we boot, and again if/when the
     // service worker takes control of the page.
