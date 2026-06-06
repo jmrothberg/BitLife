@@ -76,11 +76,14 @@ Add a row to the JSON and it shows up in the menu automatically.
 
 ---
 
-## Action guards (how we keep the logic correct as it grows)
+## Keeping the logic correct as it grows
 
-Menus **don't consume the turn**, and many actions shouldn't be possible in some states
-(e.g. in prison). To keep this consistent and self-checking, every player action starts with
-small guards instead of ad-hoc `if`s:
+The goal isn't to write a test per bug — it's a **general net** that catches logic errors
+in *any* feature, present or future. Three layers do this; you extend the data, not the tests.
+
+### 1. Action guards (state the precondition once)
+Menus **don't consume the turn**, and many actions are illegal in some states (e.g. in prison).
+Every player action starts with small guards instead of ad-hoc `if`s:
 
 ```js
 function goTravel(id) {
@@ -89,20 +92,30 @@ function goTravel(id) {
   …
 }
 ```
-- `requireFree(verb)` — blocks while in prison (`jailed()`). **Any action that needs freedom
-  (travel, casino, fame, business, trading, buying, dating/marriage, crime, etc.) must call it.**
+- `requireFree(verb)` — blocks while in prison (`jailed()`). **Any action needing freedom
+  (travel, casino, fame, business, trading, buying, dating, crime, etc.) must call it.**
 - `requireAge(n, verb)` / `requireMoney(n)` — the other common preconditions.
-- `oncePerYear(key)` — gate any **repeatable money-positive** action (else it's an infinite faucet,
-  since menus don't end the turn). House-edge gambling is exempt.
+- `oncePerYear(key)` — gate any **repeatable money-positive** action (else it's an infinite
+  faucet, since menus don't end the turn). House-edge gambling is exempt.
 
-**This is enforced, not just documented:**
-- `bash tests/check.sh` statically asserts each free-only function (list `FREE_ONLY` in the script)
-  contains `requireFree`. Add a new free-only action → add its name there.
-- `index.html#test=selfcheck` puts a character in prison and **asserts every free-only action is a
-  no-op** (money unchanged) and that no life event fires; it also checks a repeatable earner is
-  gated once-per-year. Add new free-only actions to the `probes` list in `runSelfCheck()`.
+### 2. Invariants — facts that must hold in *every* valid state (`const INVARIANTS`)
+A single registry of truths (stats 0–100, money/age finite, debts ≥ 0, no job while in prison,
+granted achievements all exist, net worth finite, …). They're checked after **every** simulated
+year, event, and fuzzed action. **Add a feature → add the new truths it introduces here**, and
+any code path that ever violates one — no matter which feature added it — fails the tests.
 
-So the "roommate-issues-in-jail" class of bug fails the tests instead of shipping.
+### 3. The action registry — one source of truth (`const PLAYER_ACTIONS`)
+Every direct action, with a sample call and its prison rule (`"block"` = must be a no-op while
+jailed, `"allow"` = legal in jail). **Add a new action here** and it's automatically:
+- **fuzzed** (`runSelfCheck` fires ~200 random actions and re-checks all invariants), and
+- **prison-audited** (each `"block"` action must change *nothing* while jailed).
+
+**Enforced, not just documented** — `bash tests/check.sh` reads `PLAYER_ACTIONS` and statically
+asserts every `prison:"block"` action's function contains `requireFree()`; `index.html#test=selfcheck`
+runs 6 lives + the fuzz pass + the prison audit, reporting `N invariants · M actions`.
+
+So the "roommate-issues-in-jail" bug — and its whole class — fails the tests instead of shipping.
+**When you add a feature: add its truths to `INVARIANTS` and its actions to `PLAYER_ACTIONS`. That's it.**
 
 ## Recipes
 

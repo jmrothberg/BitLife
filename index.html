@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.8</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.9</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -1693,21 +1693,86 @@
     selfcheck: { label: "🧪 Self-check (run tests)", run: () => runSelfCheck() }
   };
 
+  // ═══ Logical-correctness harness ══════════════════════════════════════════
+  // The GENERAL net for logic bugs as the game grows: you don't write a test per
+  // bug, you (1) state truths that must always hold, and (2) register actions.
+  // The simulator below then enforces both across random play. See AGENTS.md
+  // ("Keeping the logic correct as it grows").
+
+  // (1) INVARIANTS — facts that must be TRUE in EVERY valid game state, for any
+  //     feature. Checked after every simulated step, event, and fuzzed action.
+  //     Add a feature → add the new truths it introduces here.
+  const INVARIANTS = [
+    ["stats stay 0..100", g => ["health", "happiness", "smarts", "looks"].every(k => { const v = g.character.stats[k]; return Number.isFinite(v) && v >= 0 && v <= 100; })],
+    ["fame stays 0..100", g => { const v = g.character.fame; return Number.isFinite(v) && v >= 0 && v <= 100; }],
+    ["money is a finite number", g => Number.isFinite(g.character.money)],
+    ["age is a non-negative number", g => Number.isFinite(g.character.age) && g.character.age >= 0],
+    ["debts are never negative", g => (g.loanBalance || 0) >= 0 && (g.mortgageBalance || 0) >= 0],
+    ["no negative share holdings", g => (g.portfolio || []).every(h => Number.isFinite(h.shares) && h.shares > 0)],
+    ["asset values are finite", g => (g.assets || []).every(a => Number.isFinite(a.currentValue == null ? 0 : a.currentValue))],
+    ["net worth is finite", () => Number.isFinite(netWorth())],
+    ["can't hold a job in prison", g => !(g.prison && g.prison.inPrison) || !g.character.job],
+    ["prison term is self-consistent", g => !(g.prison && g.prison.inPrison) || (g.prison.yearsServed <= g.prison.sentenceYears)],
+    ["relationship bars stay 0..100", g => (g.relationships || []).every(r => Number.isFinite(r.bar) && r.bar >= 0 && r.bar <= 100)],
+    ["dead character has a cause of death", g => g.character.alive || !!g.character.causeOfDeath],
+    ["all granted achievements exist", g => (g.achievements || []).every(id => !!DATA.ACHIEVEMENTS[id])],
+    ["achievements are unique", g => new Set(g.achievements || []).size === (g.achievements || []).length],
+  ];
+  function checkInvariants(label, ok) {
+    for (const [name, pred] of INVARIANTS) {
+      let held; try { held = !!pred(game); } catch (e) { held = false; }
+      ok(held, `invariant "${name}" (${label})`);
+      if (!held) break; // one report per breakage point is enough
+    }
+  }
+
+  // (2) PLAYER_ACTIONS — every direct player action, with a sample invocation and
+  //     its prison rule. "block" = must be a no-op while jailed; "allow" = legal
+  //     in jail. The simulator fuzzes these and asserts the prison rule + that no
+  //     invariant breaks. `guard:"rel"` marks actions gated by the visitation
+  //     whitelist instead of requireFree() (so tests/check.sh skips them in its
+  //     requireFree static audit). Add a new action here and it's covered.
+  function relAct(action) { const r = (game.relationships || []).find(x => x.alive); if (r) interact(r.id, action); }
+  const PLAYER_ACTIONS = [
+    { fn: "goTravel", prison: "block", run: () => goTravel("beach") },
+    { fn: "emigrate", prison: "block", run: () => emigrate("UK") },
+    { fn: "doFame", prison: "block", run: () => doFame("post") },
+    { fn: "playLottery", prison: "block", run: () => playLottery() },
+    { fn: "runForOffice", prison: "block", run: () => runForOffice() },
+    { fn: "fileLawsuit", prison: "block", run: () => fileLawsuit() },
+    { fn: "joinGang", prison: "block", run: () => joinGang() },
+    { fn: "gangJob", prison: "block", run: () => gangJob() },
+    { fn: "buyVehicle", prison: "block", run: () => buyVehicle("beater") },
+    { fn: "buyValuable", prison: "block", run: () => buyValuable("watch") },
+    { fn: "buyRealEstate", prison: "block", run: () => buyRealEstate("studio") },
+    { fn: "takeLoan", prison: "block", run: () => takeLoan(5000) },
+    { fn: "buyAsset", prison: "block", run: () => buyAsset("APPL", 1) },
+    { fn: "startBusiness", prison: "block", run: () => startBusiness("foodtruck") },
+    { fn: "doLifestyle", prison: "block", run: () => doLifestyle("bar") },
+    { fn: "royalDuties", prison: "block", run: () => royalDuties() },
+    { fn: "interact", prison: "block", guard: "rel", run: () => relAct("gift") },
+    { fn: "interact", prison: "allow", guard: "rel", run: () => relAct("conversation") },
+  ];
+
   // In-browser self-test: data-integrity asserts + simulate several seeded lives
-  // to death, checking invariants each year. Reachable at #test=selfcheck. Picks
+  // to death (checking ALL invariants each year) + a randomized action fuzz pass +
+  // a prison audit driven by PLAYER_ACTIONS. Reachable at #test=selfcheck. Picks
   // non-minigame choices so it never opens a fullscreen mini-game and hangs.
   function runSelfCheck() {
     const results = []; let pass = 0, fail = 0, errs = 0;
     const onErr = (e) => { errs++; results.push("ERROR: " + ((e.error && e.error.message) || e.message || "?")); };
     window.addEventListener("error", onErr);
     const ok = (cond, msg) => { if (cond) pass++; else { fail++; if (results.length < 60) results.push("FAIL: " + msg); } };
+    const snapshot = () => JSON.stringify(stripTransient(game));
     try {
+      // ── Data integrity ──
       ok(DATA && typeof DATA === "object", "DATA loaded");
       for (const [st, arr] of Object.entries(DATA.EVENTS || {})) { const ids = arr.map(e => e.id); ok(new Set(ids).size === ids.length, "unique event ids in " + st); }
       const cids = DATA.CAREERS.map(c => c.id); ok(new Set(cids).size === cids.length, "unique career ids");
       for (const g of DATA.ACTIVITIES.casino) if (g.winChance && g.payoutMult) ok(g.winChance * (g.payoutMult[0] + g.payoutMult[1]) / 2 < 1, "casino " + g.id + " has house edge");
       for (const id of Object.keys(DATA.ACHIEVEMENTS)) ok(!!FALLBACK_DATA.ACHIEVEMENTS[id], "FALLBACK ribbon " + id + " present");
-      // simulate lives
+
+      // ── 6 seeded lives to death; ALL invariants checked every year ──
       for (let s = 0; s < 6; s++) {
         createNewLife({ first: "Sim", last: "Test", seed: String(7000 + s) });
         let guard = 0;
@@ -1718,34 +1783,38 @@
             for (let i = 0; i < ch.length; i++) { if (!ch[i].minigame) { idx = i; break; } }
             applyChoice(ev.id, idx);
           } else { ageUp(); }
-          const st = game.character.stats;
-          for (const k of ["health", "happiness", "smarts", "looks"]) ok(st[k] >= 0 && st[k] <= 100, `${k} clamped (seed ${s}, age ${game.character.age})`);
-          ok(Number.isFinite(game.character.money), "money finite (seed " + s + ")");
-          ok(Number.isFinite(game.character.age) && game.character.age >= 0, "age valid (seed " + s + ")");
+          checkInvariants(`seed ${s}, age ${game.character.age}`, ok);
           guard++;
         }
         ok(guard < 200, "life " + s + " ended within 200y (no infinite loop)");
-        const round = JSON.parse(JSON.stringify(stripTransient(game)));
-        ok(round.character && round.character.name === game.character.name, "save round-trips (seed " + s + ")");
+        ok(JSON.parse(snapshot()).character.name === game.character.name, "save round-trips (seed " + s + ")");
       }
-      // ── Prison invariants: nothing illogical may happen while jailed ──
-      // This audits the requireFree() guards so the "roommate issues in jail" class
-      // of bug can't come back. Add new free-only actions to `probes` below.
+
+      // ── Fuzz pass: free adult, fire random actions; invariants must hold ──
+      createNewLife({ first: "Fuzz", last: "Test", seed: "8000" });
+      game.character.age = 25; game.character.lifeStage = lifeStageFor(25); game.character.money = 5000000;
+      for (let i = 0; i < 200 && game.character.alive; i++) {
+        const a = PLAYER_ACTIONS[rngInt(0, PLAYER_ACTIONS.length - 1)];
+        try { a.run(); } catch (e) { /* surfaced via window.error + invariants */ }
+        checkInvariants(`fuzz ${a.fn}`, ok);
+        if (i % 7 === 0) { ageUp(); if (game.pendingEvent) game.pendingEvent = null; checkInvariants(`fuzz ageUp`, ok); }
+      }
+
+      // ── Prison audit (driven by PLAYER_ACTIONS, so new actions are covered) ──
+      // "block" actions must change NOTHING while jailed; "allow" actions may act
+      // but must keep every invariant. This kills the "roommate-in-jail" bug class.
       createNewLife({ first: "Jail", last: "Test", seed: "9000" });
       game.character.age = 30; game.character.lifeStage = lifeStageFor(30); game.character.money = 100000;
       game.prison = { inPrison: true, sentenceYears: 10, yearsServed: 1, reason: "test" };
       game.pendingEvent = null; fireYearlyEvent();
       ok(game.pendingEvent == null, "no life event fires while in prison");
-      const before = game.character.money;
-      const probes = [
-        ["travel", () => goTravel("beach")], ["emigrate", () => emigrate("UK")], ["fame", () => doFame("post")],
-        ["lottery", () => playLottery()], ["run for office", () => runForOffice()], ["lawsuit", () => fileLawsuit()],
-        ["gang job", () => gangJob()], ["buy vehicle", () => buyVehicle("beater")], ["buy valuable", () => buyValuable("watch")],
-        ["take loan", () => takeLoan(5000)], ["buy stock", () => buyAsset("APPL", 1)], ["start business", () => startBusiness("foodtruck")],
-        ["lifestyle", () => doLifestyle("bar")], ["royal duties", () => royalDuties()],
-        ["relationship gift", () => { const rel = (game.relationships || [])[0]; if (rel) interact(rel.id, "gift"); }]
-      ];
-      for (const [label, fn] of probes) { try { fn(); } catch (e) { } ok(game.character.money === before, `blocked in prison: ${label}`); }
+      for (const a of PLAYER_ACTIONS) {
+        const before = snapshot();
+        try { a.run(); } catch (e) { /* see invariants/errors */ }
+        if (a.prison === "block") ok(snapshot() === before, `blocked in prison: ${a.fn}${a.guard ? " (" + a.guard + ")" : ""}`);
+        checkInvariants(`prison ${a.fn}`, ok);
+      }
+
       // ── Faucet guard: a repeatable money action is once-per-year ──
       createNewLife({ first: "Free", last: "Test", seed: "9001" });
       game.character.age = 25; game.character.lifeStage = lifeStageFor(25);
@@ -1755,8 +1824,8 @@
     window.removeEventListener("error", onErr);
     const green = fail === 0 && errs === 0;
     modalShell("🧪 Self-check", `<div style="font-size:20px;font-weight:900;color:${green ? "var(--ok)" : "var(--err)"}">${green ? "ALL PASS ✅" : "FAILURES ❌"}</div>
-      <div class="sub-h">${pass} passed · ${fail} failed · ${errs} errors · 6 lives + prison &amp; faucet audit</div>
-      <pre style="white-space:pre-wrap;font:11px/1.4 ui-monospace,Menlo,monospace;color:var(--text-muted);max-height:48vh;overflow:auto;background:#000;padding:8px;border-radius:6px">${(results.slice(0, 60).join("\n")) || "All assertions passed. Engine, data, and 6 full lives are healthy."}</pre>`);
+      <div class="sub-h">${pass} passed · ${fail} failed · ${errs} errors · 6 lives + fuzz + prison audit (${INVARIANTS.length} invariants · ${PLAYER_ACTIONS.length} actions)</div>
+      <pre style="white-space:pre-wrap;font:11px/1.4 ui-monospace,Menlo,monospace;color:var(--text-muted);max-height:48vh;overflow:auto;background:#000;padding:8px;border-radius:6px">${(results.slice(0, 60).join("\n")) || "All assertions passed. Engine, data, 6 full lives, a 200-action fuzz pass, and the prison audit are healthy."}</pre>`);
   }
   function testIdFromHash() {
     const m = (location.hash || "").toLowerCase().match(/^#test(?:=([a-z]+))?$/);

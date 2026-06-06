@@ -43,15 +43,28 @@ fb = set(re.findall(r'(\w+):\s*\{\s*label:', html))          # bareword keys in 
 js = set(d['ACHIEVEMENTS'].keys())
 missing = js - fb
 if missing: errs.append(f"FALLBACK_DATA missing ribbons present in JSON: {sorted(missing)}")
-# Guard audit: every "free-only" action function must call requireFree() near its
-# top, so it refuses while in prison (prevents the 'roommate-in-jail' bug class).
-FREE_ONLY = ["goTravel","emigrate","doFame","playLottery","runForOffice","fileLawsuit",
-             "gangJob","buyVehicle","buyValuable","buyRealEstate","takeLoan","buyAsset",
-             "startBusiness","doLifestyle","royalDuties","openAssets","openFame","openBusiness"]
-for name in FREE_ONLY:
-    m = re.search(r'\n  function '+re.escape(name)+r'\([^)]*\)\s*\{(.{0,160})', html, re.S)
-    if not m: errs.append(f"guard audit: function {name}() not found"); continue
-    if 'requireFree' not in m.group(1): errs.append(f"guard audit: {name}() is free-only but missing requireFree() — would run in prison")
+# Guard audit: the PLAYER_ACTIONS registry (in index.html) is the single source of
+# truth for player actions + their prison rule. Every action marked prison:"block"
+# whose guard isn't the relationship whitelist MUST call requireFree() near its top,
+# so it refuses while in prison (prevents the 'roommate-in-jail' bug class). Add a new
+# free-only action to PLAYER_ACTIONS and this audits it automatically.
+pa = re.search(r'const PLAYER_ACTIONS\s*=\s*\[(.*?)\];', html, re.S)
+if not pa:
+    errs.append("guard audit: PLAYER_ACTIONS registry not found in index.html")
+else:
+    audited = 0
+    for ent in re.findall(r'\{([^}]*)\}', pa.group(1)):
+        fnm = re.search(r'fn:\s*"(\w+)"', ent)
+        if not fnm: continue
+        name = fnm.group(1)
+        if not re.search(r'prison:\s*"block"', ent): continue   # allowed in prison
+        if re.search(r'guard:', ent): continue                  # gated another way (e.g. rel whitelist)
+        m = re.search(r'\n  function '+re.escape(name)+r'\([^)]*\)\s*\{(.{0,200})', html, re.S)
+        if not m: errs.append(f"guard audit: PLAYER_ACTIONS lists {name}() but no such function"); continue
+        if 'requireFree' not in m.group(1):
+            errs.append(f"guard audit: {name}() is prison:'block' in PLAYER_ACTIONS but missing requireFree() — would run in prison")
+        else: audited += 1
+    if audited == 0: errs.append("guard audit: no free-only actions audited (PLAYER_ACTIONS parse failed?)")
 if errs:
     print("✗ data integrity:")
     for e in errs: print("   -", e)
