@@ -130,7 +130,8 @@ export function start(host, api) {
     <div style="position:absolute;top:10px;left:0;right:0;padding:0 12px;text-align:center;text-shadow:0 1px 3px #000">
       <div style="font-size:17px;font-weight:800"><span id="bg-loot">$0</span> grabbed</div>
       <div style="font-size:11px;opacity:.85">${opts.name ? opts.name + " · " : ""}sneak to the 🚪 with the loot — stay out of the light</div>
-      <div style="max-width:240px;margin:6px auto 0;height:9px;background:#0008;border:1px solid #fff4;border-radius:5px;overflow:hidden"><div id="bg-alert" style="height:100%;width:0%;background:linear-gradient(90deg,#ffd14a,#ff5a4a)"></div></div>
+      <div style="max-width:240px;margin:6px auto 0;height:11px;background:#0008;border:1px solid #fff4;border-radius:5px;overflow:hidden"><div id="bg-alert" style="height:100%;width:0%;background:linear-gradient(90deg,#ffd14a,#ff5a4a)"></div></div>
+      <div id="bg-spot" style="height:15px;margin-top:3px;color:#ff5a5a;font-weight:800;font-size:12px;text-shadow:0 1px 3px #000"></div>
     </div>
     <button id="bg-quit" style="position:absolute;top:10px;right:10px;pointer-events:auto;background:#0007;color:#fff;border:1px solid #fff4;border-radius:8px;padding:5px 9px;font-size:11px">Bail out</button>
     <div id="bg-stick" style="position:absolute;width:84px;height:84px;border-radius:50%;border:2px solid #fff5;display:none;pointer-events:none"><div id="bg-nub" style="position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:#fff8"></div></div>
@@ -147,7 +148,7 @@ export function start(host, api) {
   resize();
 
   // ── State / loop ──
-  let alert = 0, lootGot = 0, ended = false, finished = false, raf = 0, timeLeft = 85;
+  let alert = 0, lootGot = 0, ended = false, finished = false, raf = 0, timeLeft = 85, _seen = false;
   let last = performance.now();
   function step() {
     raf = requestAnimationFrame(step);
@@ -169,18 +170,30 @@ export function start(host, api) {
     // loot pickup
     for (const it of loot) if (!it.taken && Math.hypot(player.x - it.x, player.y - it.y) < player.r + U * 0.4) { it.taken = true; lootGot += it.value; alert = Math.min(100, alert + 6); }
 
-    // guards patrol + detection
+    // guards patrol + detection. A spotted guard turns to face the intruder and
+    // closes in, so the cone is hard to escape — being seen really matters.
     let seen = false;
     for (const g of guards) {
-      const tgt = g.wp[g.wi];
-      const dx = tgt.x - g.x, dy = tgt.y - g.y, d = Math.hypot(dx, dy);
-      if (d < U * 0.3) { g.wi = (g.wi + 1) % g.wp.length; }
-      else { g.facing = Math.atan2(dy, dx); g.x += (dx / d) * g.speed * dt; g.y += (dy / d) * g.speed * dt; }
-      const pdx = player.x - g.x, pdy = player.y - g.y, pd = Math.hypot(pdx, pdy);
+      const pdx = player.x - g.x, pdy = player.y - g.y, pd = Math.hypot(pdx, pdy) || 1;
       const ang = Math.abs(angDiff(Math.atan2(pdy, pdx), g.facing));
-      if ((pd < g.range && ang < g.half && losClear(g.x, g.y, player.x, player.y)) || pd < U * 0.9) seen = true;
+      const detects = (pd < g.range && ang < g.half && losClear(g.x, g.y, player.x, player.y)) || pd < U * 1.2;
+      g.alarmed = detects;
+      if (detects) {
+        seen = true;
+        g.facing = Math.atan2(pdy, pdx);                                  // snap to face you (alarm!)
+        if (pd > U * 1.0) { g.x += (pdx / pd) * g.speed * 1.15 * dt; g.y += (pdy / pd) * g.speed * 1.15 * dt; } // give chase
+      } else {
+        const tgt = g.wp[g.wi];
+        const dx = tgt.x - g.x, dy = tgt.y - g.y, d = Math.hypot(dx, dy) || 1;
+        if (d < U * 0.3) g.wi = (g.wi + 1) % g.wp.length;
+        else { g.facing = Math.atan2(dy, dx); g.x += (dx / d) * g.speed * dt; g.y += (dy / d) * g.speed * dt; }
+      }
     }
-    alert += (seen ? (38 + 10 * D) : -34) * dt;
+    // Sting the meter the instant you're first spotted, ramp it fast while in
+    // the light, and let it cool only slowly — so a few exposures add up to a bust.
+    if (seen && !_seen) alert = Math.min(100, alert + 18);
+    _seen = seen;
+    alert += (seen ? (44 + 14 * D) : -15) * dt;
     alert = Math.max(0, Math.min(100, alert));
     if (alert >= 100) return endHeist(false);
 
@@ -190,9 +203,10 @@ export function start(host, api) {
     timeLeft -= dt;
     if (timeLeft <= 0) return endHeist(false);
 
-    const le = hud.querySelector("#bg-loot"), ae = hud.querySelector("#bg-alert");
+    const le = hud.querySelector("#bg-loot"), ae = hud.querySelector("#bg-alert"), se = hud.querySelector("#bg-spot");
     if (le) le.textContent = "$" + lootGot.toLocaleString();
     if (ae) ae.style.width = alert + "%";
+    if (se) se.textContent = _seen ? "👁 SPOTTED — break line of sight!" : "";
   }
 
   function render() {
@@ -210,16 +224,19 @@ export function start(host, api) {
     // loot
     ctx.font = `${U * 0.62}px sans-serif`;
     for (const it of loot) if (!it.taken) ctx.fillText(it.emoji, it.x, it.y);
-    // guards + flashlight cones
+    // guards + flashlight cones (cone turns red & an "!" pops when they spot you)
     for (const g of guards) {
-      ctx.fillStyle = SKIN.cone; ctx.beginPath(); ctx.moveTo(g.x, g.y);
+      ctx.fillStyle = g.alarmed ? "rgba(255,60,50,0.30)" : SKIN.cone; ctx.beginPath(); ctx.moveTo(g.x, g.y);
       ctx.arc(g.x, g.y, g.range, g.facing - g.half, g.facing + g.half); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = SKIN.guard; ctx.beginPath(); ctx.arc(g.x, g.y, U * 0.42, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = g.alarmed ? "#ff2a2a" : SKIN.guard; ctx.beginPath(); ctx.arc(g.x, g.y, U * 0.42, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(g.x + Math.cos(g.facing) * U * 0.2, g.y + Math.sin(g.facing) * U * 0.2, U * 0.1, 0, Math.PI * 2); ctx.fill();
+      if (g.alarmed) { ctx.fillStyle = "#ffe14a"; ctx.font = `bold ${U * 0.6}px sans-serif`; ctx.fillText("!", g.x, g.y - U * 0.7); }
     }
     // player
     ctx.fillStyle = SKIN.player; ctx.beginPath(); ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#0a2a26"; ctx.font = `${U * 0.5}px sans-serif`; ctx.fillText("🦝", player.x, player.y);
+    // spotted! — pulsing red border so you can't miss that the meter is filling
+    if (_seen) { ctx.strokeStyle = `rgba(255,40,40,${0.45 + 0.35 * Math.abs(Math.sin(performance.now() / 120))})`; ctx.lineWidth = 7; ctx.strokeRect(3.5, 3.5, W - 7, H - 7); }
   }
 
   function endHeist(escaped) {
