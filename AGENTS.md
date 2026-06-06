@@ -1,4 +1,8 @@
-# Extending JMR's BitLife
+# AGENTS.md — guide for coding agents/LLMs working on JMR's BitLife
+
+> **Single source of truth for contributors.** Players & the BitLife **comparison table**: see
+> [README.md](./README.md). `CLAUDE.md` is a pointer to this file. Keep this current when you add systems.
+
 
 A practical guide for humans **and LLMs** who want to add content or features fast,
 without breaking the game or its core promises. Read [The golden rules](#the-golden-rules)
@@ -52,7 +56,7 @@ first — they are short and they are the difference between a clean PR and a br
 | `serve.py` | Local dev server that sends COOP/COEP headers. `python3 serve.py` → `http://localhost:8080/index.html`. | Never (it just serves). |
 | `assets/` | Pre-baked PNGs + `manifest.json` (`"scene:<key>" → file`) for instant art. | When you bake new art. |
 | `vendor/web-txt2img/` | Vendored in-browser Stable Diffusion runtime (no install). | Never, unless upgrading the image stack. |
-| `README.md` / `PARITY.md` | Player-facing intro / parity scorecard. | Bump the version + note new features on release. |
+| `README.md` | Player-facing intro + the BitLife **comparison table**. | Bump the version + advance a chart row on release. |
 
 ---
 
@@ -304,34 +308,50 @@ prefers the JSON and silently falls back. Practical rule:
 
 ---
 
+## v0.9.x systems quick-map (where the depth lives)
+
+All added as **JS consts (offline-safe) + one engine fn + one `openX()` modal**, wired into a menu and
+ticked yearly in `tickDepth()` (called near the end of `ageUp`). Reuse these patterns:
+
+- **Health/disease:** `DISEASES` const, `game.character.conditions[]`, `addDisease()`/`addCondition()`
+  (addictions & STDs), `openClinic()`/`treatCondition()`; untreated severity raises `checkDeath` mortality.
+- **Money/assets:** `VEHICLES`/`VALUABLES`/`BUSINESSES` consts; `buyVehicle`/`buyValuable`/`startBusiness`;
+  `takeLoan`/`repayLoan`, **mortgages** (`game.mortgageBalance`, `buyRealEstateMortgage`),
+  `declareBankruptcy`, `playLottery`, `netWorth()`. Yearly upkeep/interest/appreciation in `tickDepth`.
+- **Activities/travel/fame/politics:** `LIFESTYLE`/`DESTINATIONS`/`FAME_ACTIONS` consts +
+  `doLifestyle`/`openTravel`/`openFame`/`runForOffice`/`royalDuties` (in the Activities → "More" section).
+- **Relationships:** `openFindLove()`/`askOut()` generate datable NPCs; extra `interact()` actions.
+- **Crime/justice:** more `crime` rows; bank/jewelry heists reuse `BURGLARY_TARGETS`; `joinGang`/`gangJob`,
+  `hireLawyer`/`requestParole`/`appealConviction`/`prisonJob`.
+- **Generations / God Mode / Time Machine:** `continueAsHeir()` (death screen), `openGodMode()`,
+  `timeMachine()` (pre-`ageUp` snapshot in a module var — never persisted).
+- **`oncePerYear(key)`** — gate any repeatable money-positive action (menus don't consume the turn).
+  **Use it or you create a faucet.**
+
 ## Testing & verification
 
-No build step. To check your work:
+No build step. Two fast tiers — run both before committing:
 
-1. **Syntax-check the engine** (extract the module script and run Node):
-   ```bash
-   L1=$(grep -n '<script type="module">' index.html | tail -1 | cut -d: -f1)
-   L2=$(grep -n '</script>' index.html | tail -1 | cut -d: -f1)
-   sed -n "$((L1+1)),$((L2-1))p" index.html > /tmp/engine.mjs && node --check /tmp/engine.mjs
-   ```
-2. **Validate the JSON:** `python3 -m json.tool bitlife_data.json > /dev/null`
-3. **Play it:** `python3 serve.py` → open `http://localhost:8080/index.html`. Leave **AI
-   off** (default) to test the deterministic game; toggle it on to test art/typed actions.
-4. **Prove the odds** for anything with money on the line — replicate the payout logic in a
-   tiny Node script and run a few million trials to confirm the house edge is what you intended.
-5. **Offline smoke test:** load once, then go offline (DevTools → Network → Offline) and
-   confirm you can still start a life and Age Up.
+1. **CLI smoke test (seconds):** `bash tests/check.sh` — syntax (engine + every `minigames/*.js`),
+   JSON validity, and the **invariants** (unique event/career ids, casino `EV<1`, FALLBACK↔JSON ribbon
+   parity). Exits non-zero on failure; safe to wire into a SessionStart hook or CI.
+2. **In-game self-test:** open `index.html#test=selfcheck` — data asserts + **6 seeded lives simulated
+   to death**, checking stats stay clamped, money/age finite, no exceptions, and saves round-trip.
+   Shows a green/red PASS/FAIL summary.
+
+Then, for anything risky: **play it** (`python3 serve.py`; AI off by default), **prove the odds** with
+a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTools → Network → Offline).
 
 ---
 
 ## Release checklist
 
-- [ ] `node --check` passes on the extracted engine script.
-- [ ] `bitlife_data.json` is valid JSON; new ids are unique.
+- [ ] **`bash tests/check.sh` passes** (covers syntax, JSON, unique ids, casino EV<1, ribbon parity).
+- [ ] **`#test=selfcheck` is green** (6 simulated lives, invariants hold).
 - [ ] New menu-routed ids exist in **both** the JSON and `FALLBACK_DATA`.
 - [ ] No new runtime network calls in the core loop; offline smoke test passes.
 - [ ] Odds simulated (for gambling/economy changes).
-- [ ] Version bumped in `index.html` (overlay `<h1>`), `README.md`, `PARITY.md`, and the
+- [ ] Version bumped in `index.html` (overlay `<h1>`), `README.md`, this file, and the
       `bitlife_data.json` `_comment`.
 - [ ] No model identifiers in commits/PRs/comments.
 
@@ -344,4 +364,64 @@ No build step. To check your work:
 - ❌ Setting absolute stats / writing `game.character.stats.health = 100` (use clamped deltas).
 - ❌ Removing or renaming save fields (breaks existing saved lives).
 - ❌ Adding a casino id to only one of the two data copies (vanishes in fallback mode).
+- ❌ A repeatable menu action that nets positive money without `oncePerYear()` or a house edge
+  (infinite faucet — menus don't consume the turn). `tests/check.sh` catches the casino case.
 - ❌ Caching the multi-GB model weights in the service worker (the libraries already do).
+
+---
+
+# Status, content counts & roadmap
+
+## Concrete content counts (v0.9.4)
+
+- Events: **77** — baby 7, child 14, teen 15, youngAdult 11, adult 10, middleAge 10, senior 10
+- Activities: **32** — mindBody 8, doctor 7, education 3, crime 7, casino 7
+- Careers: **43** (incl. military Army/Navy/Air Force, trades, journalist, scientist, fame paths) · Degrees: **12**
+- Market assets: **9** (4 stock / 3 crypto / 2 bond) · Real estate: **4** · Insider tips: **4**
+- Ribbons/achievements: **28** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
+- **v0.9.0 Depth Update** added: disease system, vehicles, bank loans, lottery, travel, lifestyle activities, fame activities, run-for-office, dating (Find Love) + deeper relationships, **generations (continue as heir)**, and God Mode.
+
+## Gap-closure roadmap (phased — one PR per epic; content volume runs in parallel)
+
+Ordered by player impact. Each epic = data tables + one/few engine functions + one modal, reusing the
+existing seams (mini-game launcher, the `minigame` event-choice hook, `modalShell`/`optRow` drill-downs,
+`applyEffects`); every epic bumps the version and advances the chart rows it closes.
+
+- **A — Relationships & family** (v0.8.7): dating / "Find Love", richer per-NPC menu (move in, prenup,
+  argue, vacation, cheat), family-tree + extended family, friends/coworkers, divorce (asset split) +
+  custody + alimony, adoption/IVF/surrogacy.
+- **B — Health & medical** (v0.8.8): `DISEASES` + `conditions[]`, illness events, treatment drill-down +
+  specialists, mental health, addictions + rehab, STDs, disabilities, pandemics.
+- **C — Money & assets depth** (v0.8.9): bank/interest, loans, **mortgages**, credit/debt, bankruptcy,
+  **taxes**, lawsuits, **lottery**, charity, **will/inheritance**; **vehicles** (dealership/insurance/
+  upkeep) + valuables (jewelry/art, pawn); `netWorth()`.
+- **D — Activities, travel & lifestyle** (v0.8.10): nightlife/museum/concert, **travel/vacation** +
+  emigrate, tattoos/shopping, **religion**, astrology, donation.
+- **E — Careers, fame & business** (v0.9.0): job **interview + salary negotiation**, fired/retire/pension,
+  **fame activities** (social/go-viral/book/album/film/endorsements/scandals), **business ownership**,
+  sports leagues.
+- **F — Crime, gangs & justice** (v0.9.1): more crimes, new **heist mini-games** (bank/jewelry/train —
+  reuse the burglary engine), **gangs/mafia**, **justice** (lawyers/trials/plea/appeals), **prison depth**
+  (riots/gangs/parole/contraband/death row).
+- **G — Structural systems** (v0.9.2): **generations/dynasties** (continue as heir + inheritance),
+  **royalty**, **politics** (run for office → elections), **military** (ranks/deployments/medals).
+- **H — God-tools & polish** (v0.9.3): **God Mode** (edit stats), **Time Machine** (rewind a year),
+  Surrender, bucket list, expanded ribbons + richer end-of-life summary.
+- **I — Content volume** (parallel, every release): scale `EVENTS` toward 15–30/stage, `CAREERS` toward
+  100+, a real `DISEASES` list, richer name pools, country flavor. Pure data.
+
+> Keep every addition deterministic-first and routed through `applyEffects` (auto-clamped). The LLM is
+> only for the free-text box; buttons stay instant local logic; skill mini-games never call `rng()`.
+> Vendor any new library locally and precache it (offline rule). The recipes & mini-game contract
+> are above in this file.
+
+## How to check status yourself
+
+- **Content counts:** the JSON is the source of truth — `EVENTS`, `ACTIVITIES`, `CAREERS`, etc. Counting
+  entries there tells you depth at a glance.
+- **Engine coverage:** every system above maps to a function in `index.html` (`fireYearlyEvent`,
+  `doActivity`, `applyJob`/`askPromotion`, `commitCrime`/`sendToPrison`, `gamble`, `buyAsset`/`sellAsset`,
+  `maybeInsiderTip`/`runInsiderTip`, `interact`, `ageRelationships`, `checkDeath`). If a system has no
+  function, it's not implemented yet.
+- **Live state while playing:** open the **Debug** panel (or run `bitlifeDebug()` in the console) for a
+  one-screen snapshot of stats/job/education/prison/portfolio/achievements + any errors.
