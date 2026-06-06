@@ -182,6 +182,30 @@
     .entry.kind-help .body { color: var(--text); white-space: pre-wrap; font-size: 13.5px; }
     .entry.kind-help .meta { color: var(--info); font-weight: 600; }
     #btn-help { flex: none; padding: 9px 11px; }
+
+    /* ── Slot machine minigame (v0.8) ── */
+    .slot-machine { text-align: center; }
+    .slot-cabinet { background: linear-gradient(165deg, #2a1d3a, #160f24); border: 2px solid var(--accent-dim); border-radius: 14px; padding: 12px 12px 8px; margin: 4px 0 12px; box-shadow: inset 0 0 26px rgba(201,165,80,0.12), 0 4px 16px rgba(0,0,0,0.4); }
+    .slot-reels { display: flex; gap: 8px; justify-content: center; margin: 4px 0 8px; }
+    .slot-reel { width: 70px; height: 84px; display: flex; align-items: center; justify-content: center; font-size: 42px; line-height: 1; background: radial-gradient(circle at 50% 38%, #15151f, #08080e); border: 2px solid var(--accent-dim); border-radius: 10px; overflow: hidden; box-shadow: inset 0 7px 12px rgba(0,0,0,0.7), inset 0 -7px 12px rgba(0,0,0,0.7); }
+    .slot-reel.spinning { animation: slotBlur 0.1s linear infinite; }
+    .slot-reel.landed { animation: slotPop 0.32s cubic-bezier(.3,1.6,.5,1); }
+    .slot-reel.win { border-color: var(--accent); box-shadow: 0 0 16px var(--accent), inset 0 7px 12px rgba(0,0,0,0.7); animation: slotWin 0.7s ease infinite alternate; }
+    @keyframes slotBlur { 0% { filter: blur(0.4px); opacity: 0.92; } 50% { filter: blur(2.2px); opacity: 0.7; } 100% { filter: blur(0.4px); opacity: 0.92; } }
+    @keyframes slotPop { 0% { transform: translateY(-14px) scale(1.18); } 60% { transform: translateY(2px) scale(0.94); } 100% { transform: translateY(0) scale(1); } }
+    @keyframes slotWin { from { box-shadow: 0 0 8px var(--accent), inset 0 7px 12px rgba(0,0,0,0.7); } to { box-shadow: 0 0 20px var(--accent), inset 0 7px 12px rgba(0,0,0,0.7); } }
+    .slot-msg { min-height: 22px; font-size: 14px; font-weight: 600; margin: 2px 0; color: var(--text-muted); }
+    .slot-msg.win { color: var(--ok); }
+    .slot-msg.jackpot { color: var(--accent); font-size: 17px; animation: slotPop 0.45s ease; }
+    .slot-bal { font-size: 13px; color: var(--money); font-weight: 700; margin: 2px 0 6px; }
+    .slot-spin-btn { width: 100%; font-size: 17px; padding: 13px; margin-top: 2px; letter-spacing: 1.5px; }
+    .slot-quickbets { display: flex; gap: 6px; margin: 8px 0 4px; }
+    .slot-quickbets button { flex: 1; font-size: 12px; padding: 7px 2px; }
+    .slot-paytable { margin-top: 14px; font-size: 12px; }
+    .slot-paytable table { width: 100%; border-collapse: collapse; }
+    .slot-paytable td { padding: 3px 6px; border-bottom: 1px solid var(--border); }
+    .slot-paytable td.sym { font-size: 17px; letter-spacing: 1px; }
+    .slot-paytable td.pay { text-align: right; color: var(--accent); font-weight: 700; }
   </style>
 </head>
 <body>
@@ -189,7 +213,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.7</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Click to live a life — type anything and a local AI interprets it. Stable Diffusion paints your face and your milestones. The game plays instantly even before the AI finishes loading.<br/><br/><span style="color:var(--accent)">⏳ The AI models are already downloading in the background</span> — pick your name, gender, country and seed while they load. The bar at the top of the screen shows progress.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -802,6 +826,142 @@
     autosave(); renderAll(); openModal("casino"); // keep casino open
   }
 
+  // ── Slot machine minigame (v0.8) ──────────────────────────────────────────
+  // A real, animated 3-reel slot machine (the original BitLife casino has live
+  // mini-games rather than a single coin-flip). The OUTCOME is decided up-front
+  // by the seeded rng() so saved lives stay reproducible; the spinning reels are
+  // purely cosmetic and settle on those predetermined symbols. `three` is the
+  // three-of-a-kind multiplier; `pair` (cherries & sevens only) pays on two.
+  // Designed house edge ≈ 19% (≈81% RTP) — fun, but the house wins long-term.
+  const SLOT_CONFIG = {
+    symbols: [
+      { ch: "🍒", weight: 20, three: 10,  pair: 2 },
+      { ch: "🍋", weight: 18, three: 12 },
+      { ch: "🍊", weight: 14, three: 16 },
+      { ch: "🍉", weight: 10, three: 24 },
+      { ch: "🔔", weight: 7,  three: 40 },
+      { ch: "⭐", weight: 5,  three: 75 },
+      { ch: "💎", weight: 3,  three: 150 },
+      { ch: "7️⃣", weight: 2,  three: 500, pair: 10, jackpot: true }
+    ]
+  };
+  let _slotSpinning = false;
+  function pickReel() { return rngWeighted(SLOT_CONFIG.symbols); }
+  function evalSlots(reels) {
+    const [a, b, c] = reels;
+    if (a.ch === b.ch && b.ch === c.ch) return { mult: a.three, kind: a.jackpot ? "jackpot" : "three", sym: a };
+    const counts = {};
+    for (const r of reels) counts[r.ch] = (counts[r.ch] || 0) + 1;
+    for (const s of SLOT_CONFIG.symbols) if (s.pair && counts[s.ch] >= 2) return { mult: s.pair, kind: "pair", sym: s };
+    return { mult: 0, kind: "none" };
+  }
+
+  function openSlots() {
+    if (game.character.age < 18) { showToast("Casino is 18+."); return; }
+    const wager = (window._lastWager || 100);
+    const tripleRows = SLOT_CONFIG.symbols.slice().reverse()
+      .map(s => `<tr><td class="sym">${s.ch}${s.ch}${s.ch}</td><td class="pay">${s.three}×</td></tr>`).join("");
+    const pairRows = SLOT_CONFIG.symbols.filter(s => s.pair)
+      .map(s => `<tr><td class="sym">${s.ch}${s.ch}<span style="opacity:.35">▫</span></td><td class="pay">${s.pair}×</td></tr>`).join("");
+    modalShell("🎰 Slot Machine", `
+      <div class="slot-machine">
+        <div class="slot-cabinet">
+          <div class="slot-reels">
+            <div class="slot-reel" id="reel-0">🍒</div>
+            <div class="slot-reel" id="reel-1">🔔</div>
+            <div class="slot-reel" id="reel-2">7️⃣</div>
+          </div>
+          <div class="slot-msg" id="slot-msg">Pull the lever — match 3 to win!</div>
+        </div>
+        <div class="slot-bal">Balance: <span id="slot-bal">$${game.character.money.toLocaleString()}</span></div>
+        <div class="field"><label>Wager ($)</label><input id="wager" type="number" value="${wager}" min="1" /></div>
+        <div class="slot-quickbets">
+          <button data-bet="50">$50</button><button data-bet="100">$100</button>
+          <button data-bet="500">$500</button><button data-bet="1000">$1k</button>
+          <button data-bet="max">Max</button>
+        </div>
+        <button id="slot-spin" class="primary slot-spin-btn">🎰 SPIN</button>
+        <div class="slot-paytable">
+          <div class="sub-h">Paytable (× your wager)</div>
+          <table>${tripleRows}${pairRows}</table>
+          <div style="color:var(--text-muted);font-size:11px;margin-top:6px">Three 7️⃣ = the 🎰 Jackpot ribbon. Two matching cherries or sevens also pay.</div>
+        </div>
+      </div>`);
+    const wagerEl = $("wager");
+    wagerEl.oninput = (e) => { window._lastWager = parseInt(e.target.value || "0", 10); };
+    for (const b of document.querySelectorAll(".slot-quickbets button")) {
+      b.onclick = () => {
+        const v = b.dataset.bet === "max" ? Math.max(1, Math.floor(game.character.money)) : parseInt(b.dataset.bet, 10);
+        wagerEl.value = v; window._lastWager = v;
+      };
+    }
+    $("slot-spin").onclick = spinSlots;
+  }
+
+  function spinSlots() {
+    if (_slotSpinning) return;
+    const wagerEl = $("wager");
+    const wager = Math.max(1, Math.floor(parseInt((wagerEl && wagerEl.value) || "0", 10) || 0));
+    if (game.character.age < 18) { showToast("Casino is 18+."); return; }
+    if (game.character.money < wager) { showToast("Not enough money."); return; }
+    _slotSpinning = true;
+    window._lastWager = wager;
+    game.character.money -= wager;
+    const balEl = $("slot-bal"); if (balEl) balEl.textContent = "$" + game.character.money.toLocaleString();
+    const spinBtn = $("slot-spin"); if (spinBtn) spinBtn.disabled = true;
+    const msgEl = $("slot-msg"); if (msgEl) { msgEl.textContent = "Spinning…"; msgEl.className = "slot-msg"; }
+
+    // Decide the result now via the seeded rng() — animation only reveals it.
+    const reels = [pickReel(), pickReel(), pickReel()];
+    const result = evalSlots(reels);
+
+    const reelEls = [$("reel-0"), $("reel-1"), $("reel-2")];
+    const allCh = SLOT_CONFIG.symbols.map(s => s.ch);
+    reelEls.forEach(el => { if (el) { el.classList.remove("win", "landed"); el.classList.add("spinning"); el._stopped = false; } });
+    const flash = setInterval(() => {
+      for (const el of reelEls) if (el && !el._stopped) el.textContent = allCh[Math.floor(Math.random() * allCh.length)];
+    }, 70);
+    const stopReel = (i) => {
+      const el = reelEls[i]; if (!el) return;
+      el._stopped = true; el.textContent = reels[i].ch;
+      el.classList.remove("spinning"); el.classList.add("landed");
+      setTimeout(() => el.classList.remove("landed"), 320);
+    };
+    setTimeout(() => stopReel(0), 550);
+    setTimeout(() => stopReel(1), 950);
+    setTimeout(() => { stopReel(2); clearInterval(flash); finishSlots(reels, result, wager, reelEls); }, 1400);
+  }
+
+  function finishSlots(reels, result, wager, reelEls) {
+    _slotSpinning = false;
+    const combo = reels.map(r => r.ch).join("");
+    const win = Math.round(wager * result.mult);
+    const msgEl = $("slot-msg");
+    if (win > 0) {
+      game.character.money += win;
+      if (reelEls) {
+        if (result.kind === "pair") reelEls.forEach((el, i) => { if (el && reels[i].ch === result.sym.ch) el.classList.add("win"); });
+        else reelEls.forEach(el => el && el.classList.add("win"));
+      }
+      if (result.kind === "jackpot") {
+        grantAchievement("lottery");
+        log("casino", `🎰 JACKPOT! ${combo} on the slots — bet $${wager.toLocaleString()}, won $${win.toLocaleString()}! 🎉`, "lottery");
+        if (msgEl) { msgEl.textContent = `🎉 JACKPOT! +$${win.toLocaleString()}`; msgEl.className = "slot-msg jackpot"; }
+      } else {
+        if (win >= 100000) grantAchievement("lottery");
+        log("casino", `🎰 Slots ${combo} — bet $${wager.toLocaleString()}, won $${win.toLocaleString()}! 🎉`, win >= 50000 ? "lottery" : null);
+        if (msgEl) { msgEl.textContent = `${combo} — you won $${win.toLocaleString()}!`; msgEl.className = "slot-msg win"; }
+      }
+    } else {
+      // Losing spins update the machine but aren't logged to the life feed (the
+      // balance still reflects them) — keeps rapid play from flooding the feed.
+      if (msgEl) { msgEl.textContent = `${combo} — no win. Spin again!`; msgEl.className = "slot-msg lose"; }
+    }
+    const balEl = $("slot-bal"); if (balEl) balEl.textContent = "$" + game.character.money.toLocaleString();
+    const spinBtn = $("slot-spin"); if (spinBtn) spinBtn.disabled = false;
+    autosave(); renderAll();
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // ENGINE: MARKETS / INVESTING / INSIDER TRADING
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1185,6 +1345,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (/steal|shoplift|rob/.test(t)) { openModal("crime"); return "Opening Crime menu"; }
     if (/invest|stock|buy shares/.test(t)) { openModal("assets"); return "Opening Assets menu"; }
     if (/job|work|apply/.test(t)) { openModal("careers"); return "Opening Careers menu"; }
+    if (/slot|slots|jackpot|one-armed/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openSlots(); } return "Opening the slot machine"; }
     if (/gambl|casino|bet/.test(t)) { openModal("casino"); return "Opening Casino menu"; }
     return null;
   }
@@ -1214,8 +1375,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     ]},
     { topic: "casino", aliases: ["slots", "blackjack", "gamble", "bet", "wager"], tab: "casino", tabLabel: "🎰 Casino", text: [
       "Casino opens at 18. Set a wager, then pick a game.",
-      "• Slots: ~18% win, 3–12× payout — huge wins unlock the 🎰 Jackpot ribbon.",
-      "• Blackjack: ~47% win, 2× payout — lower variance grinding."
+      "• Slots: a real animated 3-reel machine — match 3 symbols. Three 7️⃣ pays 500× and unlocks the 🎰 Jackpot ribbon. Use quick-bet chips or Max.",
+      "• Blackjack / Roulette / etc.: instant bets — pick a wager and play for a quick 2× or more."
     ]},
     { topic: "career", aliases: ["job", "work", "salary", "promotion", "jobs", "apply", "doctor"], tab: "careers", tabLabel: "💼 Careers", text: [
       "Careers have entry requirements (age, education, sometimes a specific degree).",
@@ -1849,7 +2010,12 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     $("wager").oninput = (e) => { window._lastWager = parseInt(e.target.value || "0", 10); };
     for (const g of DATA.ACTIVITIES.casino) {
       const gated = game.character.age < g.minAge;
-      $("casino-list").appendChild(optRow(g.label, `${Math.round(g.winChance*100)}% win · ${g.payoutMult[0]}-${g.payoutMult[1]}x · ${g.minAge}+`, "Play", () => gamble(g.id, parseInt($("wager").value || "0", 10)), gated));
+      if (g.id === "slots") {
+        // Slots is a live, animated machine rather than an instant coin-flip.
+        $("casino-list").appendChild(optRow(g.label, `Animated reels · up to 500× · 🎰 Jackpot ribbon · ${g.minAge}+`, "Play ▶", () => openSlots(), gated));
+      } else {
+        $("casino-list").appendChild(optRow(g.label, `${Math.round(g.winChance*100)}% win · ${g.payoutMult[0]}-${g.payoutMult[1]}x · ${g.minAge}+`, "Play", () => gamble(g.id, parseInt($("wager").value || "0", 10)), gated));
+      }
     }
   }
 
