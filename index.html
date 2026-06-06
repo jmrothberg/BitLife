@@ -99,6 +99,8 @@
     .saved-list .saved-item button { padding: 4px 8px; font-size: 12px; flex: none; }
     .ollama-fields { display: none; margin-top: 8px; }
     .ollama-fields.on { display: block; }
+    .ai-suboptions { display: none; margin-top: 6px; padding-left: 10px; border-left: 2px solid var(--border); }
+    .ai-suboptions.on { display: block; }
 
     /* ── Game header ── */
     header.hdr { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 14px; position: sticky; top: 0; z-index: 10; }
@@ -213,8 +215,8 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8</span></h1>
-      <div class="tagline">A life simulator that runs entirely in your browser. Click to live a life — type anything and a local AI interprets it. Stable Diffusion paints your face and your milestones. The game plays instantly even before the AI finishes loading.<br/><br/><span style="color:var(--accent)">⏳ The AI models are already downloading in the background</span> — pick your name, gender, country and seed while they load. The bar at the top of the screen shows progress.</div>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8.1</span></h1>
+      <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
         <h3>Start a New Life</h3>
@@ -245,24 +247,26 @@
       </div>
 
       <div class="card" id="card-ai" data-pick="ai">
-        <h3>AI Options</h3>
-        <div class="hint">Free-typed actions use a local Gemma model. By default it runs in-browser (WebGPU). Optionally route typed actions through a local Ollama server instead.</div>
-        <label style="display:flex;gap:8px;margin-top:10px;font-size:13px;align-items:flex-start;cursor:pointer">
-          <input type="checkbox" id="use-ollama" style="width:auto;margin-top:3px" />
-          <span>Use local Ollama for typed actions (in-browser image gen still runs).</span>
+        <h3>AI Features <span style="font-size:12px;color:var(--text-muted);font-weight:400">— optional, off by default</span></h3>
+        <div class="hint">The full game plays without any AI. Turn this on to type free-form actions (local Gemma LLM) and generate avatar &amp; scene art (local Stable Diffusion). These download large models and run on WebGPU — <b style="color:var(--warn)">heavy on phones; leave off if the game crashes, freezes, or runs hot on mobile.</b></div>
+        <label style="display:flex;gap:8px;margin-top:12px;font-size:13px;align-items:flex-start;cursor:pointer">
+          <input type="checkbox" id="enable-ai" style="width:auto;margin-top:3px" />
+          <span><b>Enable AI models</b> — local LLM for typed actions + on-device image generation. Best on desktop with a recent GPU.</span>
         </label>
-        <div class="ollama-fields" id="ollama-fields">
-          <div class="field"><label>Ollama URL</label><input id="ollama-base" value="http://127.0.0.1:11434" /></div>
-          <div class="field"><label>Model name</label><input id="ollama-model" placeholder="e.g. gemma2, llama3.2, qwen2.5" /></div>
+        <div class="ai-suboptions" id="ai-suboptions">
+          <label style="display:flex;gap:8px;margin-top:10px;font-size:13px;align-items:flex-start;cursor:pointer">
+            <input type="checkbox" id="ai-narrator" checked style="width:auto;margin-top:3px" />
+            <span>AI narrator — let the local LLM add a short comment on your life as you age up (flavor only, no stat changes).</span>
+          </label>
+          <label style="display:flex;gap:8px;margin-top:10px;font-size:13px;align-items:flex-start;cursor:pointer">
+            <input type="checkbox" id="use-ollama" style="width:auto;margin-top:3px" />
+            <span>Use a local Ollama server for typed actions instead of the in-browser LLM (in-browser image gen still runs).</span>
+          </label>
+          <div class="ollama-fields" id="ollama-fields">
+            <div class="field"><label>Ollama URL</label><input id="ollama-base" value="http://127.0.0.1:11434" /></div>
+            <div class="field"><label>Model name</label><input id="ollama-model" placeholder="e.g. gemma2, llama3.2, qwen2.5" /></div>
+          </div>
         </div>
-        <label style="display:flex;gap:8px;margin-top:10px;font-size:13px;align-items:flex-start;cursor:pointer">
-          <input type="checkbox" id="ai-narrator" checked style="width:auto;margin-top:3px" />
-          <span>AI narrator — let the local LLM add a short comment on your life as you age up (flavor only, no stat changes).</span>
-        </label>
-        <label style="display:flex;gap:8px;margin-top:10px;font-size:13px;align-items:flex-start;cursor:pointer">
-          <input type="checkbox" id="skip-models" style="width:auto;margin-top:3px" />
-          <span>Skip loading AI models — play the deterministic game only (no typed AI, no images).</span>
-        </label>
       </div>
 
       <button class="primary" id="btn-start" style="font-size:16px;padding:13px 30px;margin-top:6px">Start Life</button>
@@ -2220,6 +2224,12 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     document.querySelectorAll(".card[data-pick]").forEach(c => c.classList.remove("sel"));
     card.classList.add("sel");
   }));
+  $("enable-ai").addEventListener("change", (e) => {
+    $("ai-suboptions").classList.toggle("on", e.target.checked);
+    // If the user opts into AI on the picker, begin downloading right away so the
+    // models are partly ready by the time they hit Start (mirrors the old preload).
+    if (e.target.checked) preloadModelsAtBoot();
+  });
   $("use-ollama").addEventListener("change", (e) => $("ollama-fields").classList.toggle("on", e.target.checked));
 
   // Re-entrant: kicks off LLM + image loads if not already running, otherwise
@@ -2284,15 +2294,19 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (imgReady && game) { refreshAvatar(true); enqueuePregen(); }
   }
 
-  // Fired at page boot — start downloading models BEFORE the user clicks "Start Life"
-  // so they're partly (or fully) ready by the time the user finishes choosing options.
+  // Start downloading models BEFORE the user clicks "Start Life" so they're partly
+  // (or fully) ready by the time the user finishes choosing options. As of v0.8.1
+  // this runs only after the user opts in via "Enable AI models" (it's also called
+  // from that checkbox's change handler), never automatically at page boot.
   // Skipped if:
-  //   - the user already pre-ticked "Skip loading AI models"
+  //   - "Enable AI models" is not ticked (the default — keeps phones from crashing)
   //   - we're not yet crossOriginIsolated (the COI service worker will reload us shortly)
   async function preloadModelsAtBoot() {
-    if ($("skip-models") && $("skip-models").checked) return;
+    // AI is OFF by default (v0.8.1) — nothing downloads at boot. The heavy WebGPU
+    // model loads were crashing some phones, so they only start once the user
+    // explicitly ticks "Enable AI models" on the picker.
+    if (!($("enable-ai") && $("enable-ai").checked)) return;
     if (!window.crossOriginIsolated) return; // wait for COI SW reload on GH Pages first visit
-    // Use whatever the user has ticked at this moment (defaults are off → in-browser LLM)
     useOllama = $("use-ollama") ? $("use-ollama").checked : false;
     skipModels = false;
     try {
@@ -2305,7 +2319,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
 
   function readAiOptions() {
-    skipModels = $("skip-models").checked;
+    skipModels = !$("enable-ai").checked;   // AI is opt-in (off by default)
     useOllama = $("use-ollama").checked;
     aiNarrator = $("ai-narrator").checked;
     ollamaBase = $("ollama-base").value.trim(); ollamaModel = $("ollama-model").value.trim();

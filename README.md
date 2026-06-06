@@ -17,10 +17,11 @@
 
 A **BitLife-style life simulator** that runs entirely in your browser. The game engine is
 **premade and deterministic** — you live a life by clicking **Age Up** and menu buttons, and it
-works **instantly with no AI models loaded at all**. Type any free-form action and a small
-**local LLM** (Gemma 4 E4B via Transformers.js / WebGPU) interprets it into bounded, sanitized
-game effects. A **local diffuser** (Stable Diffusion 1.5, bundled in `vendor/web-txt2img/`) paints
-your character avatar and life-event scenes.
+works **instantly with no AI models loaded at all**. The AI is **optional and off by default**
+(enable it under **AI Features** on the start screen — it's heavy on phones): type any free-form
+action and a small **local LLM** (Gemma 4 E4B via Transformers.js / WebGPU) interprets it into
+bounded, sanitized game effects, and a **local diffuser** (Stable Diffusion 1.5, bundled in
+`vendor/web-txt2img/`) paints your character avatar and life-event scenes.
 
 Includes a stock market with stocks, crypto and bonds that move every year, plus **insider trading**
 — act on a tip for a big gain, but the SEC may investigate and send you to prison (the "Martha"
@@ -47,7 +48,7 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[PARITY.md](./PARITY.md)**.
 
-| System | Real BitLife | This game (v0.8) | Status |
+| System | Real BitLife | This game (v0.8.1) | Status |
 |---|---|---|---|
 | Core stats | Happiness / Health / Smarts / Looks (+ Fame) | All four + Fame | ✅ |
 | Age-up loop + random events | Hundreds of stage-specific multi-choice events | 46 events across 7 life stages, choices + outcomes | 🟡 |
@@ -158,5 +159,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.8 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.8.1 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*
