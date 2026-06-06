@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8.4</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8.5</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -743,6 +743,24 @@
     const ch = ev.choices && ev.choices[choiceIndex];
     if (!ch) { game.pendingEvent = null; closeModal(); autosave(); renderAll(); return; } // malformed → don't get stuck
     applyEffects(ch.effects);
+    // Mini-game hook: a choice can play out through an interactive mini-game
+    // (e.g. "minigame": "fight"); the result selects ch.win / ch.lose effects.
+    // The event is consumed either way. Add this to any "fight"-type choice.
+    if (ch.minigame && MINIGAMES[ch.minigame]) {
+      game.pendingEvent = null; closeModal();
+      const resolve = (key, fallback) => {
+        applyEffects(ch[key]);
+        log("event", `${ev.text} → ${ch.label}: ${ch[key + "Text"] || fallback}`, ev.art ? "event_" + ev.id : null);
+        checkDeath(); autosave(); renderAll(); maybeNarrate();
+      };
+      launchMiniGame(ch.minigame, {
+        onWin: () => resolve("win", "You won!"),
+        onLose: () => resolve("lose", "You lost."),
+        onQuit: () => resolve("lose", "You backed down."),
+        onError: () => resolve("win", "It played out.")   // never punish a load failure
+      });
+      return;
+    }
     let resultText = `${ev.text} → You chose: ${ch.label}.`;
     if (ch.outcome) {
       const ok = rngChance(ch.outcome.chance);
@@ -1446,7 +1464,8 @@
   // Each module imports "three" (vendored at ./vendor/three/, precached for
   // offline). Modules are pure UI: the HOST decides what win/lose means.
   const MINIGAMES = {
-    prisonEscape: { module: "./minigames/prison_escape.js", title: "Prison Break" }
+    prisonEscape: { module: "./minigames/prison_escape.js", title: "Prison Break" },
+    fight: { module: "./minigames/street_fight.js", title: "Street Fight" }
   };
   let _mgActive = false;
   async function launchMiniGame(id, handlers = {}) {
@@ -1506,6 +1525,21 @@
     });
   }
 
+  // Street fight: launch the brawler with stat stakes. Used by the typed "fight"
+  // action and the test bench. Fight EVENTS pass their own win/lose effects via
+  // the choice `minigame` hook in applyChoice() instead of calling this.
+  function startFight(opts = {}) {
+    if (!game || !game.character.alive) { showToast("No active life."); return; }
+    const win = opts.win || { happiness: 8, health: -3 };
+    const lose = opts.lose || { health: -14, happiness: -6 };
+    launchMiniGame("fight", {
+      onWin: () => { applyEffects(win); log("event", opts.winText || "🥊 You won the fight!"); checkDeath(); autosave(); renderAll(); },
+      onLose: () => { applyEffects(lose); log("event", opts.loseText || "🥊 You lost the fight and took a beating."); checkDeath(); autosave(); renderAll(); },
+      onQuit: () => { showToast("You backed out of the fight."); },
+      onError: () => { showToast("Couldn't start the fight."); }
+    });
+  }
+
   // ── Test bench ────────────────────────────────────────────────────────────
   // Deep-link straight to any mini-game for quick testing — no need to live a
   // whole life to reach the casino or prison. Open index.html#test for a menu,
@@ -1516,7 +1550,8 @@
     blackjack: { label: "🃏 Blackjack",    run: () => openBlackjack() },
     roulette:  { label: "🎡 Roulette",     run: () => openRoulette() },
     horses:    { label: "🏇 Horse Racing", run: () => openHorseRace() },
-    prison:    { label: "🪜 Prison Break", run: () => attemptPrisonEscape() }
+    prison:    { label: "🪜 Prison Break", run: () => attemptPrisonEscape() },
+    fight:     { label: "🥊 Street Fight", run: () => startFight() }
   };
   function testIdFromHash() {
     const m = (location.hash || "").toLowerCase().match(/^#test(?:=([a-z]+))?$/);
@@ -1935,6 +1970,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (/roulette|the wheel/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openRoulette(); } return "Opening the roulette wheel"; }
     if (/horse|racing|the track|race/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openHorseRace(); } return "Opening the horse racing track"; }
     if (/escape|break out|jail.?break|over the wall/.test(t)) { if (game.prison && game.prison.inPrison) { attemptPrisonEscape(); return "Starting the prison break"; } showToast("You're not in prison."); return "You're not in prison"; }
+    if (/fight|brawl|throw down|street ?fight|beat .*up/.test(t)) { if (game.prison && game.prison.inPrison) { showToast("Not while you're locked up."); return "Not in prison"; } startFight(); return "Starting a street fight"; }
     if (/gambl|casino|bet/.test(t)) { openModal("casino"); return "Opening Casino menu"; }
     return null;
   }

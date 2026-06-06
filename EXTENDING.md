@@ -196,13 +196,14 @@ Reference numbers in this build: slots ≈ 81% RTP, roulette ≈ 97.3% (single-z
 
 ### Richer / 3D mini-games (separate ES modules)
 
-Bigger interactive games (the Three.js **Prison Break** is the reference) don't live inline —
-they're **self-contained ES modules** in `minigames/`, lazy-loaded only when launched so they
-never touch the boot path. The contract is tiny:
+Bigger interactive games don't live inline — they're **self-contained ES modules** in
+`minigames/`, lazy-loaded only when launched so they never touch the boot path. Two references:
+**Prison Break** (`prison_escape.js`, Three.js / 3D) and **Street Fight** (`street_fight.js`,
+Canvas 2D — no engine needed). The contract is tiny:
 
 ```js
 // minigames/<name>.js
-import * as THREE from "three";          // vendored at ./vendor/three/ → offline
+import * as THREE from "three";          // ONLY if you need 3D (vendored at ./vendor/three/)
 export function start(host, api) {
   // host: an empty full-screen <div> — render your canvas + HUD into it
   // api.finish(result): call ONCE with "win" | "lose" | "quit"
@@ -210,6 +211,9 @@ export function start(host, api) {
   // return cleanup(): stop your RAF loop, dispose GPU objects, remove listeners
 }
 ```
+
+A mini-game can use **Three.js or plain Canvas 2D** — whatever fits. 2D (Street Fight) is lighter
+and needs no vendored engine; use it for side-view/sprite games.
 
 To add one:
 1. Write `minigames/<name>.js` exporting `start(host, api)` (copy `prison_escape.js`).
@@ -224,6 +228,28 @@ To add one:
 it from a CDN at runtime; that's why Three.js lives in `vendor/three/`), and the module must not
 call the seeded `rng()` (use `Math.random()` for cosmetic randomness — a skill game's outcome
 comes from the player, not the seed).
+
+**Reskinning a mini-game's art.** Keep all drawing behind one config + one function so art is
+swappable without touching logic. Street Fight is the model: a `SKIN` object (sprite-sheet URL +
+per-state frame rects) and a single `drawFighter()` that uses the sheet when present and falls back
+to built-in vector art otherwise. To use real sprites, drop a sheet in `minigames/assets/`, point
+`SKIN.sheet` at it, and fill `SKIN.frames` — no logic changes.
+
+### Launching a mini-game from a life event (the `minigame` choice hook)
+
+Any event **choice** can play out as a mini-game instead of a fixed stat roll — that's how
+"get in a fight" works. Add `minigame` + `win`/`lose` effects to the choice in `bitlife_data.json`:
+
+```json
+{ "label": "Fight back", "minigame": "fight",
+  "win":  { "happiness": 10, "health": -2 }, "winText":  "You won the fight!",
+  "lose": { "health": -12, "happiness": -7 }, "loseText": "You lost." }
+```
+
+`applyChoice()` launches the registered mini-game and applies `win`/`lose` based on the result
+(quit counts as a loss; a load failure is treated as neutral so players are never punished for it).
+Works with any id in the `MINIGAMES` map. You can also launch from the typed-action router or a menu
+(see `startFight()` / `attemptPrisonEscape()`).
 
 ### Testing mini-games without playing a whole life
 

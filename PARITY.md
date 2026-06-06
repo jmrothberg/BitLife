@@ -13,7 +13,7 @@ interprets free-typed actions, and a local diffuser that paints your avatar + li
 
 The gap to the real game is **breadth, not the engine**:
 - **Systems present:** ~13 of the major ones, mostly as working-but-shallow versions.
-- **Content depth (v0.8.4):** **46 events / 33 careers / 32 activities / 12 degrees / 30 countries** —
+- **Content depth (v0.8.5):** **46 events / 33 careers / 32 activities / 12 degrees / 30 countries** —
   roughly 2–3× the v0.6 content, all modeled on real BitLife names/wording. Still short of the real
   game's *hundreds of events and 100+ jobs*, but no longer thin.
 - **Rough completeness:** core engine **~70–80%**, total feature surface **~40%**, content volume **~20%**.
@@ -53,7 +53,7 @@ Legend: ✅ solid · 🟡 partial/shallow · ❌ missing
 | **Typed free-form actions (local LLM)** | ❌ not in original | ✅ Gemma interprets → clamped effects | ➕ beyond original |
 | **Generated art (local diffuser)** | ❌ (emoji/clip-art) | ✅ SD 1.5 avatar + scene art, pre-baked + live | ➕ beyond original |
 
-## Concrete content counts (v0.8.4)
+## Concrete content counts (v0.8.5)
 
 - Events: **46** — baby 4, child 10, teen 10, youngAdult 6, adult 6, middleAge 5, senior 5
 - Activities: **32** — mindBody 8, doctor 7, education 3, crime 7, casino 7
