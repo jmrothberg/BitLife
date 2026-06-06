@@ -47,7 +47,7 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[PARITY.md](./PARITY.md)**.
 
-| System | Real BitLife | This game (v0.7) | Status |
+| System | Real BitLife | This game (v0.8) | Status |
 |---|---|---|---|
 | Core stats | Happiness / Health / Smarts / Looks (+ Fame) | All four + Fame | ✅ |
 | Age-up loop + random events | Hundreds of stage-specific multi-choice events | 46 events across 7 life stages, choices + outcomes | 🟡 |
@@ -56,7 +56,7 @@ A living scorecard of how close this build is to the real game. ✅ solid · �
 | Careers / jobs | 100+ jobs with ladders & promotions | 33 jobs (entry → CEO/doctor/lawyer), promote/quit | 🟡 |
 | Special / fame careers | Royalty, military, athlete, musician, actor, mafia, politics | Actor/musician/athlete/model/influencer (fame paths) | 🟡 |
 | Crime & prison | ~10 crimes; parole, riots, escape | 7 crimes → prison (serve the sentence) | 🟡 |
-| Casino | Blackjack, slots, roulette, craps, keno, sports bet | 7 games | ✅ |
+| Casino | Blackjack, slots, roulette, craps, keno, sports bet | 7 games — slots is a live animated machine (➕) | ✅ |
 | Relationships | Family, friends, exes, family tree, divorce, custody | Family + date → marry → kids; aging & death | 🟡 |
 | **Investing + insider trading** | Stocks/crypto/bonds/real estate; SEC "Martha" | Stocks/crypto/bonds + real estate; SEC arrest + Martha | ✅ |
 | Finance depth | Loans, mortgages, taxes, inheritance, bankruptcy | Crypto sale tax only | ❌ |
@@ -158,5 +158,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.7 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.8 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*
