@@ -1541,6 +1541,7 @@
       cleanup = mod.start(host, { finish, difficulty: handlers.difficulty || 1, opts: handlers.opts || {} });
     } catch (e) {
       console.error("Mini-game failed to load:", e);
+      noteError(`MINIGAME ${id} load failed: ${(e && (e.message || e)) || "?"}`);
       if (host.parentNode) host.remove();
       _mgActive = false;
       showToast("Mini-game couldn't load (needs the 3D engine).");
@@ -1600,7 +1601,7 @@
     blackjack: { label: "🃏 Blackjack",    run: () => openBlackjack() },
     roulette:  { label: "🎡 Roulette",     run: () => openRoulette() },
     horses:    { label: "🏇 Horse Racing", run: () => openHorseRace() },
-    prison:    { label: "🪜 Prison Break", run: () => attemptPrisonEscape() },
+    prison:    { label: "🪜 Prison Break", run: () => { game.prison = { inPrison: true, sentenceYears: 12, yearsServed: 1, reason: "testing the escape" }; renderAll(); attemptPrisonEscape(); } },
     fight:     { label: "🥊 Street Fight", run: () => startFight() },
     burglary:  { label: "🏠 Burglary",     run: () => openBurglaryTargets() }
   };
@@ -1609,7 +1610,7 @@
     return m ? { test: true, id: m[1] || "" } : { test: false, id: "" };
   }
   function openTestMenu() {
-    modalShell("🧪 Mini-game test bench", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Sandbox life · age 30 · $1,000,000 · in prison. Launch any game directly, or deep-link with <code>#test=&lt;id&gt;</code>.</div><div id="test-list"></div>`);
+    modalShell("🧪 Mini-game test bench", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Sandbox life · age 30 · $1,000,000. Launch any game directly, or deep-link with <code>#test=&lt;id&gt;</code>. The 🐞 button (bottom-left) opens a debug log you can copy.</div><div id="test-list"></div>`);
     for (const [id, g] of Object.entries(TEST_GAMES)) {
       $("test-list").appendChild(optRow(g.label, "#test=" + id, "Launch", () => g.run(), false));
     }
@@ -1620,11 +1621,49 @@
     game.character.age = 30;
     game.character.lifeStage = lifeStageFor(30);
     game.character.money = 1000000;
-    game.prison = { inPrison: true, sentenceYears: 12, yearsServed: 1, reason: "testing the escape" };
+    // Sandbox starts FREE (not in prison) so crime/casino/fight games launch.
+    // The Prison Break test puts you in prison just-in-time (see TEST_GAMES).
+    game.prison = { inPrison: false, sentenceYears: 0, yearsServed: 0, reason: null };
     startGameUI();
     startModelsBackground();
+    enableTestDebug();                       // floating 🐞 log that sits above mini-games
     if (id && TEST_GAMES[id]) setTimeout(() => TEST_GAMES[id].run(), 250);
     else setTimeout(openTestMenu, 250);
+  }
+
+  // Floating debug overlay for the test bench: a 🐞 button (default closed) that
+  // sits ABOVE the fullscreen mini-game host, showing the live debug snapshot +
+  // captured errors with a Copy button — so mini-game errors are visible/pasteable.
+  let _testDbgRefresh = null;
+  function enableTestDebug() {
+    if (document.getElementById("test-dbg-btn")) return;
+    const btn = document.createElement("button");
+    btn.id = "test-dbg-btn"; btn.textContent = "🐞"; btn.title = "Debug log (copyable)";
+    btn.style.cssText = "position:fixed;left:10px;bottom:10px;z-index:10000;width:42px;height:42px;border-radius:50%;background:#14141f;color:#fff;border:1px solid #555;font-size:18px;cursor:pointer;box-shadow:0 2px 8px #0008";
+    const panel = document.createElement("div");
+    panel.id = "test-dbg-panel";
+    panel.style.cssText = "position:fixed;left:10px;bottom:60px;z-index:10000;display:none;width:min(92vw,440px);max-height:62vh;overflow:auto;background:#000d;border:1px solid #555;border-radius:8px;padding:8px";
+    const copy = document.createElement("button");
+    copy.textContent = "⧉ Copy log"; copy.style.cssText = "font-size:11px;padding:4px 9px;margin-bottom:6px";
+    const pre = document.createElement("div");
+    pre.id = "test-dbg-text"; pre.style.cssText = "font:11px/1.45 ui-monospace,Menlo,monospace;color:#cfcfd6;white-space:pre-wrap";
+    const refresh = () => { try { pre.textContent = buildDebugText(); } catch (e) { pre.textContent = "debug failed: " + e.message; } };
+    copy.onclick = () => {
+      const t = buildDebugText();
+      if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => showToast("Debug copied"), () => {});
+      const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    };
+    let timer = null;
+    btn.onclick = () => {
+      const open = panel.style.display === "block";
+      panel.style.display = open ? "none" : "block";
+      btn.style.background = open ? "#14141f" : "#3a2d5a";
+      if (open) { clearInterval(timer); timer = null; }
+      else { refresh(); timer = setInterval(refresh, 1000); }
+    };
+    panel.appendChild(copy); panel.appendChild(pre);
+    document.body.appendChild(btn); document.body.appendChild(panel);
+    _testDbgRefresh = () => { if (panel.style.display === "block") refresh(); };  // live-update on new errors
   }
   // Allow switching games by editing the hash after load too.
   window.addEventListener("hashchange", () => {
@@ -2545,7 +2584,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   // Kept terse (one line per subsystem) so it's actually scannable while debugging.
   let _lastTyped = [];            // last typed-action trace (prompt/resp/json/effects)
   const _errors = [];             // last few uncaught errors / rejections (most recent last)
-  function noteError(msg) { _errors.push(msg); while (_errors.length > 6) _errors.shift(); try { renderDebug(); } catch {} }
+  function noteError(msg) { _errors.push(msg); while (_errors.length > 6) _errors.shift(); try { renderDebug(); } catch {} try { _testDbgRefresh && _testDbgRefresh(); } catch {} }
   window.addEventListener("error", (e) => noteError(`ERR ${e.message} @ ${(e.filename || "").split("/").pop()}:${e.lineno || "?"}`));
   window.addEventListener("unhandledrejection", (e) => noteError(`REJECT ${(e.reason && (e.reason.message || e.reason)) || "?"}`));
   function setDebug(lines) { _lastTyped = Array.isArray(lines) ? lines : [lines]; renderDebug(); }
