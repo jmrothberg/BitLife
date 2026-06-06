@@ -48,7 +48,7 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[PARITY.md](./PARITY.md)**.
 
-| System | Real BitLife | This game (v0.8.1) | Status |
+| System | Real BitLife | This game (v0.8.2) | Status |
 |---|---|---|---|
 | Core stats | Happiness / Health / Smarts / Looks (+ Fame) | All four + Fame | ✅ |
 | Age-up loop + random events | Hundreds of stage-specific multi-choice events | 46 events across 7 life stages, choices + outcomes | 🟡 |
@@ -57,7 +57,7 @@ A living scorecard of how close this build is to the real game. ✅ solid · �
 | Careers / jobs | 100+ jobs with ladders & promotions | 33 jobs (entry → CEO/doctor/lawyer), promote/quit | 🟡 |
 | Special / fame careers | Royalty, military, athlete, musician, actor, mafia, politics | Actor/musician/athlete/model/influencer (fame paths) | 🟡 |
 | Crime & prison | ~10 crimes; parole, riots, escape | 7 crimes → prison (serve the sentence) | 🟡 |
-| Casino | Blackjack, slots, roulette, craps, keno, sports bet | 7 games — slots is a live animated machine (➕) | ✅ |
+| Casino | Blackjack, slots, roulette, craps, keno, sports bet | 7 games — slots, blackjack & roulette are live playable mini-games (➕) | ✅ |
 | Relationships | Family, friends, exes, family tree, divorce, custody | Family + date → marry → kids; aging & death | 🟡 |
 | **Investing + insider trading** | Stocks/crypto/bonds/real estate; SEC "Martha" | Stocks/crypto/bonds + real estate; SEC arrest + Martha | ✅ |
 | Finance depth | Loans, mortgages, taxes, inheritance, bankruptcy | Crypto sale tax only | ❌ |
@@ -140,6 +140,18 @@ http://localhost:8080/index.html
 | `serve.py` | Dev server that sends the COOP/COEP headers the worker needs. |
 | `pregen_art.py` | **Optional** GPU batch baker for life-event scene art (writes `assets/` + `manifest.json`). |
 | `assets/` | Optional pre-generated PNGs used **instantly** when present. |
+| `EXTENDING.md` | **How to add content/features fast** — schemas, recipes, and the rules (offline, determinism) for humans and LLMs. |
+
+## Extending the game
+
+Want to add an event, a career, or a new casino mini-game? The game is **data-driven** —
+most content is a JSON object in `bitlife_data.json`, and the engine, menus, saves, and art
+baker pick it up automatically. See **[EXTENDING.md](./EXTENDING.md)** for copy-paste recipes,
+the full data schema, and the two non-negotiable rules:
+
+- **It plays offline after first load** — never add a runtime network call to the core game.
+- **It stays deterministic** — all gameplay randomness goes through the seeded RNG, so the
+  same seed always replays the same life.
 
 ## Art is "made in advance" where practical
 
@@ -159,5 +171,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.8.1 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.8.2 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*
