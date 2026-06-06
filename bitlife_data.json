@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content (v0.9.3). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
+  "_comment": "BitLife-style premade content (v0.9.4). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -53,12 +53,31 @@
 
   "EVENTS": {
     "baby": [
+      { "id": "earInfection", "weight": 3, "minAge": 0, "maxAge": 2, "noChoice": true, "text": "You had a nasty ear infection and cried for days.", "effects": { "health": -4, "happiness": -3 } },
+      { "id": "firstHaircut", "weight": 2, "minAge": 1, "maxAge": 2, "noChoice": true, "text": "You got your first haircut. So grown up!", "effects": { "happiness": 3, "looks": 1 } },
+      { "id": "babbleGenius", "weight": 2, "minAge": 1, "maxAge": 2, "noChoice": true, "text": "You babbled a full 'sentence' and everyone was impressed.", "effects": { "smarts": 2, "happiness": 2 } },
       { "id": "firstWords", "weight": 5, "minAge": 1, "maxAge": 2, "noChoice": true, "text": "You said your first words! Your parents are overjoyed.", "effects": { "happiness": 6, "smarts": 2 } },
       { "id": "colic", "weight": 3, "minAge": 0, "maxAge": 1, "noChoice": true, "text": "You were a fussy, colicky baby and cried all night.", "effects": { "health": -3, "happiness": -3 } },
       { "id": "firstSteps", "weight": 5, "minAge": 1, "maxAge": 2, "noChoice": true, "text": "You took your first wobbly steps across the living room.", "effects": { "happiness": 5, "health": 2 } },
       { "id": "peekaboo", "weight": 3, "minAge": 0, "maxAge": 2, "noChoice": true, "text": "Your family played peek-a-boo with you for hours.", "effects": { "happiness": 4, "smarts": 1 } }
     ],
     "child": [
+      { "id": "lostTooth", "weight": 4, "minAge": 5, "maxAge": 9, "noChoice": true, "text": "You lost a tooth and the tooth fairy left you a few bucks.", "effects": { "happiness": 4, "money": 5 } },
+      { "id": "summerCamp", "weight": 4, "minAge": 7, "maxAge": 12, "text": "Your parents offer to send you to summer camp.",
+        "choices": [
+          { "label": "Go to camp", "effects": { "happiness": 7, "health": 2, "money": -300 } },
+          { "label": "Stay home", "effects": { "happiness": -1 } }
+        ] },
+      { "id": "talentShow", "weight": 3, "minAge": 6, "maxAge": 12, "text": "There's a school talent show.",
+        "choices": [
+          { "label": "Perform", "effects": {}, "outcome": { "chance": 0.55, "success": { "happiness": 8, "looks": 1 }, "fail": { "happiness": -4 } } },
+          { "label": "Watch from the crowd", "effects": { "happiness": 1 } }
+        ] },
+      { "id": "chores", "weight": 3, "minAge": 6, "maxAge": 12, "text": "Your parents offer an allowance for doing chores.",
+        "choices": [
+          { "label": "Do the chores", "effects": { "money": 60, "happiness": -1 } },
+          { "label": "Skip them", "effects": { "happiness": 2 } }
+        ] },
       { "id": "bully", "weight": 7, "minAge": 6, "maxAge": 12, "text": "A bigger kid at school keeps shoving you and stealing your lunch.",
         "choices": [
           { "label": "Do nothing", "effects": { "happiness": -6 } },
@@ -111,6 +130,27 @@
         ] }
     ],
     "teen": [
+      { "id": "promNight", "weight": 4, "minAge": 15, "maxAge": 17, "text": "It's prom night!",
+        "choices": [
+          { "label": "Go all out", "effects": { "happiness": 9, "looks": 2, "money": -400 } },
+          { "label": "Go casual", "effects": { "happiness": 4, "money": -80 } },
+          { "label": "Skip it", "effects": { "happiness": -3, "smarts": 1 } }
+        ] },
+      { "id": "vapingPressure", "weight": 4, "minAge": 13, "maxAge": 17, "text": "Friends are pressuring you to start vaping.",
+        "choices": [
+          { "label": "Try it", "effects": { "happiness": 2, "health": -5 } },
+          { "label": "Say no", "effects": { "happiness": -1, "smarts": 1 } }
+        ] },
+      { "id": "teenPartTime", "weight": 4, "minAge": 14, "maxAge": 17, "text": "A local shop is hiring part-time.",
+        "choices": [
+          { "label": "Take the job", "effects": { "money": 3000, "happiness": -2, "smarts": 1 } },
+          { "label": "Focus on school", "effects": { "smarts": 3 } }
+        ] },
+      { "id": "drivingTest", "weight": 4, "minAge": 16, "maxAge": 17, "text": "Time for your driving test.",
+        "choices": [
+          { "label": "Take the test", "effects": {}, "outcome": { "chance": 0.6, "success": { "happiness": 8, "grantAchievement": "graduate2" }, "fail": { "happiness": -4 } } },
+          { "label": "Not ready yet", "effects": {} }
+        ] },
       { "id": "schoolyardScrap", "weight": 5, "minAge": 13, "maxAge": 17, "text": "A kid shoves you in the hallway and a crowd circles, chanting for a fight.",
         "choices": [
           { "label": "Throw down 🥊", "minigame": "fight", "win": { "happiness": 9, "looks": 1, "health": -3 }, "lose": { "health": -13, "happiness": -6 }, "winText": "You won the schoolyard scrap — a legend is born.", "loseText": "You got pummeled in front of everyone." },
@@ -174,6 +214,22 @@
         ] }
     ],
     "youngAdult": [
+      { "id": "collegeParty", "weight": 4, "minAge": 18, "maxAge": 23, "text": "There's a huge party the night before an exam.",
+        "choices": [
+          { "label": "Party hard", "effects": { "happiness": 8, "health": -3, "smarts": -2 } },
+          { "label": "Study instead", "effects": { "smarts": 5, "happiness": -2 } }
+        ] },
+      { "id": "firstApartment", "weight": 3, "minAge": 18, "maxAge": 25, "text": "You can finally move into your own apartment.",
+        "choices": [
+          { "label": "Sign the lease", "effects": { "happiness": 8, "money": -2500 } },
+          { "label": "Stay with family", "effects": { "money": 1000, "happiness": -2 } }
+        ] },
+      { "id": "creditCardOffer", "weight": 3, "minAge": 18, "maxAge": 25, "text": "A bank offers you your first credit card.",
+        "choices": [
+          { "label": "Use it responsibly", "effects": { "smarts": 2, "money": 200 } },
+          { "label": "Max it out", "effects": { "happiness": 6, "money": -3000 } },
+          { "label": "Decline", "effects": {} }
+        ] },
       { "id": "roommateDrama", "weight": 4, "minAge": 18, "maxAge": 25, "text": "Your roommate keeps eating your food and never does the dishes.",
         "choices": [
           { "label": "Talk it out", "effects": {}, "outcome": { "chance": 0.6, "success": { "happiness": 5 }, "fail": { "happiness": -4 } } },
@@ -216,6 +272,17 @@
         ] }
     ],
     "adult": [
+      { "id": "getSued", "weight": 3, "minAge": 26, "maxAge": 64, "text": "A neighbor slips on your driveway and threatens to sue.",
+        "choices": [
+          { "label": "Settle out of court", "effects": { "money": -8000, "happiness": -2 } },
+          { "label": "Fight it in court", "effects": {}, "outcome": { "chance": 0.5, "success": { "happiness": 4 }, "fail": { "money": -25000, "happiness": -6 } } }
+        ] },
+      { "id": "carTrouble", "weight": 4, "minAge": 20, "maxAge": 64, "noChoice": true, "text": "Your car broke down and the repair bill stung.", "effects": { "money": -1200, "happiness": -3 } },
+      { "id": "weddingInvite", "weight": 3, "minAge": 24, "maxAge": 50, "text": "A close friend is getting married and wants you there.",
+        "choices": [
+          { "label": "Attend (and gift)", "effects": { "happiness": 6, "money": -300 } },
+          { "label": "Send regrets", "effects": { "happiness": -2 } }
+        ] },
       { "id": "barFight", "weight": 4, "minAge": 21, "maxAge": 60, "text": "A loudmouth at the bar spills your drink, gets in your face, and shoves you.",
         "choices": [
           { "label": "Square up 🥊", "minigame": "fight", "win": { "happiness": 8, "health": -4 }, "lose": { "health": -16, "happiness": -7, "money": -200 }, "winText": "You won the bar fight — the whole place cheered.", "loseText": "You lost the bar brawl and woke up sore (and out $200)." },
@@ -252,6 +319,17 @@
         ] }
     ],
     "middleAge": [
+      { "id": "healthScare", "weight": 4, "minAge": 46, "maxAge": 64, "text": "A routine checkup turns up something concerning.",
+        "choices": [
+          { "label": "Get it treated", "effects": { "money": -3000, "health": 8 } },
+          { "label": "Ignore it", "effects": { "health": -12, "happiness": -4 } }
+        ] },
+      { "id": "kidsCollege", "weight": 3, "minAge": 46, "maxAge": 60, "text": "Your kid got into a great (expensive) university.",
+        "choices": [
+          { "label": "Pay their tuition", "effects": { "money": -40000, "happiness": 8 } },
+          { "label": "Make them take loans", "effects": { "happiness": -3 } }
+        ] },
+      { "id": "classReunion", "weight": 3, "minAge": 46, "maxAge": 64, "noChoice": true, "text": "You went to your class reunion and reconnected with old friends.", "effects": { "happiness": 7 } },
       { "id": "midlifeCrisis", "weight": 4, "minAge": 46, "maxAge": 60, "text": "A midlife crisis hits. You feel the urge to do something drastic.",
         "choices": [
           { "label": "Buy a sports car", "effects": { "happiness": 8, "money": -45000 } },
@@ -291,6 +369,17 @@
         ] }
     ],
     "senior": [
+      { "id": "retirementParty", "weight": 4, "minAge": 65, "maxAge": 70, "noChoice": true, "text": "Your colleagues threw you a lovely retirement party.", "effects": { "happiness": 8 } },
+      { "id": "fallRisk", "weight": 4, "minAge": 70, "maxAge": 200, "text": "The doctor warns you're at risk of falls.",
+        "choices": [
+          { "label": "Install grab bars & take it easy", "effects": { "money": -800, "health": 5 } },
+          { "label": "Ignore the advice", "effects": {}, "outcome": { "chance": 0.4, "success": { "happiness": 2 }, "fail": { "health": -16, "happiness": -5 } } }
+        ] },
+      { "id": "willPlanning", "weight": 3, "minAge": 68, "maxAge": 200, "text": "A lawyer suggests you write a will.",
+        "choices": [
+          { "label": "Write it", "effects": { "happiness": 4, "money": -500 } },
+          { "label": "Put it off", "effects": { "happiness": -1 } }
+        ] },
       { "id": "grandkidsVisit", "weight": 5, "minAge": 65, "maxAge": 200, "noChoice": true, "text": "Your grandkids came to visit and it made your whole year.", "effects": { "happiness": 10, "health": 1 } },
       { "id": "retirementHobby", "weight": 4, "minAge": 65, "maxAge": 200, "text": "You have all this free time now.",
         "choices": [
@@ -407,7 +496,14 @@
     { "id": "influencer", "title": "Social Media Influencer", "baseSalary": 22000, "requires": { "minAge": 14 }, "levels": ["Newbie", "Creator", "Influencer", "Star Creator", "Viral Icon"], "raisePerLevel": 0.5, "fameGain": 9 },
     { "id": "armySoldier", "title": "Soldier (Army)",     "baseSalary": 35000,  "requires": { "minAge": 18 }, "levels": ["Private", "Corporal", "Sergeant", "Lieutenant", "Captain", "Major"], "raisePerLevel": 0.13 },
     { "id": "navySailor",  "title": "Sailor (Navy)",      "baseSalary": 36000,  "requires": { "minAge": 18 }, "levels": ["Seaman", "Petty Officer", "Chief", "Ensign", "Lieutenant", "Commander"], "raisePerLevel": 0.13 },
-    { "id": "airForce",    "title": "Airman (Air Force)", "baseSalary": 40000,  "requires": { "minAge": 18 }, "levels": ["Airman", "Senior Airman", "Sergeant", "Lieutenant", "Captain", "Colonel"], "raisePerLevel": 0.14 }
+    { "id": "airForce",    "title": "Airman (Air Force)", "baseSalary": 40000,  "requires": { "minAge": 18 }, "levels": ["Airman", "Senior Airman", "Sergeant", "Lieutenant", "Captain", "Colonel"], "raisePerLevel": 0.14 },
+    { "id": "electrician", "title": "Electrician",        "baseSalary": 48000,  "requires": { "minAge": 18 }, "levels": ["Apprentice", "Journeyman", "Electrician", "Master Electrician"], "raisePerLevel": 0.13 },
+    { "id": "plumber",     "title": "Plumber",            "baseSalary": 46000,  "requires": { "minAge": 18 }, "levels": ["Apprentice", "Journeyman", "Plumber", "Master Plumber"], "raisePerLevel": 0.13 },
+    { "id": "mechanic",    "title": "Auto Mechanic",      "baseSalary": 42000,  "requires": { "minAge": 18 }, "levels": ["Trainee", "Mechanic", "Senior Mechanic", "Shop Owner"], "raisePerLevel": 0.13 },
+    { "id": "paramedic",   "title": "Paramedic",          "baseSalary": 44000,  "requires": { "minAge": 18, "level": "highGrad" }, "levels": ["EMT", "Paramedic", "Senior Paramedic", "Crew Chief"], "raisePerLevel": 0.12 },
+    { "id": "journalist",  "title": "Journalist",         "baseSalary": 45000,  "requires": { "degree": "arts" }, "levels": ["Junior Reporter", "Reporter", "Senior Reporter", "Editor"], "raisePerLevel": 0.14, "fameGain": 2 },
+    { "id": "scientist",   "title": "Research Scientist", "baseSalary": 82000,  "requires": { "degree": "computerScience" }, "levels": ["Research Assistant", "Scientist", "Senior Scientist", "Principal Investigator"], "raisePerLevel": 0.14 },
+    { "id": "trucker",     "title": "Truck Driver",       "baseSalary": 50000,  "requires": { "minAge": 21 }, "levels": ["Trainee", "Driver", "Senior Driver", "Owner-Operator"], "raisePerLevel": 0.11 }
   ],
 
   "DEGREES": [
