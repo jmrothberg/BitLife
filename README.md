@@ -146,22 +146,21 @@ http://localhost:8080/index.html
 
 ## Test the mini-games directly
 
-No need to live a whole life to reach the casino or land in prison. Open the app with a
-`#test` hash and it spins up a **sandbox life** (age 30, $1,000,000, in prison) and jumps
-straight to a mini-game:
+No need to live a whole life to reach the casino or land in prison. These links open the
+live game in your browser, spin up a **sandbox life** (age 30, $1,000,000, in prison), and
+jump straight to a mini-game — **click any of them:**
 
-| Link | Launches |
+| Click to play | Launches |
 |------|----------|
-| `index.html#test` | A menu to launch any mini-game |
-| `index.html#test=slots` | 🎰 Slot machine |
-| `index.html#test=blackjack` | 🃏 Blackjack |
-| `index.html#test=roulette` | 🎡 Roulette (spinning wheel) |
-| `index.html#test=horses` | 🏇 Horse racing |
-| `index.html#test=prison` | 🪜 Prison Break (Three.js) |
+| ▶ [**Test menu**](https://jmrothberg.github.io/BitLife/#test) | A menu to launch any mini-game |
+| ▶ [**Slots**](https://jmrothberg.github.io/BitLife/#test=slots) | 🎰 Slot machine |
+| ▶ [**Blackjack**](https://jmrothberg.github.io/BitLife/#test=blackjack) | 🃏 Blackjack |
+| ▶ [**Roulette**](https://jmrothberg.github.io/BitLife/#test=roulette) | 🎡 Roulette (spinning wheel) |
+| ▶ [**Horse racing**](https://jmrothberg.github.io/BitLife/#test=horses) | 🏇 Horse racing |
+| ▶ [**Prison Break**](https://jmrothberg.github.io/BitLife/#test=prison) | 🪜 Prison Break (Three.js) |
 
-For example: `https://jmrothberg.github.io/BitLife/#test=prison`. You can also just edit the
-hash after the page has loaded to switch games. (The local `serve.py` works the same way:
-`http://localhost:8080/index.html#test`.)
+You can also just edit the `#test=…` hash after the page has loaded to switch games. (Running
+locally? The same hashes work on `http://localhost:8080/index.html#test` via `serve.py`.)
 
 ## Extending the game
 

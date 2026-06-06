@@ -140,6 +140,8 @@
     .bottom { position: sticky; bottom: 0; background: var(--panel); border-top: 1px solid var(--border); padding: 8px 10px; }
     .age-row { display: flex; gap: 8px; margin-bottom: 8px; }
     .age-row .ageup { flex: 1; font-size: 16px; padding: 12px; }
+    .age-row .escape-btn { flex: none; font-size: 14px; padding: 12px 10px; background: #6a3030; border-color: #a85a3a; color: #ffd9c4; font-weight: 700; }
+    .age-row .escape-btn:hover:not(:disabled) { background: #8a3d3d; border-color: var(--accent); }
     .input-row { display: flex; gap: 6px; margin-bottom: 8px; }
     .input-row input { flex: 1; }
     .input-row button { flex: none; }
@@ -354,6 +356,7 @@
     <div class="bottom" id="bottom" style="display:none">
       <div class="age-row">
         <button class="primary ageup" id="btn-ageup">Age Up +1 🎂</button>
+        <button id="btn-escape" class="escape-btn" title="Attempt a prison break" style="display:none">🪜 Escape</button>
         <button id="btn-menu-relationships" title="Relationships">👪</button>
         <button id="btn-menu-assets" title="Assets & Investments">💹</button>
       </div>
@@ -864,6 +867,7 @@
     game.character.job = null;
     grantAchievement("jailbird");
     log("death", `Sentenced to ${game.prison.sentenceYears} year(s) in prison for ${reason}.`, "prison");
+    log("system", `⛓️ Tap “Serve 1 year” to do your time — or try the 🪜 Escape button for a daring prison break before you waste any years.`);
   }
 
   function gamble(id, wager) {
@@ -2072,7 +2076,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (game.prison && game.prison.inPrison) {
       const left = Math.max(0, (game.prison.sentenceYears || 0) - (game.prison.yearsServed || 0));
       lines.push("");
-      lines.push(`🔒 You are in prison — ${left} year${left === 1 ? "" : "s"} left. Tap Age Up to serve the time. Most actions are locked.`);
+      lines.push(`🔒 You are in prison — ${left} year${left === 1 ? "" : "s"} left. Tap “⛓️ Serve 1 year” to do the time, or hit “🪜 Escape” for a skill-based prison break (caught = +2 years). Most other actions are locked.`);
       return lines;
     }
     if (game.pendingEvent) {
@@ -2432,10 +2436,15 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   function renderAll() { renderHeader(); updateAgeButton(); renderDebug(); }
   function updateAgeButton() {
     const dead = !game.character.alive, pend = !!game.pendingEvent;
+    const inPrison = !!(game.prison && game.prison.inPrison);
     // When an event is pending, keep the button ENABLED so it can re-open the
     // popup (recovery if it was dismissed or the life was loaded mid-event).
     $("btn-ageup").disabled = dead || busy;
-    $("btn-ageup").textContent = dead ? "💀 You have died" : pend ? "⚡ Resolve the event" : "Age Up +1 🎂";
+    // In prison, make the cost of aging up explicit so the player knows the
+    // alternative is the Escape button (rather than silently serving a year).
+    $("btn-ageup").textContent = dead ? "💀 You have died" : pend ? "⚡ Resolve the event" : (inPrison ? "⛓️ Serve 1 year" : "Age Up +1 🎂");
+    const esc = $("btn-escape");
+    if (esc) esc.style.display = (inPrison && !dead && !pend) ? "" : "none";
   }
 
   function setAvatarImg(url) { const a = $("avatar"); a.innerHTML = `<img src="${url}" alt="avatar"/>`; }
@@ -2951,6 +2960,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
 
   // controls wiring
   $("btn-ageup").addEventListener("click", () => { if (game && game.pendingEvent) { reopenPendingEvent(); return; } ageUp(); });
+  $("btn-escape").addEventListener("click", () => attemptPrisonEscape());
   $("btn-send").addEventListener("click", () => { const v = $("action-input").value; $("action-input").value = ""; handleTypedAction(v); });
   $("btn-help").addEventListener("click", () => {
     const raw = $("action-input").value.trim();
