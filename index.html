@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.5</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.6</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -1675,8 +1675,52 @@
     horses:    { label: "🏇 Horse Racing", run: () => openHorseRace() },
     prison:    { label: "🪜 Prison Break", run: () => { game.prison = { inPrison: true, sentenceYears: 12, yearsServed: 1, reason: "testing the escape" }; renderAll(); attemptPrisonEscape(); } },
     fight:     { label: "🥊 Street Fight", run: () => startFight() },
-    burglary:  { label: "🏠 Burglary",     run: () => openBurglaryTargets() }
+    burglary:  { label: "🏠 Burglary",     run: () => openBurglaryTargets() },
+    selfcheck: { label: "🧪 Self-check (run tests)", run: () => runSelfCheck() }
   };
+
+  // In-browser self-test: data-integrity asserts + simulate several seeded lives
+  // to death, checking invariants each year. Reachable at #test=selfcheck. Picks
+  // non-minigame choices so it never opens a fullscreen mini-game and hangs.
+  function runSelfCheck() {
+    const results = []; let pass = 0, fail = 0, errs = 0;
+    const onErr = (e) => { errs++; results.push("ERROR: " + ((e.error && e.error.message) || e.message || "?")); };
+    window.addEventListener("error", onErr);
+    const ok = (cond, msg) => { if (cond) pass++; else { fail++; if (results.length < 60) results.push("FAIL: " + msg); } };
+    try {
+      ok(DATA && typeof DATA === "object", "DATA loaded");
+      for (const [st, arr] of Object.entries(DATA.EVENTS || {})) { const ids = arr.map(e => e.id); ok(new Set(ids).size === ids.length, "unique event ids in " + st); }
+      const cids = DATA.CAREERS.map(c => c.id); ok(new Set(cids).size === cids.length, "unique career ids");
+      for (const g of DATA.ACTIVITIES.casino) if (g.winChance && g.payoutMult) ok(g.winChance * (g.payoutMult[0] + g.payoutMult[1]) / 2 < 1, "casino " + g.id + " has house edge");
+      for (const id of Object.keys(DATA.ACHIEVEMENTS)) ok(!!FALLBACK_DATA.ACHIEVEMENTS[id], "FALLBACK ribbon " + id + " present");
+      // simulate lives
+      for (let s = 0; s < 6; s++) {
+        createNewLife({ first: "Sim", last: "Test", seed: String(7000 + s) });
+        let guard = 0;
+        while (game.character.alive && guard < 200) {
+          if (game.pendingEvent) {
+            const ev = game.pendingEvent; let idx = 0;
+            const ch = ev.choices || [];
+            for (let i = 0; i < ch.length; i++) { if (!ch[i].minigame) { idx = i; break; } }
+            applyChoice(ev.id, idx);
+          } else { ageUp(); }
+          const st = game.character.stats;
+          for (const k of ["health", "happiness", "smarts", "looks"]) ok(st[k] >= 0 && st[k] <= 100, `${k} clamped (seed ${s}, age ${game.character.age})`);
+          ok(Number.isFinite(game.character.money), "money finite (seed " + s + ")");
+          ok(Number.isFinite(game.character.age) && game.character.age >= 0, "age valid (seed " + s + ")");
+          guard++;
+        }
+        ok(guard < 200, "life " + s + " ended within 200y (no infinite loop)");
+        const round = JSON.parse(JSON.stringify(stripTransient(game)));
+        ok(round.character && round.character.name === game.character.name, "save round-trips (seed " + s + ")");
+      }
+    } catch (e) { fail++; results.push("THREW: " + (e && e.message)); }
+    window.removeEventListener("error", onErr);
+    const green = fail === 0 && errs === 0;
+    modalShell("🧪 Self-check", `<div style="font-size:20px;font-weight:900;color:${green ? "var(--ok)" : "var(--err)"}">${green ? "ALL PASS ✅" : "FAILURES ❌"}</div>
+      <div class="sub-h">${pass} passed · ${fail} failed · ${errs} errors · 6 simulated lives</div>
+      <pre style="white-space:pre-wrap;font:11px/1.4 ui-monospace,Menlo,monospace;color:var(--text-muted);max-height:48vh;overflow:auto;background:#000;padding:8px;border-radius:6px">${(results.slice(0, 60).join("\n")) || "All assertions passed. Engine, data, and 6 full lives are healthy."}</pre>`);
+  }
   function testIdFromHash() {
     const m = (location.hash || "").toLowerCase().match(/^#test(?:=([a-z]+))?$/);
     return m ? { test: true, id: m[1] || "" } : { test: false, id: "" };
@@ -2173,7 +2217,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
 
   // ═══════════════════════════════════════════════════════════════════════════
   // HELP / HINT — fast, local, context-aware. Never calls the LLM.
-  //   Topics distilled from README.md + BitLife_README.md + background.md
+  //   Topics distilled from README.md + AGENTS.md
   //   so the answer arrives instantly even before any model has loaded.
   // ═══════════════════════════════════════════════════════════════════════════
   const HELP_INDEX = [

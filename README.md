@@ -46,9 +46,9 @@ It adds **two things the original doesn't have**, both running **locally in your
 ## How it compares to the original
 
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
-❌ missing · ➕ beyond the original. Full detail in **[PARITY.md](./PARITY.md)**.
+❌ missing · ➕ beyond the original. Full detail in **[AGENTS.md](./AGENTS.md)**.
 
-Full system-by-system table (v0.9.5). Deeper detail + the gap-closure roadmap in **[PARITY.md](./PARITY.md)**.
+Full system-by-system table (v0.9.6). Counts + the gap-closure roadmap live in **[AGENTS.md](./AGENTS.md)** (the contributor/LLM guide).
 
 | System | Real BitLife | This game | Status |
 |---|---|---|---|
@@ -91,7 +91,7 @@ Full system-by-system table (v0.9.5). Deeper detail + the gap-closure roadmap in
 > volume ~20% (and growing). Biggest gaps: a real **health/disease** system, **finance** (loans/
 > mortgages/taxes/inheritance), **relationship depth** (dating/divorce/custody), **travel & vehicles**,
 > and the structural systems (**generations, royalty, politics, military**). A full phased roadmap to
-> close every gap is in **[PARITY.md](./PARITY.md)**.
+> close every gap is in **[AGENTS.md](./AGENTS.md)**.
 
 ## Play it from GitHub
 
@@ -161,7 +161,7 @@ http://localhost:8080/index.html
 | `serve.py` | Dev server that sends the COOP/COEP headers the worker needs. |
 | `pregen_art.py` | **Optional** GPU batch baker for life-event scene art (writes `assets/` + `manifest.json`). |
 | `assets/` | Optional pre-generated PNGs used **instantly** when present. |
-| `EXTENDING.md` | **How to add content/features fast** — schemas, recipes, and the rules (offline, determinism) for humans and LLMs. |
+| `AGENTS.md` | **How to add content/features fast** — schemas, recipes, and the rules (offline, determinism) for humans and LLMs. |
 
 ## Test the mini-games directly
 
@@ -187,7 +187,7 @@ locally? The same hashes work on `http://localhost:8080/index.html#test` via `se
 
 Want to add an event, a career, or a new casino mini-game? The game is **data-driven** —
 most content is a JSON object in `bitlife_data.json`, and the engine, menus, saves, and art
-baker pick it up automatically. See **[EXTENDING.md](./EXTENDING.md)** for copy-paste recipes,
+baker pick it up automatically. See **[AGENTS.md](./AGENTS.md)** for copy-paste recipes,
 the full data schema, and the two non-negotiable rules:
 
 - **It plays offline after first load** — never add a runtime network call to the core game.
@@ -212,5 +212,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.9.5 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.9.6 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*
