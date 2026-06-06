@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content (v0.8.4). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
+  "_comment": "BitLife-style premade content (v0.8.5). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -53,7 +53,7 @@
           { "label": "Do nothing", "effects": { "happiness": -6 } },
           { "label": "Tell a teacher", "effects": { "happiness": 2 }, "outcome": { "chance": 0.55, "success": { "happiness": 7 }, "fail": { "happiness": -5 } } },
           { "label": "Insult them back", "effects": {}, "outcome": { "chance": 0.5, "success": { "happiness": 5 }, "fail": { "happiness": -6 } } },
-          { "label": "Fight back", "effects": {}, "outcome": { "chance": 0.45, "success": { "happiness": 9, "health": -3 }, "fail": { "health": -12, "happiness": -7 } } }
+          { "label": "Fight back", "minigame": "fight", "win": { "happiness": 10, "health": -2 }, "lose": { "health": -12, "happiness": -7 }, "winText": "You stood up to the bully and won the fight!", "loseText": "The bully got the better of you." }
         ] },
       { "id": "adoptPet", "weight": 4, "minAge": 5, "maxAge": 12, "text": "There's a stray puppy outside. Can you keep it?",
         "choices": [
@@ -100,6 +100,11 @@
         ] }
     ],
     "teen": [
+      { "id": "schoolyardScrap", "weight": 5, "minAge": 13, "maxAge": 17, "text": "A kid shoves you in the hallway and a crowd circles, chanting for a fight.",
+        "choices": [
+          { "label": "Throw down 🥊", "minigame": "fight", "win": { "happiness": 9, "looks": 1, "health": -3 }, "lose": { "health": -13, "happiness": -6 }, "winText": "You won the schoolyard scrap — a legend is born.", "loseText": "You got pummeled in front of everyone." },
+          { "label": "Walk away", "effects": { "happiness": -4 } }
+        ] },
       { "id": "firstCrush", "weight": 6, "minAge": 13, "maxAge": 17, "text": "You have a crush on someone in your class.",
         "choices": [
           { "label": "Ask them out", "effects": {}, "outcome": { "chance": 0.5, "success": { "happiness": 12, "looks": 2 }, "fail": { "happiness": -6 } } },
@@ -188,6 +193,12 @@
         ] }
     ],
     "adult": [
+      { "id": "barFight", "weight": 4, "minAge": 21, "maxAge": 60, "text": "A loudmouth at the bar spills your drink, gets in your face, and shoves you.",
+        "choices": [
+          { "label": "Square up 🥊", "minigame": "fight", "win": { "happiness": 8, "health": -4 }, "lose": { "health": -16, "happiness": -7, "money": -200 }, "winText": "You won the bar fight — the whole place cheered.", "loseText": "You lost the bar brawl and woke up sore (and out $200)." },
+          { "label": "Buy them a drink instead", "effects": { "money": -25, "happiness": 2 } },
+          { "label": "Walk it off", "effects": { "happiness": -3 } }
+        ] },
       { "id": "promotionOffer", "weight": 4, "minAge": 26, "maxAge": 45, "text": "Your boss hints a promotion is possible if you take on extra work.",
         "choices": [
           { "label": "Work overtime", "effects": { "happiness": -4, "health": -3, "setFlag": { "soughtPromotion": true } } },
