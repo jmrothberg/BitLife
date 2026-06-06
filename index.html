@@ -208,6 +208,38 @@
     .slot-paytable td { padding: 3px 6px; border-bottom: 1px solid var(--border); }
     .slot-paytable td.sym { font-size: 17px; letter-spacing: 1px; }
     .slot-paytable td.pay { text-align: right; color: var(--accent); font-weight: 700; }
+
+    /* ── Blackjack & roulette minigames (v0.8.2) ── */
+    .casino-bal { font-size: 13px; color: var(--money); font-weight: 700; margin: 2px 0 6px; text-align: center; }
+    .casino-msg { min-height: 22px; font-size: 14px; font-weight: 600; margin: 6px 0; color: var(--text-muted); text-align: center; }
+    .casino-msg.win { color: var(--ok); }
+    .casino-msg.lose { color: var(--err); }
+    .casino-msg.push { color: var(--warn); }
+    .casino-actions { display: flex; gap: 8px; margin: 8px 0; }
+    .casino-actions button { flex: 1; padding: 11px; font-size: 14px; }
+    /* blackjack */
+    .bj-table { background: radial-gradient(ellipse at 50% -10%, #1d4031, #0b1d16); border: 2px solid var(--accent-dim); border-radius: 14px; padding: 12px 10px; margin: 4px 0 10px; box-shadow: inset 0 0 26px rgba(0,0,0,0.4); }
+    .bj-row { margin: 6px 0; }
+    .bj-row .who { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; text-align: center; }
+    .bj-hand { display: flex; gap: 6px; justify-content: center; min-height: 66px; flex-wrap: wrap; }
+    .pcard { width: 46px; height: 66px; border-radius: 6px; background: #f4f1e8; color: #14141f; border: 1px solid #9a9aa0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; box-shadow: 0 2px 6px rgba(0,0,0,0.45); animation: cardDeal 0.3s ease; }
+    .pcard .r { font-size: 17px; line-height: 1; }
+    .pcard .s { font-size: 20px; line-height: 1; }
+    .pcard.red { color: #c01818; }
+    .pcard.back { background: repeating-linear-gradient(45deg, #3a2d5a, #3a2d5a 5px, #2a1d3a 5px, #2a1d3a 10px); color: var(--accent); font-size: 28px; }
+    @keyframes cardDeal { from { transform: translateY(-16px) rotate(-5deg); opacity: 0; } to { transform: none; opacity: 1; } }
+    .bj-total { font-size: 13px; color: var(--text); font-weight: 700; margin-top: 5px; text-align: center; }
+    /* roulette */
+    .rl-pocket { width: 88px; height: 88px; margin: 6px auto 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 800; color: #fff; border: 3px solid var(--accent-dim); box-shadow: inset 0 0 18px rgba(0,0,0,0.5); background: #3a3a44; }
+    .rl-pocket.red { background: #b01818; } .rl-pocket.black { background: #15151c; } .rl-pocket.green { background: #1d7a3a; }
+    .rl-pocket.spinning { animation: rlPulse 0.28s ease infinite alternate; }
+    @keyframes rlPulse { from { transform: scale(0.96); } to { transform: scale(1.04); } }
+    .rl-board { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 8px 0; }
+    .rl-board button { padding: 8px 4px; font-size: 12px; line-height: 1.25; }
+    .rl-board button.sel { background: var(--accent); color: #1a1405; border-color: var(--accent); font-weight: 700; }
+    .rl-straight { display: flex; gap: 8px; align-items: center; margin: 6px 0; padding: 6px; border: 1px solid transparent; border-radius: 8px; }
+    .rl-straight input { flex: 1; }
+    .rl-straight.sel { border-color: var(--accent); }
   </style>
 </head>
 <body>
@@ -215,7 +247,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8.1</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8.2</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -374,7 +406,7 @@
       doctor: [{ id: "checkup", label: "Annual checkup", minAge: 1, cost: 150, effects: { health: 5 } }, { id: "surgery", label: "Plastic surgery", minAge: 18, cost: 6000, effects: { looks: 16 }, notable: true }],
       education: [{ id: "studyHarder", label: "Study harder", minAge: 6, requires: { inSchool: true }, cost: 0, effects: { smarts: 5, happiness: -2 } }],
       crime: [{ id: "pettyTheft", label: "Shoplift", minAge: 8, payout: [10, 250], catchChance: 0.25, jail: [0, 1] }, { id: "burglary", label: "Burglarize a home", minAge: 16, payout: [400, 8000], catchChance: 0.42, jail: [1, 6] }, { id: "murder", label: "Commit murder", minAge: 16, payout: [0, 0], catchChance: 0.62, jail: [15, 60], killsRelationship: true }],
-      casino: [{ id: "slots", label: "Slot machines", minAge: 18, winChance: 0.18, payoutMult: [3, 12], achievementOnBigWin: "lottery" }, { id: "blackjack", label: "Blackjack", minAge: 18, winChance: 0.47, payoutMult: [2, 2] }]
+      casino: [{ id: "slots", label: "Slot machines", minAge: 18, winChance: 0.18, payoutMult: [3, 12], achievementOnBigWin: "lottery" }, { id: "blackjack", label: "Blackjack", minAge: 18, winChance: 0.47, payoutMult: [2, 2] }, { id: "roulette", label: "Roulette", minAge: 18, winChance: 0.47, payoutMult: [2, 2] }]
     },
     CAREERS: [
       { id: "fastFood", title: "Fast Food Worker", baseSalary: 22000, requires: { minAge: 16 }, levels: ["Trainee", "Cook", "Shift Lead", "Manager"], raisePerLevel: 0.12 },
@@ -966,6 +998,267 @@
     autosave(); renderAll();
   }
 
+  // ── Shared casino-bet UI (v0.8.2) ─────────────────────────────────────────
+  // The wager box + quick-bet chips are reused by blackjack and roulette.
+  const CASINO_QUICKBETS = `<div class="slot-quickbets">
+        <button data-bet="50">$50</button><button data-bet="100">$100</button>
+        <button data-bet="500">$500</button><button data-bet="1000">$1k</button>
+        <button data-bet="max">Max</button>
+      </div>`;
+  function wireCasinoWager() {
+    const wagerEl = $("wager");
+    if (!wagerEl) return;
+    wagerEl.oninput = (e) => { window._lastWager = parseInt(e.target.value || "0", 10); };
+    for (const b of document.querySelectorAll(".slot-quickbets button")) {
+      b.onclick = () => {
+        const v = b.dataset.bet === "max" ? Math.max(1, Math.floor(game.character.money)) : parseInt(b.dataset.bet, 10);
+        wagerEl.value = v; window._lastWager = v;
+      };
+    }
+  }
+  function readWager() {
+    const wagerEl = $("wager");
+    return Math.max(1, Math.floor(parseInt((wagerEl && wagerEl.value) || "0", 10) || 0));
+  }
+
+  // ── Blackjack minigame (v0.8.2) ───────────────────────────────────────────
+  // A real hand of blackjack against the dealer: hit / stand / double, dealer
+  // stands on 17, a natural blackjack pays 3:2. Cards are drawn from a freshly
+  // shuffled 52-card deck using the seeded rng(), so lives stay reproducible.
+  const BJ_RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+  const BJ_SUITS = ["♠", "♥", "♦", "♣"];
+  let _bj = null;
+  function bjCardValue(r) { return r === "A" ? 11 : (r === "K" || r === "Q" || r === "J" ? 10 : parseInt(r, 10)); }
+  function bjTotal(cards) {
+    let total = 0, aces = 0;
+    for (const c of cards) { total += bjCardValue(c.r); if (c.r === "A") aces++; }
+    while (total > 21 && aces > 0) { total -= 10; aces--; }
+    return total;
+  }
+  function bjShuffledDeck() {
+    const deck = [];
+    for (const s of BJ_SUITS) for (const r of BJ_RANKS) deck.push({ r, s });
+    for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const t = deck[i]; deck[i] = deck[j]; deck[j] = t; }
+    return deck;
+  }
+  function bjCardHtml(c, hidden) {
+    if (hidden) return `<div class="pcard back">🂠</div>`;
+    const red = (c.s === "♥" || c.s === "♦");
+    return `<div class="pcard${red ? " red" : ""}"><span class="r">${c.r}</span><span class="s">${c.s}</span></div>`;
+  }
+  function bjHandHtml(cards, hideHole) { return cards.map((c, i) => bjCardHtml(c, hideHole && i === 1)).join(""); }
+
+  function openBlackjack() {
+    if (game.character.age < 18) { showToast("Casino is 18+."); return; }
+    _bj = null;
+    const wager = (window._lastWager || 100);
+    modalShell("🃏 Blackjack", `
+      <div class="casino-bal">Balance: <span id="cas-bal">$${game.character.money.toLocaleString()}</span></div>
+      <div id="bj-area"><div class="casino-msg">Set your wager and deal. Dealer stands on 17 · blackjack pays 3:2.</div></div>
+      <div class="field"><label>Wager ($)</label><input id="wager" type="number" value="${wager}" min="1" /></div>
+      ${CASINO_QUICKBETS}
+      <button id="bj-deal" class="primary slot-spin-btn">Deal 🃏</button>`);
+    wireCasinoWager();
+    $("bj-deal").onclick = bjDeal;
+  }
+
+  function bjDeal() {
+    const wager = readWager();
+    if (game.character.money < wager) { showToast("Not enough money."); return; }
+    game.character.money -= wager;
+    const deck = bjShuffledDeck();
+    const player = [deck.pop(), deck.pop()];
+    const dealer = [deck.pop(), deck.pop()];
+    _bj = { deck, player, dealer, wager, phase: "player" };
+    const balEl = $("cas-bal"); if (balEl) balEl.textContent = "$" + game.character.money.toLocaleString();
+    if (bjTotal(player) === 21) { bjResolve(); return; }   // natural — settle at once
+    bjRenderActive();
+  }
+
+  function bjHit() {
+    if (!_bj || _bj.phase !== "player") return;
+    _bj.player.push(_bj.deck.pop());
+    if (bjTotal(_bj.player) >= 21) { bjResolve(); return; }
+    bjRenderActive();
+  }
+  function bjStand() { if (_bj && _bj.phase === "player") bjResolve(); }
+  function bjDouble() {
+    if (!_bj || _bj.phase !== "player" || _bj.player.length !== 2) return;
+    if (game.character.money < _bj.wager) { showToast("Not enough to double."); return; }
+    game.character.money -= _bj.wager;
+    _bj.wager *= 2;
+    const balEl = $("cas-bal"); if (balEl) balEl.textContent = "$" + game.character.money.toLocaleString();
+    _bj.player.push(_bj.deck.pop());
+    bjResolve();
+  }
+
+  function bjResolve() {
+    _bj.phase = "done";
+    const { player, dealer, deck } = _bj;
+    const pt = bjTotal(player);
+    if (pt <= 21) { while (bjTotal(dealer) < 17) dealer.push(deck.pop()); }
+    const dt = bjTotal(dealer);
+    const playerBJ = player.length === 2 && pt === 21;
+    const dealerBJ = dealer.length === 2 && dt === 21;
+    let outcome, mult;                          // mult = total return × wager
+    if (pt > 21) { outcome = "bust"; mult = 0; }
+    else if (playerBJ && !dealerBJ) { outcome = "blackjack"; mult = 2.5; }
+    else if (dealerBJ && !playerBJ) { outcome = "lose"; mult = 0; }
+    else if (dt > 21 || pt > dt) { outcome = "win"; mult = 2; }
+    else if (pt === dt) { outcome = "push"; mult = 1; }
+    else { outcome = "lose"; mult = 0; }
+    const ret = Math.round(_bj.wager * mult);
+    if (ret > 0) game.character.money += ret;
+    const net = ret - _bj.wager;
+    // Wins are logged to the life feed; losses/pushes update the table only
+    // (the balance still reflects them) to keep rapid play from flooding it.
+    if (outcome === "blackjack" || outcome === "win") {
+      const how = outcome === "blackjack" ? `Blackjack! 21` : `${pt} beats ${dt}`;
+      log("casino", `🃏 ${how} — bet $${_bj.wager.toLocaleString()}, won $${net.toLocaleString()}! 🎉`, ret >= 50000 ? "lottery" : null);
+      if (ret >= 100000) grantAchievement("lottery");
+    }
+    bjRenderDone(outcome, pt, dt, net);
+    const balEl = $("cas-bal"); if (balEl) balEl.textContent = "$" + game.character.money.toLocaleString();
+    autosave(); renderAll();
+  }
+
+  function bjRenderActive() {
+    const pt = bjTotal(_bj.player);
+    const dShown = bjCardValue(_bj.dealer[0].r);
+    const canDouble = _bj.player.length === 2 && game.character.money >= _bj.wager;
+    $("bj-area").innerHTML = `
+      <div class="bj-table">
+        <div class="bj-row"><div class="who">Dealer</div><div class="bj-hand">${bjHandHtml(_bj.dealer, true)}</div><div class="bj-total">Showing ${dShown === 11 ? "A" : dShown}</div></div>
+        <div class="bj-row"><div class="who">You · bet $${_bj.wager.toLocaleString()}</div><div class="bj-hand">${bjHandHtml(_bj.player, false)}</div><div class="bj-total">${pt}</div></div>
+      </div>
+      <div class="casino-actions">
+        <button id="bj-hit">Hit</button>
+        <button id="bj-stand">Stand</button>
+        ${canDouble ? `<button id="bj-double">Double</button>` : ""}
+      </div>`;
+    $("bj-hit").onclick = bjHit;
+    $("bj-stand").onclick = bjStand;
+    if ($("bj-double")) $("bj-double").onclick = bjDouble;
+    const dealBtn = $("bj-deal"); if (dealBtn) dealBtn.style.display = "none";
+  }
+
+  function bjRenderDone(outcome, pt, dt, net) {
+    const labels = { blackjack: "Blackjack! 🎉", win: "You win! 🎉", push: "Push — bet returned.", lose: "Dealer wins.", bust: "Bust!" };
+    const cls = (outcome === "win" || outcome === "blackjack") ? "win" : (outcome === "push" ? "push" : "lose");
+    const netStr = net > 0 ? `+$${net.toLocaleString()}` : (net < 0 ? `−$${Math.abs(net).toLocaleString()}` : "$0");
+    $("bj-area").innerHTML = `
+      <div class="bj-table">
+        <div class="bj-row"><div class="who">Dealer</div><div class="bj-hand">${bjHandHtml(_bj.dealer, false)}</div><div class="bj-total">${dt}${dt > 21 ? " — bust" : ""}</div></div>
+        <div class="bj-row"><div class="who">You</div><div class="bj-hand">${bjHandHtml(_bj.player, false)}</div><div class="bj-total">${pt}${pt > 21 ? " — bust" : ""}</div></div>
+      </div>
+      <div class="casino-msg ${cls}">${labels[outcome]} (${netStr})</div>
+      <div class="casino-actions"><button id="bj-again" class="primary">Deal again 🃏</button></div>`;
+    $("bj-again").onclick = () => { _bj = null; bjDeal(); };
+  }
+
+  // ── Roulette minigame (v0.8.2) ────────────────────────────────────────────
+  // A single-zero (European) wheel — house edge ≈ 2.7%. Place one bet (colour,
+  // even/odd, halves, dozens, or a single number at 35:1), then spin. The
+  // winning pocket is chosen by the seeded rng(); the spin is cosmetic.
+  const ROULETTE_RED = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
+  function rouletteColor(n) { return n === 0 ? "green" : (ROULETTE_RED.has(n) ? "red" : "black"); }
+  const ROULETTE_BETS = [
+    { id: "red", label: "🔴 Red", mult: 2, test: n => ROULETTE_RED.has(n) },
+    { id: "black", label: "⚫ Black", mult: 2, test: n => n !== 0 && !ROULETTE_RED.has(n) },
+    { id: "even", label: "Even", mult: 2, test: n => n !== 0 && n % 2 === 0 },
+    { id: "odd", label: "Odd", mult: 2, test: n => n % 2 === 1 },
+    { id: "low", label: "1–18", mult: 2, test: n => n >= 1 && n <= 18 },
+    { id: "high", label: "19–36", mult: 2, test: n => n >= 19 && n <= 36 },
+    { id: "d1", label: "1st 12", mult: 3, test: n => n >= 1 && n <= 12 },
+    { id: "d2", label: "2nd 12", mult: 3, test: n => n >= 13 && n <= 24 },
+    { id: "d3", label: "3rd 12", mult: 3, test: n => n >= 25 && n <= 36 }
+  ];
+  let _rlBet = null, _rlSpinning = false;
+
+  function openRoulette() {
+    if (game.character.age < 18) { showToast("Casino is 18+."); return; }
+    _rlBet = null; _rlSpinning = false;
+    const wager = (window._lastWager || 100);
+    const boardBtns = ROULETTE_BETS.map(b => `<button data-bet="${b.id}">${b.label}<br><span style="font-size:10px;color:var(--text-muted)">${b.mult - 1}:1</span></button>`).join("");
+    modalShell("🎡 Roulette", `
+      <div class="casino-bal">Balance: <span id="cas-bal">$${game.character.money.toLocaleString()}</span></div>
+      <div class="rl-pocket" id="rl-pocket">?</div>
+      <div class="casino-msg" id="rl-msg">Pick a bet, set your wager, then spin. Single-zero wheel.</div>
+      <div class="rl-board" id="rl-board">${boardBtns}</div>
+      <div class="rl-straight" id="rl-straight">
+        <label style="font-size:12px;color:var(--text-muted);white-space:nowrap">Single # · 35:1</label>
+        <input id="rl-num" type="number" min="0" max="36" placeholder="0–36" />
+      </div>
+      <div class="field"><label>Wager ($)</label><input id="wager" type="number" value="${wager}" min="1" /></div>
+      ${CASINO_QUICKBETS}
+      <button id="rl-spin" class="primary slot-spin-btn">🎡 SPIN</button>`);
+    wireCasinoWager();
+    const clearSel = () => document.querySelectorAll("#rl-board button").forEach(x => x.classList.remove("sel"));
+    for (const b of document.querySelectorAll("#rl-board button")) {
+      b.onclick = () => {
+        const def = ROULETTE_BETS.find(x => x.id === b.dataset.bet);
+        _rlBet = { label: def.label, mult: def.mult, test: def.test };
+        clearSel(); b.classList.add("sel");
+        $("rl-straight").classList.remove("sel"); $("rl-num").value = "";
+        $("rl-msg").textContent = `Bet: ${def.label} (${def.mult - 1}:1)`; $("rl-msg").className = "casino-msg";
+      };
+    }
+    $("rl-num").oninput = () => {
+      const n = parseInt($("rl-num").value, 10);
+      if (Number.isInteger(n) && n >= 0 && n <= 36) {
+        _rlBet = { label: "Number " + n, mult: 36, test: x => x === n };
+        clearSel(); $("rl-straight").classList.add("sel");
+        $("rl-msg").textContent = `Bet: number ${n} (35:1)`; $("rl-msg").className = "casino-msg";
+      } else if (_rlBet && _rlBet.mult === 36) { _rlBet = null; $("rl-straight").classList.remove("sel"); }
+    };
+    $("rl-spin").onclick = spinRoulette;
+  }
+
+  function spinRoulette() {
+    if (_rlSpinning) return;
+    if (!_rlBet) { showToast("Pick a bet first."); return; }
+    const wager = readWager();
+    if (game.character.money < wager) { showToast("Not enough money."); return; }
+    _rlSpinning = true;
+    game.character.money -= wager;
+    const balEl = $("cas-bal"); if (balEl) balEl.textContent = "$" + game.character.money.toLocaleString();
+    const spinBtn = $("rl-spin"); if (spinBtn) spinBtn.disabled = true;
+    const msg = $("rl-msg"); if (msg) { msg.textContent = "No more bets — spinning…"; msg.className = "casino-msg"; }
+    const result = rngInt(0, 36);              // seeded outcome; the spin only reveals it
+    const pocket = $("rl-pocket");
+    if (pocket) pocket.className = "rl-pocket spinning";
+    const flash = setInterval(() => {
+      if (!pocket) return;
+      const n = Math.floor(Math.random() * 37);
+      pocket.textContent = n; pocket.classList.remove("red", "black", "green"); pocket.classList.add(rouletteColor(n));
+    }, 60);
+    setTimeout(() => {
+      clearInterval(flash);
+      if (pocket) { pocket.className = "rl-pocket " + rouletteColor(result); pocket.textContent = result; }
+      finishRoulette(result, wager);
+    }, 1500);
+  }
+
+  function finishRoulette(result, wager) {
+    _rlSpinning = false;
+    const bet = _rlBet;
+    const color = rouletteColor(result);
+    const msg = $("rl-msg");
+    if (bet && bet.test(result)) {
+      const ret = Math.round(wager * bet.mult);
+      game.character.money += ret;
+      const net = ret - wager;
+      log("casino", `🎡 Roulette landed ${result} ${color} — ${bet.label} hit, bet $${wager.toLocaleString()}, won $${net.toLocaleString()}! 🎉`, ret >= 50000 ? "lottery" : null);
+      if (ret >= 100000) grantAchievement("lottery");
+      if (msg) { msg.textContent = `${result} ${color} — ${bet.label} wins! +$${net.toLocaleString()}`; msg.className = "casino-msg win"; }
+    } else {
+      if (msg) { msg.textContent = `${result} ${color} — ${bet ? bet.label + " loses" : "no win"}. Spin again!`; msg.className = "casino-msg lose"; }
+    }
+    const balEl = $("cas-bal"); if (balEl) balEl.textContent = "$" + game.character.money.toLocaleString();
+    const spinBtn = $("rl-spin"); if (spinBtn) spinBtn.disabled = false;
+    autosave(); renderAll();
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // ENGINE: MARKETS / INVESTING / INSIDER TRADING
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1350,6 +1643,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (/invest|stock|buy shares/.test(t)) { openModal("assets"); return "Opening Assets menu"; }
     if (/job|work|apply/.test(t)) { openModal("careers"); return "Opening Careers menu"; }
     if (/slot|slots|jackpot|one-armed/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openSlots(); } return "Opening the slot machine"; }
+    if (/blackjack|black jack|\b21\b/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openBlackjack(); } return "Opening the blackjack table"; }
+    if (/roulette|the wheel/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openRoulette(); } return "Opening the roulette wheel"; }
     if (/gambl|casino|bet/.test(t)) { openModal("casino"); return "Opening Casino menu"; }
     return null;
   }
@@ -1379,8 +1674,10 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     ]},
     { topic: "casino", aliases: ["slots", "blackjack", "gamble", "bet", "wager"], tab: "casino", tabLabel: "🎰 Casino", text: [
       "Casino opens at 18. Set a wager, then pick a game.",
-      "• Slots: a real animated 3-reel machine — match 3 symbols. Three 7️⃣ pays 500× and unlocks the 🎰 Jackpot ribbon. Use quick-bet chips or Max.",
-      "• Blackjack / Roulette / etc.: instant bets — pick a wager and play for a quick 2× or more."
+      "• Slots: a real animated 3-reel machine — match 3 symbols. Three 7️⃣ pays 500× and unlocks the 🎰 Jackpot ribbon.",
+      "• Blackjack: a live hand — hit, stand or double. Dealer stands on 17; a natural blackjack pays 3:2.",
+      "• Roulette: a single-zero wheel — bet colours, even/odd, halves, dozens (2:1) or a single number (35:1), then spin.",
+      "• Other games (craps, keno, horses…): instant bets — pick a wager and play for a quick 2× or more."
     ]},
     { topic: "career", aliases: ["job", "work", "salary", "promotion", "jobs", "apply", "doctor"], tab: "careers", tabLabel: "💼 Careers", text: [
       "Careers have entry requirements (age, education, sometimes a specific degree).",
@@ -2014,9 +2311,13 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     $("wager").oninput = (e) => { window._lastWager = parseInt(e.target.value || "0", 10); };
     for (const g of DATA.ACTIVITIES.casino) {
       const gated = game.character.age < g.minAge;
+      // Playable mini-games (live graphics) vs. the instant-bet fallback games.
       if (g.id === "slots") {
-        // Slots is a live, animated machine rather than an instant coin-flip.
         $("casino-list").appendChild(optRow(g.label, `Animated reels · up to 500× · 🎰 Jackpot ribbon · ${g.minAge}+`, "Play ▶", () => openSlots(), gated));
+      } else if (g.id === "blackjack") {
+        $("casino-list").appendChild(optRow(g.label, `Live cards · hit / stand / double · 3:2 blackjack · ${g.minAge}+`, "Play ▶", () => openBlackjack(), gated));
+      } else if (g.id === "roulette") {
+        $("casino-list").appendChild(optRow(g.label, `Single-zero wheel · colours, dozens, 35:1 single · ${g.minAge}+`, "Play ▶", () => openRoulette(), gated));
       } else {
         $("casino-list").appendChild(optRow(g.label, `${Math.round(g.winChance*100)}% win · ${g.payoutMult[0]}-${g.payoutMult[1]}x · ${g.minAge}+`, "Play", () => gamble(g.id, parseInt($("wager").value || "0", 10)), gated));
       }
