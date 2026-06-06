@@ -48,7 +48,7 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[PARITY.md](./PARITY.md)**.
 
-Full system-by-system table (v0.9.4). Deeper detail + the gap-closure roadmap in **[PARITY.md](./PARITY.md)**.
+Full system-by-system table (v0.9.5). Deeper detail + the gap-closure roadmap in **[PARITY.md](./PARITY.md)**.
 
 | System | Real BitLife | This game | Status |
 |---|---|---|---|
@@ -72,12 +72,12 @@ Full system-by-system table (v0.9.4). Deeper detail + the gap-closure roadmap in
 | Health & medical | 100s of diseases, specialists, surgeries, mental health, addictions/rehab, STDs, disabilities | Disease system + **addictions & STDs** (from bars/casino/cheating) treated at the clinic | 🟡 |
 | Activities / lifestyle | Gym/library/spa/movies/club/museum/concert; tattoos, religion, astrology | Mind & Body / Doctor / Education **+ nightlife, museum, concert, shopping, tattoo, religion** | 🟡 |
 | Travel / vacation | Countries, cruises, hotels; emigrate | **5 destinations** (beach → world cruise); no emigrate yet | 🟡 |
-| Assets | Real estate (+ mortgage/rent/flip), vehicles (+ insurance/upkeep), jewelry/art; haggle/appraise/pawn | Real estate **+ vehicle dealership** (upkeep/depreciation); no valuables yet | 🟡 |
+| Assets | Real estate (+ mortgage/rent/flip), vehicles (+ insurance/upkeep), jewelry/art; haggle/appraise/pawn | Real estate, **vehicle dealership**, **valuables** (jewelry/art, appreciate); no haggle/pawn yet | 🟡 |
 | Money / finance | Bank, interest, loans, mortgages, cards, debt, bankruptcy, taxes, lottery, charity, will/inheritance | Loans, **mortgages**, bankruptcy, lottery, net worth, inheritance, income/crypto tax | 🟡 |
 | **Investing + insider trading** | Stocks/crypto/bonds/real estate; SEC "Martha" | Same, incl. insider trading + the Martha ribbon | ✅ |
 | Fame | Fame bar, social media/go-viral, books/albums/films, endorsements, scandals, paparazzi | Fame stat + Famous ribbon; no fame activities | 🟡 |
-| Pets | Pet store (many species), train/walk/vet/breed/shows | Adopt via a childhood event; pets age & die | 🟡 |
-| Achievements / ribbons | Large set + end-of-life summary | 28 ribbons + death summary | 🟡 |
+| Pets | Pet store (many species), train/walk/vet/breed/shows | **Pet store (7 species)** + childhood adopt + interactions; pets age & die; no breed/shows | 🟡 |
+| Achievements / ribbons | Large set + end-of-life summary | 29 ribbons + death summary | 🟡 |
 | Countries / nationality | 150+ nations, languages, citizenship | 30 (cosmetic) | 🟡 |
 | Generations / dynasties | Continue as your heir; inheritance | **Continue as your heir** + inheritance (estate tax) | 🟡 |
 | God Mode / Time Machine / Surrender | Edit stats, rewind a year, restart | **God Mode** + **Time Machine** (rewind one year) + New Life | ✅ |
@@ -212,5 +212,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.9.4 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.9.5 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*
