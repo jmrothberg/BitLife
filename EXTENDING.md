@@ -206,7 +206,10 @@ Canvas 2D — no engine needed). The contract is tiny:
 import * as THREE from "three";          // ONLY if you need 3D (vendored at ./vendor/three/)
 export function start(host, api) {
   // host: an empty full-screen <div> — render your canvas + HUD into it
-  // api.finish(result): call ONCE with "win" | "lose" | "quit"
+  // api.finish(result, payload?): call ONCE with "win"|"lose"|"quit". The
+  //   optional payload is forwarded to the host handler, e.g. onWin(payload) —
+  //   burglary returns { loot } so the host can pay it out. (Backward compatible.)
+  // api.opts: per-launch data the host passed in (e.g. { lootMax, guards, name }).
   // api.difficulty: optional number
   // return cleanup(): stop your RAF loop, dispose GPU objects, remove listeners
 }
