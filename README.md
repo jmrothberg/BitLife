@@ -48,15 +48,15 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[PARITY.md](./PARITY.md)**.
 
-Full system-by-system table (v0.9.3). Deeper detail + the gap-closure roadmap in **[PARITY.md](./PARITY.md)**.
+Full system-by-system table (v0.9.4). Deeper detail + the gap-closure roadmap in **[PARITY.md](./PARITY.md)**.
 
 | System | Real BitLife | This game | Status |
 |---|---|---|---|
 | Core stats | Happiness / Health / Smarts / Looks (+ Fame, hidden Karma) | All four + Fame; no Karma | 🟡 |
 | Character creation | Name, gender, country/city; Bitizen custom looks | Name, gender, country, **talent**, **zodiac**, **seed** | ✅ |
-| Age-up + random events | Hundreds per stage, multi-choice + outcomes | 54 events across 7 life stages | 🟡 |
+| Age-up + random events | Hundreds per stage, multi-choice + outcomes | 77 events across 7 life stages | 🟡 |
 | School & education | Daycare → uni / grad / med / law; majors, GPA, clubs, sports, class president, loans, scholarships, dropout | Auto K-12 + college, 12 degrees, study/tutor | 🟡 |
-| Careers (regular) | 100+ jobs; ladders, performance, fired, retire, unions, lawsuits | 33 jobs; apply / work / promote / quit | 🟡 |
+| Careers (regular) | 100+ jobs; ladders, performance, fired, retire, unions, lawsuits | 43 jobs; apply / work / promote / quit | 🟡 |
 | Special / fame careers | Actor, musician, writer, model, influencer, athlete (leagues), director | Fame-path jobs (actor/musician/athlete/model/influencer); no fame activities | 🟡 |
 | Military | Branches, ranks, deployment, court martial, medals | **Army/Navy/Air Force career tracks** (ranks); no deployments yet | 🟡 |
 | Royalty | Born/marry in, rule, throne, scandals, exile | **Born royal** (rare) + royal duties (stipend/fame); no throne politics yet | 🟡 |
@@ -212,5 +212,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.9.3 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.9.4 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*
