@@ -167,8 +167,9 @@ Reference it from a `log(..., "<key>")` call.
 
 ## The mini-game pattern (how to add a 4th casino game)
 
-Slots, Blackjack and Roulette (in `// ENGINE: CRIME / CASINO`) are the template. Each is a
-self-contained, **offline, deterministic** UI mini-game with the same shape:
+Slots, Blackjack, Roulette and Horse Racing (in `// ENGINE: CRIME / CASINO`) are the
+template — all pure CSS/emoji animation (no diffuser, no network). Each is a self-contained,
+**offline, deterministic** UI mini-game with the same shape:
 
 1. **Config/odds as data** near the top of the block (e.g. `SLOT_CONFIG`, `ROULETTE_BETS`).
 2. **`openX()`** — builds the modal via `modalShell(title, html)`, wires the wager box with
@@ -185,7 +186,13 @@ self-contained, **offline, deterministic** UI mini-game with the same shape:
 
 **Always design a house edge and prove it** with a Monte Carlo before committing (see below).
 Reference numbers in this build: slots ≈ 81% RTP, roulette ≈ 97.3% (single-zero), blackjack
-≈ 94–99% depending on play.
+≈ 94–99% depending on play, horse racing ≈ 82% on every horse.
+
+> **Instant-bet games** (the simpler `gamble()` path used by craps/keno/sports betting) pay
+> `winChance × rngFloat(payoutMult[0], payoutMult[1])`. The expected return is
+> `winChance × (lo+hi)/2` — **this MUST be < 1**, or players grind infinite money. (A real bug:
+> keno shipped at `0.25 × 6.5 = 1.625` RTP and someone bankrolled a fortune before it was fixed.)
+> Compute the EV by hand for any change to a `gamble()`-path game.
 
 ---
 

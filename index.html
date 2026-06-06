@@ -230,16 +230,35 @@
     @keyframes cardDeal { from { transform: translateY(-16px) rotate(-5deg); opacity: 0; } to { transform: none; opacity: 1; } }
     .bj-total { font-size: 13px; color: var(--text); font-weight: 700; margin-top: 5px; text-align: center; }
     /* roulette */
-    .rl-pocket { width: 88px; height: 88px; margin: 6px auto 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 800; color: #fff; border: 3px solid var(--accent-dim); box-shadow: inset 0 0 18px rgba(0,0,0,0.5); background: #3a3a44; }
-    .rl-pocket.red { background: #b01818; } .rl-pocket.black { background: #15151c; } .rl-pocket.green { background: #1d7a3a; }
-    .rl-pocket.spinning { animation: rlPulse 0.28s ease infinite alternate; }
-    @keyframes rlPulse { from { transform: scale(0.96); } to { transform: scale(1.04); } }
+    .rl-wheel-wrap { position: relative; width: 200px; height: 200px; margin: 6px auto 8px; }
+    .rl-wheel { width: 100%; height: 100%; transform: rotate(0deg); transition: transform 4.5s cubic-bezier(0.17, 0.68, 0.12, 1); will-change: transform; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.5)); }
+    .rl-svg { width: 100%; height: 100%; display: block; }
+    .rl-ball-track { position: absolute; inset: 0; transform: rotate(0deg); transition: transform 4.5s cubic-bezier(0.17, 0.68, 0.12, 1); pointer-events: none; z-index: 3; }
+    .rl-ball { position: absolute; top: 5px; left: 50%; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #b8b8b8); box-shadow: 0 0 5px rgba(255,255,255,0.9); }
+    .rl-pointer { position: absolute; top: -7px; left: 50%; transform: translateX(-50%); color: var(--accent); font-size: 18px; z-index: 4; filter: drop-shadow(0 1px 2px #000); }
+    .rl-result { font-size: 14px; font-weight: 800; min-height: 18px; margin: 2px 0; text-align: center; }
     .rl-board { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 8px 0; }
     .rl-board button { padding: 8px 4px; font-size: 12px; line-height: 1.25; }
     .rl-board button.sel { background: var(--accent); color: #1a1405; border-color: var(--accent); font-weight: 700; }
     .rl-straight { display: flex; gap: 8px; align-items: center; margin: 6px 0; padding: 6px; border: 1px solid transparent; border-radius: 8px; }
     .rl-straight input { flex: 1; }
     .rl-straight.sel { border-color: var(--accent); }
+
+    /* ── Horse racing minigame (v0.8.3) ── */
+    .hr-track { background: linear-gradient(180deg, #6db4e8 0%, #8fd0f0 26%, #b06a3a 27%, #7a4a28 100%); border: 2px solid var(--accent-dim); border-radius: 12px; padding: 8px 8px 6px; margin: 4px 0 8px; position: relative; overflow: hidden; box-shadow: inset 0 0 24px rgba(0,0,0,0.35); }
+    .hr-lane { position: relative; height: 30px; margin: 3px 0; border-bottom: 2px dashed rgba(255,255,255,0.25); }
+    .hr-lane:last-child { border-bottom: none; }
+    .hr-finish { position: absolute; top: 0; bottom: 0; right: 9%; width: 8px; background-image: repeating-conic-gradient(#fff 0 25%, #111 0 50%); background-size: 8px 8px; opacity: 0.9; z-index: 1; }
+    .hr-runner { position: absolute; top: 50%; left: 2%; transform: translate(-50%, -50%) scaleX(-1); font-size: 24px; line-height: 1; transition: left 0.12s linear; z-index: 2; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.4)); }
+    .hr-runner.gallop { animation: hrGallop 0.22s ease-in-out infinite; }
+    @keyframes hrGallop { 0%,100% { transform: translate(-50%, -58%) scaleX(-1) rotate(-2deg); } 50% { transform: translate(-50%, -42%) scaleX(-1) rotate(2deg); } }
+    .hr-num { position: absolute; left: 3px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 800; color: #fff; background: rgba(0,0,0,0.4); border-radius: 4px; padding: 0 4px; z-index: 2; }
+    .hr-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; }
+    .hr-pick button { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 8px 10px; font-size: 12px; text-align: left; }
+    .hr-pick button .silk { width: 12px; height: 12px; border-radius: 50%; flex: none; border: 1px solid rgba(0,0,0,0.4); }
+    .hr-pick button .odds { color: var(--accent); font-weight: 700; }
+    .hr-pick button.sel { background: var(--accent); color: #1a1405; border-color: var(--accent); font-weight: 700; }
+    .hr-pick button.sel .odds { color: #1a1405; }
   </style>
 </head>
 <body>
@@ -247,7 +266,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8.2</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8.3</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -406,7 +425,7 @@
       doctor: [{ id: "checkup", label: "Annual checkup", minAge: 1, cost: 150, effects: { health: 5 } }, { id: "surgery", label: "Plastic surgery", minAge: 18, cost: 6000, effects: { looks: 16 }, notable: true }],
       education: [{ id: "studyHarder", label: "Study harder", minAge: 6, requires: { inSchool: true }, cost: 0, effects: { smarts: 5, happiness: -2 } }],
       crime: [{ id: "pettyTheft", label: "Shoplift", minAge: 8, payout: [10, 250], catchChance: 0.25, jail: [0, 1] }, { id: "burglary", label: "Burglarize a home", minAge: 16, payout: [400, 8000], catchChance: 0.42, jail: [1, 6] }, { id: "murder", label: "Commit murder", minAge: 16, payout: [0, 0], catchChance: 0.62, jail: [15, 60], killsRelationship: true }],
-      casino: [{ id: "slots", label: "Slot machines", minAge: 18, winChance: 0.18, payoutMult: [3, 12], achievementOnBigWin: "lottery" }, { id: "blackjack", label: "Blackjack", minAge: 18, winChance: 0.47, payoutMult: [2, 2] }, { id: "roulette", label: "Roulette", minAge: 18, winChance: 0.47, payoutMult: [2, 2] }]
+      casino: [{ id: "slots", label: "Slot machines", minAge: 18, winChance: 0.18, payoutMult: [3, 12], achievementOnBigWin: "lottery" }, { id: "blackjack", label: "Blackjack", minAge: 18, winChance: 0.47, payoutMult: [2, 2] }, { id: "roulette", label: "Roulette", minAge: 18, winChance: 0.47, payoutMult: [2, 2] }, { id: "horses", label: "Bet on horses", minAge: 18, winChance: 0.28, payoutMult: [2, 8] }]
     },
     CAREERS: [
       { id: "fastFood", title: "Fast Food Worker", baseSalary: 22000, requires: { minAge: 16 }, levels: ["Trainee", "Cook", "Shift Lead", "Manager"], raisePerLevel: 0.12 },
@@ -1156,12 +1175,29 @@
     $("bj-again").onclick = () => { _bj = null; bjDeal(); };
   }
 
-  // ── Roulette minigame (v0.8.2) ────────────────────────────────────────────
+  // ── Roulette minigame (v0.8.2, wheel v0.8.3) ──────────────────────────────
   // A single-zero (European) wheel — house edge ≈ 2.7%. Place one bet (colour,
-  // even/odd, halves, dozens, or a single number at 35:1), then spin. The
-  // winning pocket is chosen by the seeded rng(); the spin is cosmetic.
+  // even/odd, halves, dozens, or a single number at 35:1), then spin a real
+  // 37-pocket wheel. The winning number is chosen by the seeded rng(); the wheel
+  // and ball animation just rotate to bring that pocket under the pointer.
   const ROULETTE_RED = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
+  // Pocket order around a real European single-zero wheel (clockwise from 0).
+  const ROULETTE_WHEEL = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
   function rouletteColor(n) { return n === 0 ? "green" : (ROULETTE_RED.has(n) ? "red" : "black"); }
+  function rouletteWheelSvg() {
+    const cx = 100, cy = 100, R = 98, rText = 82, ang = 360 / ROULETTE_WHEEL.length;
+    const pol = (r, deg) => { const a = (deg - 90) * Math.PI / 180; return [(cx + r * Math.cos(a)).toFixed(2), (cy + r * Math.sin(a)).toFixed(2)]; };
+    let s = `<svg viewBox="0 0 200 200" class="rl-svg"><circle cx="${cx}" cy="${cy}" r="${R + 1}" fill="#2a1d10" stroke="#caa24f" stroke-width="2"/>`;
+    for (let i = 0; i < ROULETTE_WHEEL.length; i++) {
+      const num = ROULETTE_WHEEL[i];
+      const col = num === 0 ? "#1d7a3a" : (ROULETTE_RED.has(num) ? "#b01818" : "#15151c");
+      const [x0, y0] = pol(R, i * ang - ang / 2), [x1, y1] = pol(R, i * ang + ang / 2);
+      s += `<path d="M${cx} ${cy} L${x0} ${y0} A${R} ${R} 0 0 1 ${x1} ${y1} Z" fill="${col}" stroke="#0a0a0a" stroke-width="0.5"/>`;
+      s += `<g transform="rotate(${(i * ang).toFixed(2)} ${cx} ${cy})"><text x="${cx}" y="${cy - rText}" fill="#fff" font-size="8" font-weight="700" text-anchor="middle" dominant-baseline="middle">${num}</text></g>`;
+    }
+    s += `<circle cx="${cx}" cy="${cy}" r="34" fill="#2a1d10" stroke="#caa24f" stroke-width="1.5"/><circle cx="${cx}" cy="${cy}" r="6" fill="#caa24f"/></svg>`;
+    return s;
+  }
   const ROULETTE_BETS = [
     { id: "red", label: "🔴 Red", mult: 2, test: n => ROULETTE_RED.has(n) },
     { id: "black", label: "⚫ Black", mult: 2, test: n => n !== 0 && !ROULETTE_RED.has(n) },
@@ -1173,16 +1209,21 @@
     { id: "d2", label: "2nd 12", mult: 3, test: n => n >= 13 && n <= 24 },
     { id: "d3", label: "3rd 12", mult: 3, test: n => n >= 25 && n <= 36 }
   ];
-  let _rlBet = null, _rlSpinning = false;
+  let _rlBet = null, _rlSpinning = false, _rlWheelDeg = 0, _rlBallDeg = 0;
 
   function openRoulette() {
     if (game.character.age < 18) { showToast("Casino is 18+."); return; }
-    _rlBet = null; _rlSpinning = false;
+    _rlBet = null; _rlSpinning = false; _rlWheelDeg = 0; _rlBallDeg = 0;
     const wager = (window._lastWager || 100);
     const boardBtns = ROULETTE_BETS.map(b => `<button data-bet="${b.id}">${b.label}<br><span style="font-size:10px;color:var(--text-muted)">${b.mult - 1}:1</span></button>`).join("");
     modalShell("🎡 Roulette", `
       <div class="casino-bal">Balance: <span id="cas-bal">$${game.character.money.toLocaleString()}</span></div>
-      <div class="rl-pocket" id="rl-pocket">?</div>
+      <div class="rl-wheel-wrap">
+        <div class="rl-pointer">▼</div>
+        <div class="rl-wheel" id="rl-wheel">${rouletteWheelSvg()}</div>
+        <div class="rl-ball-track" id="rl-ball-track"><div class="rl-ball"></div></div>
+      </div>
+      <div class="rl-result" id="rl-result"></div>
       <div class="casino-msg" id="rl-msg">Pick a bet, set your wager, then spin. Single-zero wheel.</div>
       <div class="rl-board" id="rl-board">${boardBtns}</div>
       <div class="rl-straight" id="rl-straight">
@@ -1223,20 +1264,23 @@
     game.character.money -= wager;
     const balEl = $("cas-bal"); if (balEl) balEl.textContent = "$" + game.character.money.toLocaleString();
     const spinBtn = $("rl-spin"); if (spinBtn) spinBtn.disabled = true;
-    const msg = $("rl-msg"); if (msg) { msg.textContent = "No more bets — spinning…"; msg.className = "casino-msg"; }
-    const result = rngInt(0, 36);              // seeded outcome; the spin only reveals it
-    const pocket = $("rl-pocket");
-    if (pocket) pocket.className = "rl-pocket spinning";
-    const flash = setInterval(() => {
-      if (!pocket) return;
-      const n = Math.floor(Math.random() * 37);
-      pocket.textContent = n; pocket.classList.remove("red", "black", "green"); pocket.classList.add(rouletteColor(n));
-    }, 60);
-    setTimeout(() => {
-      clearInterval(flash);
-      if (pocket) { pocket.className = "rl-pocket " + rouletteColor(result); pocket.textContent = result; }
-      finishRoulette(result, wager);
-    }, 1500);
+    const msg = $("rl-msg"); if (msg) { msg.textContent = "No more bets — round and round it goes…"; msg.className = "casino-msg"; }
+    const res = $("rl-result"); if (res) res.textContent = "";
+    const result = rngInt(0, 36);              // seeded outcome; the wheel only reveals it
+    // Rotate the wheel so the winning pocket settles under the top pointer, and
+    // counter-rotate the ball so it ends at the top (over that pocket).
+    const ang = 360 / ROULETTE_WHEEL.length;
+    const k = ROULETTE_WHEEL.indexOf(result);
+    const nSpins = 4 + Math.floor(Math.random() * 3);   // cosmetic 4–6 turns
+    const targetMod = (((-k * ang) % 360) + 360) % 360;
+    const curMod = ((_rlWheelDeg % 360) + 360) % 360;
+    let delta = targetMod - curMod; if (delta < 0) delta += 360;
+    _rlWheelDeg += nSpins * 360 + delta;
+    _rlBallDeg -= (nSpins + 3) * 360;                    // stays a multiple of 360 → ball at top
+    const wheel = $("rl-wheel"), ball = $("rl-ball-track");
+    if (wheel) wheel.style.transform = `rotate(${_rlWheelDeg}deg)`;
+    if (ball) ball.style.transform = `rotate(${_rlBallDeg}deg)`;
+    setTimeout(() => finishRoulette(result, wager), 4650);
   }
 
   function finishRoulette(result, wager) {
@@ -1244,6 +1288,8 @@
     const bet = _rlBet;
     const color = rouletteColor(result);
     const msg = $("rl-msg");
+    const res = $("rl-result");
+    if (res) { const hex = color === "green" ? "#3ad07a" : (color === "red" ? "#ff7a7a" : "#cfcfd6"); res.innerHTML = `Landed on <span style="color:${hex}">${result} ${color}</span>`; }
     if (bet && bet.test(result)) {
       const ret = Math.round(wager * bet.mult);
       game.character.money += ret;
@@ -1256,6 +1302,125 @@
     }
     const balEl = $("cas-bal"); if (balEl) balEl.textContent = "$" + game.character.money.toLocaleString();
     const spinBtn = $("rl-spin"); if (spinBtn) spinBtn.disabled = false;
+    autosave(); renderAll();
+  }
+
+  // ── Horse racing minigame (v0.8.3) ────────────────────────────────────────
+  // A live, animated race: pick a horse, watch the field gallop down the track,
+  // and get paid by the posted odds. Pure CSS + emoji — NO diffuser, NO network,
+  // fully offline. The winner is chosen up front by the seeded rng() (weighted by
+  // each horse's strength, so favourites win more often) and the animation only
+  // reveals it. Payouts give a ~18% house edge on every horse (EV = house).
+  const HORSE_RACE = {
+    horses: [
+      { name: "Thunderbolt", silk: "#e53935", weight: 30 },
+      { name: "Sea Biscuit", silk: "#1e88e5", weight: 24 },
+      { name: "Lucky Seven", silk: "#43a047", weight: 18 },
+      { name: "Dark Horse",  silk: "#5e35b1", weight: 12 },
+      { name: "Long Shot",   silk: "#fb8c00", weight: 9 },
+      { name: "Old Nag",     silk: "#6d4c41", weight: 7 }
+    ],
+    house: 0.82
+  };
+  let _hrPick = null, _hrRacing = false;
+  function hrOdds() {
+    const total = HORSE_RACE.horses.reduce((s, h) => s + h.weight, 0);
+    return HORSE_RACE.horses.map(h => {
+      const p = h.weight / total;
+      const mult = Math.max(2, Math.round((1 / p) * HORSE_RACE.house * 10) / 10); // total return ×
+      return { name: h.name, silk: h.silk, weight: h.weight, p, mult };
+    });
+  }
+
+  function openHorseRace() {
+    if (game.character.age < 18) { showToast("Casino is 18+."); return; }
+    _hrPick = null; _hrRacing = false;
+    const wager = (window._lastWager || 100);
+    const odds = hrOdds();
+    const lanes = odds.map((h, i) => `<div class="hr-lane"><div class="hr-num">${i + 1}</div><div class="hr-runner" id="hr-run-${i}">🐎</div></div>`).join("");
+    const picks = odds.map((h, i) => `<button data-h="${i}"><span style="display:flex;align-items:center;gap:6px;min-width:0"><span class="silk" style="background:${h.silk}"></span><span style="overflow:hidden;text-overflow:ellipsis">${i + 1}. ${h.name}</span></span><span class="odds">${h.mult}×</span></button>`).join("");
+    modalShell("🏇 Horse Racing", `
+      <div class="casino-bal">Balance: <span id="cas-bal">$${game.character.money.toLocaleString()}</span></div>
+      <div class="hr-track">${lanes}<div class="hr-finish"></div></div>
+      <div class="casino-msg" id="hr-msg">Pick a horse, set your wager, and race! Odds shown = total payout.</div>
+      <div class="hr-pick" id="hr-pick">${picks}</div>
+      <div class="field"><label>Wager ($)</label><input id="wager" type="number" value="${wager}" min="1" /></div>
+      ${CASINO_QUICKBETS}
+      <button id="hr-go" class="primary slot-spin-btn">🏁 RACE</button>`);
+    wireCasinoWager();
+    for (const b of document.querySelectorAll("#hr-pick button")) {
+      b.onclick = () => {
+        if (_hrRacing) return;
+        _hrPick = parseInt(b.dataset.h, 10);
+        document.querySelectorAll("#hr-pick button").forEach(x => x.classList.remove("sel"));
+        b.classList.add("sel");
+        const h = odds[_hrPick];
+        $("hr-msg").textContent = `Bet on #${_hrPick + 1} ${h.name} — pays ${h.mult}×`;
+        $("hr-msg").className = "casino-msg";
+      };
+    }
+    $("hr-go").onclick = hrStart;
+  }
+
+  function hrStart() {
+    if (_hrRacing) return;
+    if (_hrPick == null) { showToast("Pick a horse first."); return; }
+    const wager = readWager();
+    if (game.character.money < wager) { showToast("Not enough money."); return; }
+    _hrRacing = true;
+    game.character.money -= wager;
+    const balEl = $("cas-bal"); if (balEl) balEl.textContent = "$" + game.character.money.toLocaleString();
+    const goBtn = $("hr-go"); if (goBtn) goBtn.disabled = true;
+    document.querySelectorAll("#hr-pick button").forEach(b => b.disabled = true);
+    const msg = $("hr-msg"); if (msg) { msg.textContent = "And they're off! 🏁"; msg.className = "casino-msg"; }
+
+    const odds = hrOdds();
+    const n = odds.length;
+    const total = HORSE_RACE.horses.reduce((s, h) => s + h.weight, 0);
+    // Winner decided now by the seeded rng (weighted) — the race just reveals it.
+    const winnerIdx = HORSE_RACE.horses.indexOf(rngWeighted(HORSE_RACE.horses));
+    const runners = odds.map((_, i) => $("hr-run-" + i));
+    runners.forEach(el => { if (el) el.classList.add("gallop"); });
+    const pos = new Array(n).fill(0);
+    const base = odds.map(h => 0.9 + (h.weight / total) * 1.4);     // favourites are quicker
+    const caps = odds.map(h => 93 + (h.weight / total) * 8);        // where non-winners settle
+    const place = (i) => { const el = runners[i]; if (el) el.style.left = (2 + Math.min(pos[i], 100) * 0.88) + "%"; };
+    let leader = -1;
+    const tick = setInterval(() => {
+      for (let i = 0; i < n; i++) {
+        let s = base[i] + Math.random() * 1.6;        // cosmetic jockeying (not the outcome)
+        if (i === winnerIdx) s += 0.5;                // guarantees the winner crosses first
+        pos[i] += s;
+        if (i !== winnerIdx) pos[i] = Math.min(pos[i], caps[i]);
+      }
+      pos[winnerIdx] = Math.min(pos[winnerIdx], 100);
+      for (let i = 0; i < n; i++) place(i);
+      let lead = 0; for (let i = 1; i < n; i++) if (pos[i] > pos[lead]) lead = i;
+      if (lead !== leader && pos[winnerIdx] < 100 && pos[lead] > 12) {
+        leader = lead; if (msg) msg.textContent = `${odds[lead].name} takes the lead! 🐎`;
+      }
+      if (pos[winnerIdx] >= 100) { clearInterval(tick); hrFinish(winnerIdx, wager, odds); }
+    }, 90);
+  }
+
+  function hrFinish(winnerIdx, wager, odds) {
+    _hrRacing = false;
+    odds.forEach((_, i) => { const el = $("hr-run-" + i); if (el) el.classList.remove("gallop"); });
+    const winner = odds[winnerIdx];
+    const msg = $("hr-msg");
+    if (_hrPick === winnerIdx) {
+      const ret = Math.round(wager * winner.mult);
+      game.character.money += ret;
+      const net = ret - wager;
+      log("casino", `🏇 ${winner.name} wins the race — your $${wager.toLocaleString()} on #${winnerIdx + 1} paid $${net.toLocaleString()}! 🎉`, ret >= 50000 ? "lottery" : null);
+      if (ret >= 100000) grantAchievement("lottery");
+      if (msg) { msg.textContent = `🏆 ${winner.name} wins! You won $${net.toLocaleString()}!`; msg.className = "casino-msg win"; }
+    } else {
+      if (msg) { msg.textContent = `🏁 ${winner.name} (#${winnerIdx + 1}) takes it. Your horse didn't win.`; msg.className = "casino-msg lose"; }
+    }
+    const balEl = $("cas-bal"); if (balEl) balEl.textContent = "$" + game.character.money.toLocaleString();
+    const goBtn = $("hr-go"); if (goBtn) goBtn.disabled = false;
+    document.querySelectorAll("#hr-pick button").forEach(b => b.disabled = false);
     autosave(); renderAll();
   }
 
@@ -1645,6 +1810,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (/slot|slots|jackpot|one-armed/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openSlots(); } return "Opening the slot machine"; }
     if (/blackjack|black jack|\b21\b/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openBlackjack(); } return "Opening the blackjack table"; }
     if (/roulette|the wheel/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openRoulette(); } return "Opening the roulette wheel"; }
+    if (/horse|racing|the track|race/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openHorseRace(); } return "Opening the horse racing track"; }
     if (/gambl|casino|bet/.test(t)) { openModal("casino"); return "Opening Casino menu"; }
     return null;
   }
@@ -1677,7 +1843,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       "• Slots: a real animated 3-reel machine — match 3 symbols. Three 7️⃣ pays 500× and unlocks the 🎰 Jackpot ribbon.",
       "• Blackjack: a live hand — hit, stand or double. Dealer stands on 17; a natural blackjack pays 3:2.",
       "• Roulette: a single-zero wheel — bet colours, even/odd, halves, dozens (2:1) or a single number (35:1), then spin.",
-      "• Other games (craps, keno, horses…): instant bets — pick a wager and play for a quick 2× or more."
+      "• Horse racing: pick a horse, set a wager, and watch a live animated race — favourites pay less, long shots pay up to ~12×.",
+      "• Other games (craps, keno, sports betting): instant bets — pick a wager and play for a quick win. The house keeps an edge."
     ]},
     { topic: "career", aliases: ["job", "work", "salary", "promotion", "jobs", "apply", "doctor"], tab: "careers", tabLabel: "💼 Careers", text: [
       "Careers have entry requirements (age, education, sometimes a specific degree).",
@@ -2318,6 +2485,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
         $("casino-list").appendChild(optRow(g.label, `Live cards · hit / stand / double · 3:2 blackjack · ${g.minAge}+`, "Play ▶", () => openBlackjack(), gated));
       } else if (g.id === "roulette") {
         $("casino-list").appendChild(optRow(g.label, `Single-zero wheel · colours, dozens, 35:1 single · ${g.minAge}+`, "Play ▶", () => openRoulette(), gated));
+      } else if (g.id === "horses") {
+        $("casino-list").appendChild(optRow(g.label, `Live animated race · pick a horse · up to ~12× · ${g.minAge}+`, "Play ▶", () => openHorseRace(), gated));
       } else {
         $("casino-list").appendChild(optRow(g.label, `${Math.round(g.winChance*100)}% win · ${g.payoutMult[0]}-${g.payoutMult[1]}x · ${g.minAge}+`, "Play", () => gamble(g.id, parseInt($("wager").value || "0", 10)), gated));
       }

@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content (v0.8.2). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
+  "_comment": "BitLife-style premade content (v0.8.3). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -308,9 +308,9 @@
       { "id": "blackjack",    "label": "Blackjack",       "minAge": 18, "winChance": 0.47, "payoutMult": [2, 2] },
       { "id": "roulette",     "label": "Roulette",        "minAge": 18, "winChance": 0.47, "payoutMult": [2, 2] },
       { "id": "craps",        "label": "Craps",           "minAge": 18, "winChance": 0.49, "payoutMult": [2, 2] },
-      { "id": "keno",         "label": "Keno",            "minAge": 18, "winChance": 0.25, "payoutMult": [3, 10], "achievementOnBigWin": "lottery" },
+      { "id": "keno",         "label": "Keno",            "minAge": 18, "winChance": 0.15, "payoutMult": [2, 9], "achievementOnBigWin": "lottery" },
       { "id": "horses",       "label": "Bet on horses",   "minAge": 18, "winChance": 0.28, "payoutMult": [2, 8] },
-      { "id": "sportsBetting","label": "Sports betting",  "minAge": 18, "winChance": 0.45, "payoutMult": [2, 3] }
+      { "id": "sportsBetting","label": "Sports betting",  "minAge": 18, "winChance": 0.45, "payoutMult": [2, 2] }
     ]
   },
 
