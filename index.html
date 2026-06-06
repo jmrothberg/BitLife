@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.7</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.8</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -593,6 +593,16 @@
     return rel;
   }
 
+  // ── Action guards: the ONE consistent way to gate player actions ──────────
+  // Start any action that needs a precondition with `if (!requireFree("verb")) return;`
+  // (or requireAge/requireMoney) instead of ad-hoc `if (game.prison.inPrison)…`.
+  // This keeps gating uniform + greppable, and #test=selfcheck audits that every
+  // "free-only" action actually refuses while in prison (so prison bugs can't recur).
+  function jailed() { return !!(game && game.prison && game.prison.inPrison); }
+  function requireFree(verb) { if (jailed()) { showToast(`Can't ${verb || "do that"} in prison.`); return false; } return true; }
+  function requireAge(n, verb) { if (game.character.age < n) { showToast(`Must be ${n}+ to ${verb || "do that"}.`); return false; } return true; }
+  function requireMoney(n) { if (game.character.money < n) { showToast("Not enough money."); return false; } return true; }
+
   // ── canonical mutators ──
   const clampStat = (v) => Math.max(0, Math.min(100, Math.round(v)));
   function applyEffects(effects) {
@@ -607,7 +617,7 @@
     if (effects.setFlag) Object.assign(game.flags, effects.setFlag);
     if (effects.addRelationship) addRelationship(effects.addRelationship);
     if (effects.grantAchievement) grantAchievement(effects.grantAchievement);
-    if (effects.fame >= 80 || c.fame >= 80) grantAchievement("famous");
+    if (c.fame >= 80) grantAchievement("famous");
     if (c.money >= 1000000) grantAchievement("millionaire");
     if (c.money >= 2500000) grantAchievement("rich");
     if (c.money >= 20000000) grantAchievement("loaded");
@@ -688,7 +698,7 @@
     // maybe an insider tip
     maybeInsiderTip();
 
-    // yearly random event
+    // yearly random event (fireYearlyEvent() self-guards in prison)
     fireYearlyEvent();
 
     // depth ticks (disease drain + new illness, vehicle upkeep/depreciation, loan
@@ -733,6 +743,7 @@
   }
 
   function fireYearlyEvent() {
+    if (jailed()) return;   // no roommate drama / phone scams / parties in a cell
     const stage = game.character.lifeStage;
     const pool = (DATA.EVENTS[stage] || []).filter(e => game.character.age >= (e.minAge ?? 0) && game.character.age <= (e.maxAge ?? 999));
     if (!pool.length || rngChance(0.25)) return; // some quiet years
@@ -901,7 +912,7 @@
     { id: "bank", name: "Bank vault heist", lootMax: 250000, difficulty: 3, guards: 3, jail: [8, 25] }
   ];
   function openBurglaryTargets() {
-    if (game.prison.inPrison) { showToast("You're in prison."); return; }
+    if (!requireFree("rob houses")) return;
     if (game.character.age < 16) { showToast("Must be 16+."); return; }
     modalShell("🏠 Pick a target", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Sneak in, grab what you can, and get out before the homeowner spots you. Bigger houses pay more — and more guards, longer sentence if caught.</div><div id="burg-list"></div>`);
     const diffLabel = ["", "easy", "medium", "hard"];
@@ -958,6 +969,7 @@
     autosave(); renderAll(); openCrime();
   }
   function joinGang() {
+    if (!requireFree("join a gang")) return;
     const c = game.character; if (c.age < 16) { showToast("Must be 16+."); return; }
     if (game.flags.gang) { showToast("You're already in a gang."); return; }
     if (rngChance(0.6 + game.crimeRecord.notoriety / 40)) {
@@ -967,6 +979,8 @@
     autosave(); renderAll(); openCrime();
   }
   function gangJob() {
+    if (!requireFree("do a gang job")) return;
+    if (!oncePerYear("gangjob")) return;
     const c = game.character; if (!game.flags.gang) { showToast("Join a gang first."); return; }
     if (rngChance(0.40)) {
       game.crimeRecord.arrests += 1; game.crimeRecord.convictions += 1;
@@ -1714,11 +1728,34 @@
         const round = JSON.parse(JSON.stringify(stripTransient(game)));
         ok(round.character && round.character.name === game.character.name, "save round-trips (seed " + s + ")");
       }
+      // ── Prison invariants: nothing illogical may happen while jailed ──
+      // This audits the requireFree() guards so the "roommate issues in jail" class
+      // of bug can't come back. Add new free-only actions to `probes` below.
+      createNewLife({ first: "Jail", last: "Test", seed: "9000" });
+      game.character.age = 30; game.character.lifeStage = lifeStageFor(30); game.character.money = 100000;
+      game.prison = { inPrison: true, sentenceYears: 10, yearsServed: 1, reason: "test" };
+      game.pendingEvent = null; fireYearlyEvent();
+      ok(game.pendingEvent == null, "no life event fires while in prison");
+      const before = game.character.money;
+      const probes = [
+        ["travel", () => goTravel("beach")], ["emigrate", () => emigrate("UK")], ["fame", () => doFame("post")],
+        ["lottery", () => playLottery()], ["run for office", () => runForOffice()], ["lawsuit", () => fileLawsuit()],
+        ["gang job", () => gangJob()], ["buy vehicle", () => buyVehicle("beater")], ["buy valuable", () => buyValuable("watch")],
+        ["take loan", () => takeLoan(5000)], ["buy stock", () => buyAsset("APPL", 1)], ["start business", () => startBusiness("foodtruck")],
+        ["lifestyle", () => doLifestyle("bar")], ["royal duties", () => royalDuties()],
+        ["relationship gift", () => { const rel = (game.relationships || [])[0]; if (rel) interact(rel.id, "gift"); }]
+      ];
+      for (const [label, fn] of probes) { try { fn(); } catch (e) { } ok(game.character.money === before, `blocked in prison: ${label}`); }
+      // ── Faucet guard: a repeatable money action is once-per-year ──
+      createNewLife({ first: "Free", last: "Test", seed: "9001" });
+      game.character.age = 25; game.character.lifeStage = lifeStageFor(25);
+      doFame("post"); const m1 = game.character.money; doFame("post");
+      ok(game.character.money === m1, "fame action is gated once per year (no faucet)");
     } catch (e) { fail++; results.push("THREW: " + (e && e.message)); }
     window.removeEventListener("error", onErr);
     const green = fail === 0 && errs === 0;
     modalShell("🧪 Self-check", `<div style="font-size:20px;font-weight:900;color:${green ? "var(--ok)" : "var(--err)"}">${green ? "ALL PASS ✅" : "FAILURES ❌"}</div>
-      <div class="sub-h">${pass} passed · ${fail} failed · ${errs} errors · 6 simulated lives</div>
+      <div class="sub-h">${pass} passed · ${fail} failed · ${errs} errors · 6 lives + prison &amp; faucet audit</div>
       <pre style="white-space:pre-wrap;font:11px/1.4 ui-monospace,Menlo,monospace;color:var(--text-muted);max-height:48vh;overflow:auto;background:#000;padding:8px;border-radius:6px">${(results.slice(0, 60).join("\n")) || "All assertions passed. Engine, data, and 6 full lives are healthy."}</pre>`);
   }
   function testIdFromHash() {
@@ -1797,7 +1834,10 @@
   function advanceMarkets() {
     for (const a of allMarketAssets()) {
       const p = game.market.prices[a.id] ?? a.start;
-      const np = Math.max(a.start * 0.05, p * (1 + a.drift + a.vol * gaussian()));
+      let np = Math.max(a.start * 0.05, p * (1 + a.drift + a.vol * gaussian()));
+      // Insider tip: the tipped asset spikes by the promised multiplier, once.
+      const spike = game.flags["_tipSpike_" + a.id];
+      if (spike) { np *= spike; delete game.flags["_tipSpike_" + a.id]; }
       game.market.prices[a.id] = Math.round(np * 100) / 100;
       const h = game.market.history[a.id] || (game.market.history[a.id] = []);
       h.push(game.market.prices[a.id]);
@@ -1810,6 +1850,7 @@
 
   function holdingFor(id) { return game.portfolio.find(h => h.assetId === id); }
   function buyAsset(id, shares) {
+    if (!requireFree("trade")) return;
     shares = Math.max(0, Math.floor(shares || 0));
     const price = game.market.prices[id]; if (!price || !shares) return;
     const cost = price * shares;
@@ -1871,6 +1912,7 @@
   }
 
   function buyRealEstate(id) {
+    if (!requireFree("buy property")) return;
     const re = DATA.REAL_ESTATE.find(r => r.id === id); if (!re) return;
     if (game.character.money < re.price) { showToast("Not enough money."); return; }
     game.character.money -= re.price;
@@ -1888,6 +1930,7 @@
   }
   // Buy property on a mortgage: 20% down + the rest financed (5%/yr, see tickDepth).
   function buyRealEstateMortgage(id) {
+    if (!requireFree("buy property")) return;
     const re = DATA.REAL_ESTATE.find(r => r.id === id); if (!re) return;
     if ((game.mortgageBalance || 0) > 0) { showToast("Pay off your current mortgage first."); return; }
     const down = Math.round(re.price * 0.2);
@@ -1917,9 +1960,12 @@
     }
   }
 
+  // In prison only basic visitation is possible (no gifts/dates/marriage/divorce/etc.).
+  const PRISON_REL_OK = new Set(["compliment", "conversation", "spendTime", "insult", "argue"]);
   function interact(rid, action) {
     const r = game.relationships.find(x => x.id === rid); if (!r || !r.alive) return;
     const c = game.character;
+    if (jailed() && !PRISON_REL_OK.has(action)) { showToast("You can only visit with people in prison."); return; }
     switch (action) {
       case "compliment": r.bar = clampStat(r.bar + rngInt(2, 7)); applyEffects({ happiness: 1 }); log("relationship", `You complimented ${r.name}.`); break;
       case "conversation": r.bar = clampStat(r.bar + rngInt(3, 8)); applyEffects({ happiness: 2 }); log("relationship", `You had a nice conversation with ${r.name}.`); break;
@@ -1945,7 +1991,9 @@
       case "divorce": {
         if (!r.flags.married) { showToast("You're not married to them."); return; }
         let lost = 0;
-        if (!r.flags.prenup) { lost = Math.max(0, Math.round(c.money * 0.4)); c.money -= lost; }
+        // Settlement is ~40% of NET WORTH (not just cash), so wealth can't be hidden
+        // in stocks/property; it's taken from cash (you may go into debt to pay it).
+        if (!r.flags.prenup) { lost = Math.max(0, Math.round(netWorth() * 0.4)); c.money -= lost; }
         r.flags.married = false; r.flags.dating = false; r.relation = "exspouse"; r.bar = clampStat(r.bar - 30);
         applyEffects({ happiness: -12 });
         log("event", `You divorced ${r.name}.${r.flags.prenup ? " Your prenup protected your assets." : (lost ? ` The settlement cost you $${lost.toLocaleString()}.` : "")}`);
@@ -2653,7 +2701,9 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   // ═══════════════════════════════════════════════════════════════════════════
   const SAVE_INDEX = "bitlife_saves_index";
   function stripTransient(g) {
-    const clone = JSON.parse(JSON.stringify(g, (k, v) => (k === "imageUrl") ? null : v));
+    // Drop per-session scratch (cached images, the regenerated love-interest pool)
+    // so saves stay small and don't carry stale candidates across reloads.
+    const clone = JSON.parse(JSON.stringify(g, (k, v) => (k === "imageUrl" || k === "_lovePool") ? undefined : v));
     return clone;
   }
   function listSavedLives() { try { return JSON.parse(localStorage.getItem(SAVE_INDEX) || "[]"); } catch { return []; } }
@@ -2872,7 +2922,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const mh = document.createElement("div"); mh.className = "sub-h"; mh.textContent = "More"; wrap.appendChild(mh);
     wrap.appendChild(optRow("🩺 Health clinic", (c.conditions && c.conditions.length) ? `${c.conditions.length} condition(s) to treat` : "check & treat conditions", "Open", () => openClinic(), locked));
     wrap.appendChild(optRow("✈️ Travel", "take a vacation", "Open", () => openTravel(), locked || c.age < 1));
-    wrap.appendChild(optRow("🌟 Fame", "social media, books, music, film", "Open", () => openFame(), false));
+    wrap.appendChild(optRow("🌟 Fame", "social media, books, music, film", "Open", () => openFame(), locked));
     wrap.appendChild(optRow("🏢 Business", game.flags.business ? "manage your business" : "start a business for yearly revenue", "Open", () => openBusiness(), locked || c.age < 18));
     wrap.appendChild(optRow("🗳️ Run for office", "campaign for political office · 25+ · $50k", "Run", () => runForOffice(), locked || c.age < 25 || c.money < 50000));
     wrap.appendChild(optRow("⚖️ File a lawsuit", "$2,000 fees · ~45% to win a settlement · 18+", "Sue", () => fileLawsuit(), locked || c.age < 18 || c.money < 2000));
@@ -2982,6 +3032,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
 
   function openAssets() {
+    if (!requireFree("manage your money")) return;
     let html = `<div class="sub-h">Money: ${fmtMoney(game.character.money)}${(game.loanBalance > 0) ? ` · debt ${fmtMoney(game.loanBalance)}` : ""}${(game.mortgageBalance > 0) ? ` · mortgage ${fmtMoney(game.mortgageBalance)}` : ""} · net worth ${fmtMoney(netWorth())}</div>`;
     html += `<div id="asset-body"></div>`;
     modalShell("💹 Assets & Investments", html);
@@ -3405,8 +3456,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       c.money -= (v.upkeep || 0);
       v.currentValue = Math.round((v.currentValue || 0) * (1 - (v.deprec || 0.1)));
     }
-    // real estate + valuables appreciate
-    for (const a of (game.assets || [])) if ((a.type === "realEstate" || a.type === "valuable") && a.apprec) a.currentValue = Math.round((a.currentValue || 0) * (1 + a.apprec));
+    // (real estate + valuables appreciation is handled in advanceMarkets, which
+    // already grows every asset with an `apprec` field — don't double-count here.)
     if ((game.loanBalance || 0) > 0) {
       game.loanBalance = Math.round(game.loanBalance * 1.08);
       const pay = Math.max(0, Math.round(game.loanBalance * 0.1));
@@ -3457,6 +3508,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
 
   function buyVehicle(id) {
+    if (!requireFree("buy a vehicle")) return;
     const v = VEHICLES.find(x => x.id === id); if (!v) return;
     const c = game.character; if (c.money < v.price) { showToast("Can't afford it."); return; }
     c.money -= v.price;
@@ -3472,6 +3524,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     game.assets.splice(i, 1); autosave(); renderAll(); openAssets();
   }
   function takeLoan(amount) {
+    if (!requireFree("take a loan")) return;
     amount = Math.max(1000, Math.floor(amount || 0));
     if ((game.loanBalance || 0) > 0) { showToast("Repay your current loan first."); return; }
     if (amount > 200000) { showToast("Max loan is $200,000."); return; }
@@ -3487,6 +3540,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     autosave(); renderAll(); openAssets();
   }
   function playLottery() {
+    if (!requireFree("gamble")) return;
     const c = game.character; if (c.money < 20) { showToast("Need $20."); return; }
     c.money -= 20; const r = rng(); let win = 0;
     // ~51% RTP (house edge); jackpot 1-in-1,000,000. Safe to play repeatedly — it loses money.
@@ -3498,7 +3552,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
 
   function openTravel() {
-    if (game.prison.inPrison) { showToast("You're in prison."); return; }
+    if (!requireFree("travel")) return;
     modalShell("✈️ Travel", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Take a trip to relax — or emigrate for a fresh start.</div><div id="trav"></div>`);
     for (const d of DESTINATIONS) $("trav").appendChild(optRow(d.name, `${fmtMoney(d.cost)} · +${d.happiness} happy${d.health ? ` · +${d.health} health` : ""}`, "Go", () => goTravel(d.id), game.character.money < d.cost));
     const h = document.createElement("div"); h.className = "sub-h"; h.textContent = "Emigrate (move country)"; $("trav").appendChild(h);
@@ -3512,6 +3566,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     }
   }
   function emigrate(country) {
+    if (!requireFree("emigrate")) return;
     const c = game.character; if (c.money < 5000) { showToast("Need $5,000 to relocate."); return; }
     c.money -= 5000; c.country = country; applyEffects({ happiness: 8 });
     grantAchievement("globetrotter");
@@ -3519,6 +3574,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     autosave(); renderAll(); closeModal();
   }
   function goTravel(id) {
+    if (!requireFree("travel")) return;
     const d = DESTINATIONS.find(x => x.id === id); if (!d) return;
     const c = game.character; if (c.money < d.cost) { showToast("Can't afford it."); return; }
     c.money -= d.cost; applyEffects({ happiness: d.happiness, health: d.health || 0, smarts: d.smarts || 0 });
@@ -3527,6 +3583,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
 
   function openFame() {
+    if (!requireFree("chase fame")) return;
     const c = game.character;
     modalShell("🌟 Fame", `<div class="sub-h">Fame: ${c.fame}/100</div><div id="fame-list"></div>`);
     for (const f of FAME_ACTIONS) {
@@ -3536,6 +3593,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     }
   }
   function doFame(id) {
+    if (!requireFree("chase fame")) return;
     const f = FAME_ACTIONS.find(x => x.id === id); if (!f) return;
     if (!oncePerYear("fame_" + id)) return;     // bounded earnings per year
     const c = game.character; if (f.cost && c.money < f.cost) { showToast("Can't afford it."); return; }
@@ -3549,6 +3607,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     autosave(); renderAll(); openFame();
   }
   function runForOffice() {
+    if (!requireFree("run for office")) return;
     const c = game.character;
     if (c.age < 25) { showToast("Must be 25+."); return; }
     if (c.money < 50000) { showToast("A campaign costs $50,000."); return; }
@@ -3561,6 +3620,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
 
   function doLifestyle(id) {
+    if (!requireFree("do that")) return;
     const a = LIFESTYLE.find(x => x.id === id); if (!a) return;
     const c = game.character;
     if (c.age < a.minAge) { showToast(`Must be ${a.minAge}+`); return; }
@@ -3636,6 +3696,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     { id: "realty", name: "Realty firm", cost: 500000, rev: [-60000, 350000] }
   ];
   function openBusiness() {
+    if (!requireFree("run a business")) return;
     const c = game.character;
     modalShell("🏢 Business", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Own a business for yearly revenue (it can lose money too).</div><div id="biz"></div>`);
     const wrap = $("biz");
@@ -3646,6 +3707,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     for (const b of BUSINESSES) wrap.appendChild(optRow(b.name, `${fmtMoney(b.cost)} to start`, "Buy", () => startBusiness(b.id), !!game.flags.business || c.money < b.cost || c.age < 18));
   }
   function startBusiness(id) {
+    if (!requireFree("start a business")) return;
     const b = BUSINESSES.find(x => x.id === id); if (!b) return;
     const c = game.character; if (c.money < b.cost) { showToast("Can't afford it."); return; }
     if (game.flags.business) { showToast("Sell your current business first."); return; }
@@ -3658,6 +3720,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     log("event", `🏢 You sold ${b.name}.`); autosave(); renderAll(); openBusiness();
   }
   function royalDuties() {
+    if (!requireFree("do that")) return;
     if (!game.flags.royal) { showToast("You're not royalty."); return; }
     if (!oncePerYear("royal")) return;
     const c = game.character; const pay = rngInt(20000, 120000); c.money += pay; c.fame = clampStat(c.fame + rngInt(2, 8)); applyEffects({ happiness: 4 });
@@ -3677,6 +3740,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
   // Lawsuit — sue for a settlement (legal fees up front, ~45% to win).
   function fileLawsuit() {
+    if (!requireFree("sue someone")) return;
     const c = game.character; if (c.age < 18) { showToast("Must be 18+."); return; }
     if (!oncePerYear("lawsuit")) return;
     if (c.money < 2000) { showToast("Legal fees are $2,000."); return; }
@@ -3687,10 +3751,10 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
 
   function declareBankruptcy() {
-    if ((game.loanBalance || 0) <= 0 && game.character.money >= 0) { showToast("No debt to discharge."); return; }
-    game.loanBalance = 0; if (game.character.money < 0) game.character.money = 0;
+    if ((game.loanBalance || 0) <= 0 && (game.mortgageBalance || 0) <= 0 && game.character.money >= 0) { showToast("No debt to discharge."); return; }
+    game.loanBalance = 0; game.mortgageBalance = 0; if (game.character.money < 0) game.character.money = 0;
     game.flags.bankrupt = true; applyEffects({ happiness: -15 });
-    log("event", "🧾 You declared bankruptcy — debts wiped, but it stings.");
+    log("event", "🧾 You declared bankruptcy — debts (incl. mortgage) wiped, but it stings.");
     autosave(); renderAll(); openAssets();
   }
 
@@ -3702,7 +3766,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     { id: "horse", name: "Horse", emoji: "🐴", cost: 9000 }
   ];
   function openPetStore() {
-    if (game.prison.inPrison) { showToast("You're in prison."); return; }
+    if (!requireFree("visit the pet store")) return;
     modalShell("🐾 Pet Store", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Adopt a companion — pets boost happiness and become part of the family.</div><div id="pet-list"></div>`);
     for (const p of PETS) $("pet-list").appendChild(optRow(`${p.emoji} ${p.name}`, fmtMoney(p.cost), "Adopt", () => buyPet(p.id), game.character.money < p.cost));
   }
@@ -3725,6 +3789,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     { id: "sculpture", name: "Rare sculpture", price: 250000, apprec: 0.07 }
   ];
   function buyValuable(id) {
+    if (!requireFree("buy valuables")) return;
     const v = VALUABLES.find(x => x.id === id); if (!v) return;
     const c = game.character; if (c.money < v.price) { showToast("Can't afford it."); return; }
     c.money -= v.price;
