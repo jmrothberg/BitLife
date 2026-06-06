@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content (v0.9.1). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
+  "_comment": "BitLife-style premade content (v0.9.2). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -45,7 +45,9 @@
     "globetrotter":{ "label": "Globetrotter",  "icon": "✈️", "desc": "Travelled the world." },
     "celebrity":   { "label": "Celebrity",     "icon": "🌟", "desc": "Did a fame activity." },
     "politician":  { "label": "Politician",    "icon": "🗳️", "desc": "Won political office." },
-    "kingpin":     { "label": "Kingpin",       "icon": "👑", "desc": "Became a gang boss." }
+    "kingpin":     { "label": "Kingpin",       "icon": "👑", "desc": "Became a gang boss." },
+    "royalty":     { "label": "Royalty",       "icon": "👑", "desc": "Born into a royal family." },
+    "mogul":       { "label": "Mogul",         "icon": "🏢", "desc": "Started a business." }
   },
 
   "EVENTS": {
@@ -401,7 +403,10 @@
     { "id": "musician",   "title": "Musician",          "baseSalary": 36000,  "requires": { "minAge": 16 }, "levels": ["Open Mic", "Gigging Musician", "Recording Artist", "Headliner", "Superstar"], "raisePerLevel": 0.42, "fameGain": 8 },
     { "id": "athlete",    "title": "Pro Athlete",       "baseSalary": 55000,  "requires": { "minAge": 16 }, "levels": ["Amateur", "Pro Rookie", "Starter", "All-Star", "Legend"], "raisePerLevel": 0.38, "fameGain": 10 },
     { "id": "model",      "title": "Model",             "baseSalary": 38000,  "requires": { "minAge": 16 }, "levels": ["New Face", "Runway Model", "Brand Model", "Supermodel"], "raisePerLevel": 0.34, "fameGain": 7 },
-    { "id": "influencer", "title": "Social Media Influencer", "baseSalary": 22000, "requires": { "minAge": 14 }, "levels": ["Newbie", "Creator", "Influencer", "Star Creator", "Viral Icon"], "raisePerLevel": 0.5, "fameGain": 9 }
+    { "id": "influencer", "title": "Social Media Influencer", "baseSalary": 22000, "requires": { "minAge": 14 }, "levels": ["Newbie", "Creator", "Influencer", "Star Creator", "Viral Icon"], "raisePerLevel": 0.5, "fameGain": 9 },
+    { "id": "armySoldier", "title": "Soldier (Army)",     "baseSalary": 35000,  "requires": { "minAge": 18 }, "levels": ["Private", "Corporal", "Sergeant", "Lieutenant", "Captain", "Major"], "raisePerLevel": 0.13 },
+    { "id": "navySailor",  "title": "Sailor (Navy)",      "baseSalary": 36000,  "requires": { "minAge": 18 }, "levels": ["Seaman", "Petty Officer", "Chief", "Ensign", "Lieutenant", "Commander"], "raisePerLevel": 0.13 },
+    { "id": "airForce",    "title": "Airman (Air Force)", "baseSalary": 40000,  "requires": { "minAge": 18 }, "levels": ["Airman", "Senior Airman", "Sergeant", "Lieutenant", "Captain", "Colonel"], "raisePerLevel": 0.14 }
   ],
 
   "DEGREES": [
