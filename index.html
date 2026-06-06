@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.0</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.2</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -417,7 +417,7 @@
     ],
     COUNTRIES: ["USA", "UK", "Canada", "Japan"],
     NAME_POOLS: { male: ["Liam", "Noah", "James"], female: ["Emma", "Olivia", "Mia"], nonbinary: ["Alex", "Sam", "Jordan"], surnames: ["Smith", "Lee", "Garcia", "Chen"] },
-    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." } },
+    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." } },
     EVENTS: {
       baby: [{ id: "fw", weight: 5, minAge: 1, maxAge: 2, noChoice: true, text: "You said your first words!", effects: { happiness: 6, smarts: 2 } }],
       child: [{ id: "bully", weight: 7, minAge: 6, maxAge: 12, text: "A bully keeps shoving you at school.", choices: [{ label: "Ignore it", effects: { happiness: -6 } }, { label: "Tell a teacher", effects: { happiness: 2 }, outcome: { chance: 0.55, success: { happiness: 7 }, fail: { happiness: -5 } } }, { label: "Fight back", effects: {}, outcome: { chance: 0.45, success: { happiness: 9, health: -3 }, fail: { health: -12, happiness: -7 } } }] }],
@@ -578,6 +578,8 @@
       const sg = rngPick(["male", "female"]);
       addRelationship({ relation: "sibling", name: rngPick(DATA.NAME_POOLS[sg]) + " " + last, gender: sg, age: rngInt(0, 6), bar: rngInt(40, 85) });
     }
+    // rare: born into royalty (a title + a head start)
+    if (rngChance(0.03)) { game.flags.royal = true; game.character.money += 500000; grantAchievement("royalty"); log("system", "👑 You were born into a royal family!"); }
     const talentBit = talent ? ` Born with a gift for ${TALENTS[talent].label.toLowerCase()}.` : "";
     log("system", `${name} was born in ${country} under ${ZODIAC_EMOJI[zodiac] || ""} ${zodiac}.${talentBit}`, "birth");
     return game;
@@ -891,7 +893,9 @@
   const BURGLARY_TARGETS = [
     { id: "bungalow", name: "Modest bungalow", lootMax: 2500, difficulty: 1, guards: 1, jail: [1, 3] },
     { id: "suburban", name: "Suburban house", lootMax: 7000, difficulty: 2, guards: 1, jail: [2, 5] },
-    { id: "mansion", name: "Gated mansion", lootMax: 22000, difficulty: 3, guards: 2, jail: [3, 8] }
+    { id: "mansion", name: "Gated mansion", lootMax: 22000, difficulty: 3, guards: 2, jail: [3, 8] },
+    { id: "jewelry", name: "Jewelry store heist", lootMax: 60000, difficulty: 3, guards: 2, jail: [5, 12] },
+    { id: "bank", name: "Bank vault heist", lootMax: 250000, difficulty: 3, guards: 3, jail: [8, 25] }
   ];
   function openBurglaryTargets() {
     if (game.prison.inPrison) { showToast("You're in prison."); return; }
@@ -932,11 +936,71 @@
   }
 
   function sendToPrison(years, reason) {
-    game.prison = { inPrison: true, sentenceYears: Math.max(1, years), yearsServed: 0, reason };
+    // A lawyer on retainer cuts the sentence roughly in half (consumed on use).
+    if (game.flags && game.flags.lawyer) { years = Math.max(1, Math.round(years * 0.5)); game.flags.lawyer = false; log("system", "⚖️ Your lawyer argued the sentence down."); }
+    game.prison = { inPrison: true, sentenceYears: Math.max(1, years), yearsServed: 0, reason, paroleTries: 0 };
     game.character.job = null;
     grantAchievement("jailbird");
     log("death", `Sentenced to ${game.prison.sentenceYears} year(s) in prison for ${reason}.`, "prison");
-    log("system", `⛓️ Tap “Serve 1 year” to do your time — or try the 🪜 Escape button for a daring prison break before you waste any years.`);
+    log("system", `⛓️ Tap “Serve 1 year” to do your time, hit 🪜 Escape, or visit Crime for parole/appeal options.`);
+  }
+
+  // ── Epic F: gangs, justice & prison depth ──
+  function hireLawyer() {
+    const c = game.character; if (c.age < 18) { showToast("Must be 18+."); return; }
+    if (game.flags.lawyer) { showToast("You already have a lawyer on retainer."); return; }
+    if (c.money < 8000) { showToast("A lawyer costs $8,000."); return; }
+    c.money -= 8000; game.flags.lawyer = true;
+    log("crime", "⚖️ You put a criminal-defense lawyer on retainer (halves your next sentence).");
+    autosave(); renderAll(); openCrime();
+  }
+  function joinGang() {
+    const c = game.character; if (c.age < 16) { showToast("Must be 16+."); return; }
+    if (game.flags.gang) { showToast("You're already in a gang."); return; }
+    if (rngChance(0.6 + game.crimeRecord.notoriety / 40)) {
+      game.flags.gang = true; game.crimeRecord.notoriety += 1; applyEffects({ happiness: 3 });
+      log("crime", "🔫 You were jumped into a street gang.");
+    } else { applyEffects({ health: -8, happiness: -4 }); log("crime", "🔫 The gang beat you up and turned you away."); }
+    autosave(); renderAll(); openCrime();
+  }
+  function gangJob() {
+    const c = game.character; if (!game.flags.gang) { showToast("Join a gang first."); return; }
+    if (rngChance(0.40)) {
+      game.crimeRecord.arrests += 1; game.crimeRecord.convictions += 1;
+      log("crime", "🔫 The gang job went sideways and the cops grabbed you!");
+      sendToPrison(rngInt(2, 7), "gang activity");
+    } else {
+      const cut = rngInt(2000, 25000); c.money += cut; game.crimeRecord.notoriety += 2;
+      if (game.crimeRecord.notoriety >= 10) grantAchievement("thief");
+      if (game.crimeRecord.notoriety >= 25 && !game.flags.boss) { game.flags.boss = true; grantAchievement("kingpin"); log("crime", "👑 You rose to become the gang's boss!"); }
+      log("crime", `🔫 The gang job paid off — your cut was ${fmtMoney(cut)}.`);
+    }
+    autosave(); renderAll();
+  }
+  function requestParole() {
+    if (!game.prison.inPrison) return;
+    const p = game.prison; p.paroleTries = (p.paroleTries || 0) + 1;
+    const served = p.yearsServed / Math.max(1, p.sentenceYears);
+    if (served >= 0.4 && rngChance(0.2 + served * 0.5)) {
+      p.inPrison = false; p.reason = null;
+      log("crime", `⚖️ Parole granted after ${p.yearsServed} year(s) — you're free!`);
+    } else { log("crime", "⚖️ Parole denied. Keep serving your time."); applyEffects({ happiness: -3 }); }
+    autosave(); renderAll(); closeModal();
+  }
+  function appealConviction() {
+    const c = game.character; if (!game.prison.inPrison) return;
+    if (c.money < 15000) { showToast("An appeal costs $15,000."); return; }
+    c.money -= 15000;
+    if (rngChance(0.30)) { game.prison.inPrison = false; game.prison.reason = null; log("crime", "⚖️ Your appeal succeeded — conviction overturned, you walk free!"); }
+    else { game.prison.sentenceYears = Math.max(game.prison.yearsServed + 1, game.prison.sentenceYears - 1); log("crime", "⚖️ Appeal denied (knocked a year off at best)."); }
+    autosave(); renderAll(); closeModal();
+  }
+  function prisonJob() {
+    if (!game.prison.inPrison) return;
+    if (!oncePerYear("prisonjob")) return;
+    const pay = rngInt(50, 300); game.character.money += pay; applyEffects({ happiness: 2 });
+    log("crime", `🧹 You worked a prison job this year and earned ${fmtMoney(pay)}.`);
+    autosave(); renderAll();
   }
 
   function gamble(id, wager) {
@@ -2079,14 +2143,14 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (/steal|shoplift|rob/.test(t)) { openModal("crime"); return "Opening Crime menu"; }
     if (/invest|stock|buy shares/.test(t)) { openModal("assets"); return "Opening Assets menu"; }
     if (/job|work|apply/.test(t)) { openModal("careers"); return "Opening Careers menu"; }
-    if (/slot|slots|jackpot|one-armed/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openSlots(); } return "Opening the slot machine"; }
-    if (/blackjack|black jack|\b21\b/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openBlackjack(); } return "Opening the blackjack table"; }
-    if (/roulette|the wheel/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openRoulette(); } return "Opening the roulette wheel"; }
-    if (/horse|racing|the track|race/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openHorseRace(); } return "Opening the horse racing track"; }
+    if (/slot|slots|jackpot|one-armed/.test(t)) { if (game.prison.inPrison) { showToast("No casino in prison."); return "You're in prison"; } if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openSlots(); } return "Opening the slot machine"; }
+    if (/blackjack|black jack|\b21\b/.test(t)) { if (game.prison.inPrison) { showToast("No casino in prison."); return "You're in prison"; } if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openBlackjack(); } return "Opening the blackjack table"; }
+    if (/roulette|the wheel/.test(t)) { if (game.prison.inPrison) { showToast("No casino in prison."); return "You're in prison"; } if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openRoulette(); } return "Opening the roulette wheel"; }
+    if (/horse|racing|the track|race/.test(t)) { if (game.prison.inPrison) { showToast("No casino in prison."); return "You're in prison"; } if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openHorseRace(); } return "Opening the horse racing track"; }
     if (/escape|break out|jail.?break|over the wall/.test(t)) { if (game.prison && game.prison.inPrison) { attemptPrisonEscape(); return "Starting the prison break"; } showToast("You're not in prison."); return "You're not in prison"; }
     if (/fight|brawl|throw down|street ?fight|beat .*up/.test(t)) { if (game.prison && game.prison.inPrison) { showToast("Not while you're locked up."); return "Not in prison"; } startFight(); return "Starting a street fight"; }
     if (/burgl|rob a house|break in|heist|sneak into/.test(t)) { if (game.prison && game.prison.inPrison) { showToast("Not while you're locked up."); return "Not in prison"; } openBurglaryTargets(); return "Opening burglary targets"; }
-    if (/gambl|casino|bet/.test(t)) { openModal("casino"); return "Opening Casino menu"; }
+    if (/gambl|casino|bet/.test(t)) { if (game.prison.inPrison) { showToast("No casino in prison."); return "You're in prison"; } openModal("casino"); return "Opening Casino menu"; }
     return null;
   }
 
@@ -2734,7 +2798,9 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     wrap.appendChild(optRow("🩺 Health clinic", (c.conditions && c.conditions.length) ? `${c.conditions.length} condition(s) to treat` : "check & treat conditions", "Open", () => openClinic(), locked));
     wrap.appendChild(optRow("✈️ Travel", "take a vacation", "Open", () => openTravel(), locked || c.age < 1));
     wrap.appendChild(optRow("🌟 Fame", "social media, books, music, film", "Open", () => openFame(), false));
+    wrap.appendChild(optRow("🏢 Business", game.flags.business ? "manage your business" : "start a business for yearly revenue", "Open", () => openBusiness(), locked || c.age < 18));
     wrap.appendChild(optRow("🗳️ Run for office", "campaign for political office · 25+ · $50k", "Run", () => runForOffice(), locked || c.age < 25 || c.money < 50000));
+    if (game.flags.royal) wrap.appendChild(optRow("👑 Royal duties", "perform duties for fame & a treasury stipend", "Do", () => royalDuties(), locked));
   }
 
   function openCareers() {
@@ -2757,6 +2823,9 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     modalShell("🦹 Crime", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Higher payoffs mean higher chance of prison.</div><div id="crime-list"></div>`);
     if (game.prison.inPrison) {
       $("crime-list").appendChild(optRow("🪜 Attempt to escape", "Sneak across the floodlit yard to the gate — skill-based. Fail and your sentence grows.", "Escape", () => attemptPrisonEscape(), false));
+      $("crime-list").appendChild(optRow("⚖️ Request parole", "Ask the board for early release (better odds after serving ~40%).", "Request", () => requestParole(), false));
+      $("crime-list").appendChild(optRow("⚖️ Appeal conviction", "$15,000 · ~30% chance to overturn it.", "Appeal", () => appealConviction(), game.character.money < 15000));
+      $("crime-list").appendChild(optRow("🧹 Work a prison job", "Earn a little money this year.", "Work", () => prisonJob(), false));
       const hint = document.createElement("div"); hint.className = "sub-h"; hint.textContent = "While locked up"; $("crime-list").prepend(hint);
     }
     for (const cr of DATA.ACTIVITIES.crime) {
@@ -2770,9 +2839,16 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       const desc = cr.id === "murder" ? `${Math.round(cr.catchChance*100)}% caught · ${cr.jail[0]}-${cr.jail[1]}y` : `$${cr.payout[0]}-${cr.payout[1].toLocaleString()} · ${Math.round(cr.catchChance*100)}% caught · ${cr.jail[0]}-${cr.jail[1]}y`;
       $("crime-list").appendChild(optRow(cr.label, desc + ` · ${cr.minAge}+`, "Attempt", () => commitCrime(cr.id), gated));
     }
+    if (!game.prison.inPrison) {
+      const gh = document.createElement("div"); gh.className = "sub-h"; gh.textContent = "Gangs & justice"; $("crime-list").appendChild(gh);
+      if (!game.flags.gang) $("crime-list").appendChild(optRow("🔫 Join a gang", "Get jumped in · 16+", "Join", () => joinGang(), game.character.age < 16));
+      else $("crime-list").appendChild(optRow(game.flags.boss ? "👑 Gang job (you're the boss)" : "🔫 Do a gang job", "Big money, ~40% chance of prison", "Run job", () => gangJob(), false));
+      $("crime-list").appendChild(optRow("⚖️ Hire a lawyer", game.flags.lawyer ? "on retainer — halves your next sentence" : "$8,000 · halves your next sentence", "Retain", () => hireLawyer(), game.flags.lawyer || game.character.money < 8000 || game.character.age < 18));
+    }
   }
 
   function openCasino() {
+    if (game.prison.inPrison) { modalShell("🎰 Casino", `<div class="hint" style="color:var(--text-muted)">There's no casino in prison. Serve your time or look at the Crime menu for parole/escape.</div>`); return; }
     const wager = (window._lastWager || 100);
     modalShell("🎰 Casino", `<div class="field"><label>Wager ($)</label><input id="wager" type="number" value="${wager}" min="1" /></div><div id="casino-list"></div>`);
     $("wager").oninput = (e) => { window._lastWager = parseInt(e.target.value || "0", 10); };
@@ -2863,6 +2939,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const bh = document.createElement("div"); bh.className = "sub-h"; bh.textContent = "Bank"; body.appendChild(bh);
     if ((game.loanBalance || 0) > 0) {
       body.appendChild(optRow("Loan balance", `${fmtMoney(game.loanBalance)} owed · 8%/yr (auto min. payment)`, "Repay", () => repayLoan(), game.character.money <= 0));
+      body.appendChild(optRow("🧾 Declare bankruptcy", "wipe your debt — but a big happiness hit", "File", () => declareBankruptcy(), false));
     } else {
       const div = document.createElement("div"); div.className = "opt"; div.style.flexWrap = "wrap";
       div.innerHTML = `<div class="info" style="flex-basis:100%"><div class="t">Take a personal loan</div><div class="d">8% interest · max $200,000</div></div>`;
@@ -3239,6 +3316,11 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       const pay = Math.max(0, Math.round(game.loanBalance * 0.1));
       if (c.money >= pay) { c.money -= pay; game.loanBalance -= pay; }
     }
+    // business revenue (defined later as BUSINESSES; guard in case of an old save)
+    if (game.flags && game.flags.business && typeof BUSINESSES !== "undefined") {
+      const b = BUSINESSES.find(x => x.id === game.flags.business);
+      if (b) { const rev = rngInt(b.rev[0], b.rev[1]); c.money += rev; if (rev !== 0) log("event", `🏢 Your ${b.name} ${rev >= 0 ? "earned" : "lost"} ${fmtMoney(Math.abs(rev))} this year.`); }
+    }
   }
   function addDisease() {
     const c = game.character; c.conditions = c.conditions || [];
@@ -3416,6 +3498,50 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     wrap.appendChild(optRow("🌟 Fame", `current ${c.fame}`, "Max", () => { c.fame = 100; renderAll(); openGodMode(); }));
     wrap.appendChild(optRow("💰 Money", `current ${fmtMoney(c.money)}`, "+$1M", () => { c.money += 1000000; renderAll(); openGodMode(); }));
     if (!c.alive) wrap.appendChild(optRow("✨ Resurrect", "undo death", "Revive", () => { c.alive = true; c.causeOfDeath = null; c.stats.health = 80; renderAll(); openGodMode(); }));
+  }
+
+  // ── Epic E/G extras: business ownership, royalty duties, bankruptcy ──
+  const BUSINESSES = [
+    { id: "foodtruck", name: "Food truck", cost: 25000, rev: [-4000, 18000] },
+    { id: "cafe", name: "Coffee shop", cost: 80000, rev: [-12000, 50000] },
+    { id: "tech", name: "Tech startup", cost: 200000, rev: [-80000, 400000] },
+    { id: "realty", name: "Realty firm", cost: 500000, rev: [-60000, 350000] }
+  ];
+  function openBusiness() {
+    const c = game.character;
+    modalShell("🏢 Business", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Own a business for yearly revenue (it can lose money too).</div><div id="biz"></div>`);
+    const wrap = $("biz");
+    if (game.flags.business) {
+      const b = BUSINESSES.find(x => x.id === game.flags.business);
+      wrap.appendChild(optRow("📈 " + (b ? b.name : "Your business") + " (owned)", "earns/loses revenue each year", "Sell", () => sellBusiness(), false));
+    }
+    for (const b of BUSINESSES) wrap.appendChild(optRow(b.name, `${fmtMoney(b.cost)} to start`, "Buy", () => startBusiness(b.id), !!game.flags.business || c.money < b.cost || c.age < 18));
+  }
+  function startBusiness(id) {
+    const b = BUSINESSES.find(x => x.id === id); if (!b) return;
+    const c = game.character; if (c.money < b.cost) { showToast("Can't afford it."); return; }
+    if (game.flags.business) { showToast("Sell your current business first."); return; }
+    c.money -= b.cost; game.flags.business = b.id; grantAchievement("mogul");
+    log("event", `🏢 You started ${b.name}.`); autosave(); renderAll(); openBusiness();
+  }
+  function sellBusiness() {
+    const b = BUSINESSES.find(x => x.id === game.flags.business); if (!b) return;
+    game.character.money += Math.round(b.cost * 0.6); game.flags.business = null;
+    log("event", `🏢 You sold ${b.name}.`); autosave(); renderAll(); openBusiness();
+  }
+  function royalDuties() {
+    if (!game.flags.royal) { showToast("You're not royalty."); return; }
+    if (!oncePerYear("royal")) return;
+    const c = game.character; const pay = rngInt(20000, 120000); c.money += pay; c.fame = clampStat(c.fame + rngInt(2, 8)); applyEffects({ happiness: 4 });
+    log("event", `👑 You performed royal duties — the treasury paid you ${fmtMoney(pay)}.`);
+    autosave(); renderAll();
+  }
+  function declareBankruptcy() {
+    if ((game.loanBalance || 0) <= 0 && game.character.money >= 0) { showToast("No debt to discharge."); return; }
+    game.loanBalance = 0; if (game.character.money < 0) game.character.money = 0;
+    game.flags.bankrupt = true; applyEffects({ happiness: -15 });
+    log("event", "🧾 You declared bankruptcy — debts wiped, but it stings.");
+    autosave(); renderAll(); openAssets();
   }
 
   // controls wiring

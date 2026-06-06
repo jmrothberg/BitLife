@@ -13,7 +13,7 @@ interprets free-typed actions, and a local diffuser that paints your avatar + li
 
 The gap to the real game is **breadth, not the engine**:
 - **Systems present:** ~13 of the major ones, mostly as working-but-shallow versions.
-- **Content depth (v0.9.0):** **46 events / 33 careers / 32 activities / 12 degrees / 30 countries** —
+- **Content depth (v0.9.2):** **46 events / 33 careers / 32 activities / 12 degrees / 30 countries** —
   roughly 2–3× the v0.6 content, all modeled on real BitLife names/wording. Still short of the real
   game's *hundreds of events and 100+ jobs*, but no longer thin.
 - **Rough completeness:** core engine **~70–80%**, total feature surface **~40%**, content volume **~20%**.
@@ -53,14 +53,14 @@ Legend: ✅ solid · 🟡 partial/shallow · ❌ missing
 | **Typed free-form actions (local LLM)** | ❌ not in original | ✅ Gemma interprets → clamped effects | ➕ beyond original |
 | **Generated art (local diffuser)** | ❌ (emoji/clip-art) | ✅ SD 1.5 avatar + scene art, pre-baked + live | ➕ beyond original |
 
-## Concrete content counts (v0.9.0)
+## Concrete content counts (v0.9.2)
 
 - Events: **54** — baby 4, child 10, teen 11, youngAdult 8, adult 7, middleAge 7, senior 7
 - Activities: **32** — mindBody 8, doctor 7, education 3, crime 7, casino 7
-- Careers: **33** (entry → special, incl. police/firefighter/pilot/nurse/teacher/architect/CEO and
+- Careers: **36** (+ Army/Navy/Air Force tracks) (entry → special, incl. police/firefighter/pilot/nurse/teacher/architect/CEO and
   fame paths: actor/musician/athlete/model/influencer) · Degrees: **12**
 - Market assets: **9** (4 stock / 3 crypto / 2 bond) · Real estate: **4** · Insider tips: **4**
-- Ribbons/achievements: **24** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
+- Ribbons/achievements: **27** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
 - **v0.9.0 Depth Update** added: disease system, vehicles, bank loans, lottery, travel, lifestyle activities, fame activities, run-for-office, dating (Find Love) + deeper relationships, **generations (continue as heir)**, and God Mode.
 
 ## Gap-closure roadmap (phased — one PR per epic; content volume runs in parallel)
