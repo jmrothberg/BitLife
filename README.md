@@ -48,7 +48,7 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[PARITY.md](./PARITY.md)**.
 
-Full system-by-system table (v0.9.2). Deeper detail + the gap-closure roadmap in **[PARITY.md](./PARITY.md)**.
+Full system-by-system table (v0.9.3). Deeper detail + the gap-closure roadmap in **[PARITY.md](./PARITY.md)**.
 
 | System | Real BitLife | This game | Status |
 |---|---|---|---|
@@ -64,23 +64,23 @@ Full system-by-system table (v0.9.2). Deeper detail + the gap-closure roadmap in
 | Business ownership | Start/own businesses, employees | **Start a business** (4 types) with yearly revenue; no employees yet | 🟡 |
 | Crime | ~15 crimes; interactive burglary/heists; gangs/mafia; serial killer | 11 crimes + **live burglary & bank/jewelry heists**, **gangs** (→ boss), lawyers | 🟡 |
 | Prison | Escape (interactive), riots, gangs, parole, contraband, death row | Live escape mini-game + **parole, appeal, prison jobs**; no riots/contraband | 🟡 |
-| Justice / lawsuits | Lawyers, trials, plea deals, sue / get sued | **Lawyer (halves sentence), parole, appeal, prison jobs**; no lawsuits yet | 🟡 |
+| Justice / lawsuits | Lawyers, trials, plea deals, sue / get sued | Lawyer, parole, appeal, prison jobs, **file a lawsuit**; no get-sued yet | 🟡 |
 | Casino & mini-games | Blackjack/slots/roulette/video poker…; escape & heist mini-games | 7 casino games (slots/blackjack/roulette/horses **live**) + prison/fight/burglary mini-games | ✅ ➕ |
 | Fights | Event stat-roll | A live **Street Fighter-style brawler** (punch/kick/jump/duck) | ➕ |
 | Relationships | Full family tree; friends/enemies/coworkers; dating app; marriage/prenup/divorce/custody/alimony; affairs | Family + **Find Love** dating, move-in, vacation, argue, cheat, marry, kids; aging & death | 🟡 |
 | Reproduction | Pregnancy, adoption, IVF, surrogacy, donors, complications | Have-a-baby via partner | 🟡 |
-| Health & medical | 100s of diseases, specialists, surgeries, mental health, addictions/rehab, STDs, disabilities | **Disease system** (8 illnesses, drain + treatment clinic) + doctor activities; no addictions/STDs yet | 🟡 |
+| Health & medical | 100s of diseases, specialists, surgeries, mental health, addictions/rehab, STDs, disabilities | Disease system + **addictions & STDs** (from bars/casino/cheating) treated at the clinic | 🟡 |
 | Activities / lifestyle | Gym/library/spa/movies/club/museum/concert; tattoos, religion, astrology | Mind & Body / Doctor / Education **+ nightlife, museum, concert, shopping, tattoo, religion** | 🟡 |
 | Travel / vacation | Countries, cruises, hotels; emigrate | **5 destinations** (beach → world cruise); no emigrate yet | 🟡 |
 | Assets | Real estate (+ mortgage/rent/flip), vehicles (+ insurance/upkeep), jewelry/art; haggle/appraise/pawn | Real estate **+ vehicle dealership** (upkeep/depreciation); no valuables yet | 🟡 |
-| Money / finance | Bank, interest, loans, mortgages, cards, debt, bankruptcy, taxes, lottery, charity, will/inheritance | Loans, **bankruptcy**, lottery, net worth, inheritance, income/crypto tax; no mortgages yet | 🟡 |
+| Money / finance | Bank, interest, loans, mortgages, cards, debt, bankruptcy, taxes, lottery, charity, will/inheritance | Loans, **mortgages**, bankruptcy, lottery, net worth, inheritance, income/crypto tax | 🟡 |
 | **Investing + insider trading** | Stocks/crypto/bonds/real estate; SEC "Martha" | Same, incl. insider trading + the Martha ribbon | ✅ |
 | Fame | Fame bar, social media/go-viral, books/albums/films, endorsements, scandals, paparazzi | Fame stat + Famous ribbon; no fame activities | 🟡 |
 | Pets | Pet store (many species), train/walk/vet/breed/shows | Adopt via a childhood event; pets age & die | 🟡 |
-| Achievements / ribbons | Large set + end-of-life summary | 24 ribbons + death summary | 🟡 |
+| Achievements / ribbons | Large set + end-of-life summary | 28 ribbons + death summary | 🟡 |
 | Countries / nationality | 150+ nations, languages, citizenship | 30 (cosmetic) | 🟡 |
 | Generations / dynasties | Continue as your heir; inheritance | **Continue as your heir** + inheritance (estate tax) | 🟡 |
-| God Mode / Time Machine / Surrender | Edit stats, rewind a year, restart | **God Mode** (edit stats/money/revive); Time Machine still missing | 🟡 |
+| God Mode / Time Machine / Surrender | Edit stats, rewind a year, restart | **God Mode** + **Time Machine** (rewind one year) + New Life | ✅ |
 | Save / multiple lives | Yes | localStorage, multiple slots, autosave | ✅ |
 | Reproducible (seeded) lives | — | Seed reproduces an entire life | ➕ |
 | **Type free-form actions (local LLM)** | — (buttons only) | Gemma interprets typed actions → safe effects | ➕ |
@@ -212,5 +212,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.9.2 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.9.3 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*

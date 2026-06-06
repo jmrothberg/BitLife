@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.2</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.3</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -417,7 +417,7 @@
     ],
     COUNTRIES: ["USA", "UK", "Canada", "Japan"],
     NAME_POOLS: { male: ["Liam", "Noah", "James"], female: ["Emma", "Olivia", "Mia"], nonbinary: ["Alex", "Sam", "Jordan"], surnames: ["Smith", "Lee", "Garcia", "Chen"] },
-    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." } },
+    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." } },
     EVENTS: {
       baby: [{ id: "fw", weight: 5, minAge: 1, maxAge: 2, noChoice: true, text: "You said your first words!", effects: { happiness: 6, smarts: 2 } }],
       child: [{ id: "bully", weight: 7, minAge: 6, maxAge: 12, text: "A bully keeps shoving you at school.", choices: [{ label: "Ignore it", effects: { happiness: -6 } }, { label: "Tell a teacher", effects: { happiness: 2 }, outcome: { chance: 0.55, success: { happiness: 7 }, fail: { happiness: -5 } } }, { label: "Fight back", effects: {}, outcome: { chance: 0.45, success: { happiness: 9, health: -3 }, fail: { health: -12, happiness: -7 } } }] }],
@@ -639,6 +639,9 @@
   // ═══════════════════════════════════════════════════════════════════════════
   function ageUp() {
     if (!game.character.alive || game.pendingEvent) return;
+    // Time Machine: snapshot the whole game before this year mutates it (kept in
+    // a module var, never persisted, so it can't bloat the save). One-year undo.
+    try { _timeSnapshot = JSON.parse(JSON.stringify(game, (k, v) => k === "imageUrl" ? null : v)); } catch { _timeSnapshot = null; }
     const c = game.character;
     c.age += 1;
     game.market.year += 1;
@@ -1839,6 +1842,19 @@
     log("event", `You sold your ${a.name} for $${a.currentValue.toLocaleString()}.`);
     autosave(); renderAll(); openModal("assets");
   }
+  // Buy property on a mortgage: 20% down + the rest financed (5%/yr, see tickDepth).
+  function buyRealEstateMortgage(id) {
+    const re = DATA.REAL_ESTATE.find(r => r.id === id); if (!re) return;
+    if ((game.mortgageBalance || 0) > 0) { showToast("Pay off your current mortgage first."); return; }
+    const down = Math.round(re.price * 0.2);
+    if (game.character.money < down) { showToast(`Need a ${fmtMoney(down)} down payment.`); return; }
+    game.character.money -= down;
+    game.mortgageBalance = (game.mortgageBalance || 0) + (re.price - down);
+    game.assets.push({ id: "re_" + relId++, type: "realEstate", name: re.name, purchasePrice: re.price, currentValue: re.price, apprec: re.apprec, yearBought: game.market.year });
+    grantAchievement("homeowner");
+    log("event", `You bought a ${re.name} with a mortgage (${fmtMoney(down)} down). 🏠`, "homeowner");
+    autosave(); renderAll(); openModal("assets");
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // ENGINE: RELATIONSHIPS
@@ -1903,6 +1919,7 @@
       case "cheat":
         if (rngChance(0.45)) { r.bar = clampStat(r.bar - rngInt(30, 60)); r.flags.dating = false; r.flags.married = false; r.relation = "friend"; applyEffects({ happiness: -10 }); log("relationship", `${r.name} caught you cheating and left you. 💔`); }
         else { applyEffects({ happiness: 4 }); log("relationship", `You cheated on ${r.name} and got away with it.`); }
+        if (rngChance(0.12)) addCondition("std", "an STD", 4, 2, 700, false);
         break;
     }
     autosave(); renderAll(); openModal("relationships");
@@ -2800,6 +2817,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     wrap.appendChild(optRow("🌟 Fame", "social media, books, music, film", "Open", () => openFame(), false));
     wrap.appendChild(optRow("🏢 Business", game.flags.business ? "manage your business" : "start a business for yearly revenue", "Open", () => openBusiness(), locked || c.age < 18));
     wrap.appendChild(optRow("🗳️ Run for office", "campaign for political office · 25+ · $50k", "Run", () => runForOffice(), locked || c.age < 25 || c.money < 50000));
+    wrap.appendChild(optRow("⚖️ File a lawsuit", "$2,000 fees · ~45% to win a settlement · 18+", "Sue", () => fileLawsuit(), locked || c.age < 18 || c.money < 2000));
     if (game.flags.royal) wrap.appendChild(optRow("👑 Royal duties", "perform duties for fame & a treasury stipend", "Do", () => royalDuties(), locked));
   }
 
@@ -2904,7 +2922,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
 
   function openAssets() {
-    let html = `<div class="sub-h">Money: ${fmtMoney(game.character.money)}${(game.loanBalance > 0) ? ` · debt ${fmtMoney(game.loanBalance)}` : ""} · net worth ${fmtMoney(netWorth())}</div>`;
+    let html = `<div class="sub-h">Money: ${fmtMoney(game.character.money)}${(game.loanBalance > 0) ? ` · debt ${fmtMoney(game.loanBalance)}` : ""}${(game.mortgageBalance > 0) ? ` · mortgage ${fmtMoney(game.mortgageBalance)}` : ""} · net worth ${fmtMoney(netWorth())}</div>`;
     html += `<div id="asset-body"></div>`;
     modalShell("💹 Assets & Investments", html);
     const body = $("asset-body");
@@ -2929,7 +2947,14 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     }
     // real estate
     const h = document.createElement("div"); h.className = "sub-h"; h.textContent = "Real Estate"; body.appendChild(h);
-    for (const re of DATA.REAL_ESTATE) body.appendChild(optRow(re.name, `${fmtMoney(re.price)} · +${Math.round(re.apprec*100)}%/yr`, "Buy", () => buyRealEstate(re.id), game.character.money < re.price));
+    for (const re of DATA.REAL_ESTATE) {
+      const div = document.createElement("div"); div.className = "opt"; div.style.flexWrap = "wrap";
+      div.innerHTML = `<div class="info" style="flex-basis:100%"><div class="t">${re.name}</div><div class="d">${fmtMoney(re.price)} · +${Math.round(re.apprec*100)}%/yr · mortgage ${fmtMoney(Math.round(re.price*0.2))} down</div></div>`;
+      const ctr = document.createElement("div"); ctr.style.cssText = "display:flex;gap:4px;margin-top:6px;flex-basis:100%";
+      const buy = document.createElement("button"); buy.textContent = "Buy cash"; buy.style.flex = "1"; buy.disabled = game.character.money < re.price; buy.onclick = () => buyRealEstate(re.id);
+      const mort = document.createElement("button"); mort.textContent = "Mortgage"; mort.style.flex = "1"; mort.disabled = (game.mortgageBalance > 0) || game.character.money < Math.round(re.price * 0.2); mort.onclick = () => buyRealEstateMortgage(re.id);
+      ctr.appendChild(buy); ctr.appendChild(mort); div.appendChild(ctr); body.appendChild(div);
+    }
     for (const owned of game.assets.filter(a => a.type === "realEstate")) body.appendChild(optRow("🏠 " + owned.name + " (owned)", `value ${fmtMoney(owned.currentValue)}`, "Sell", () => sellRealEstate(owned.id)));
     // vehicles
     const vh = document.createElement("div"); vh.className = "sub-h"; vh.textContent = "Vehicles (dealership)"; body.appendChild(vh);
@@ -2948,6 +2973,9 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       const b = document.createElement("button"); b.textContent = "Borrow"; b.style.flex = "none"; b.onclick = () => takeLoan(parseInt(amt.value || "0", 10));
       ctr.appendChild(amt); ctr.appendChild(b); div.appendChild(ctr); body.appendChild(div);
     }
+    if ((game.mortgageBalance || 0) > 0) {
+      body.appendChild(optRow("Mortgage balance", `${fmtMoney(game.mortgageBalance)} owed · 5%/yr (auto payment)`, "Pay extra", () => { const pay = Math.min(game.mortgageBalance, game.character.money); if (pay <= 0) { showToast("No money to pay."); return; } game.character.money -= pay; game.mortgageBalance -= pay; log("event", `🏦 You paid ${fmtMoney(pay)} toward your mortgage.`); autosave(); renderAll(); openAssets(); }, game.character.money <= 0));
+    }
   }
 
   function openAchievements() {
@@ -2964,10 +2992,12 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const html = `<div class="opt"><div class="info"><div class="t">Save this life</div><div class="d">Auto-saves every action; this forces a save.</div></div><button id="m-save">Save</button></div>
       <div class="opt"><div class="info"><div class="t">New life</div><div class="d">Abandon this life and start fresh.</div></div><button id="m-new">New</button></div>
       <div class="opt"><div class="info"><div class="t">God Mode ✨</div><div class="d">Edit your stats / money (sandbox).</div></div><button id="m-god">Open</button></div>
+      <div class="opt"><div class="info"><div class="t">Time Machine ⏪</div><div class="d">Rewind to the start of last year (undo one Age Up).</div></div><button id="m-time">Rewind</button></div>
       <div class="opt"><div class="info"><div class="t">Seed</div><div class="d">${game.seed} (same seed reproduces this life)${game.generation ? " · generation " + game.generation : ""}</div></div></div>`;
     modalShell("☰ Menu", html);
     $("m-save").onclick = () => { autosave(); showToast("Saved."); closeModal(); };
     $("m-new").onclick = () => { if (confirm("Abandon this life and start a new one?")) location.reload(); };
+    $("m-time").onclick = () => timeMachine();
     $("m-god").onclick = () => openGodMode();
   }
 
@@ -3298,7 +3328,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const c = game.character; let n = c.money;
     for (const h of (game.portfolio || [])) n += (h.shares || 0) * (game.market.prices[h.assetId] || 0);
     for (const a of (game.assets || [])) n += (a.currentValue || 0);
-    return Math.round(n - (game.loanBalance || 0));
+    return Math.round(n - (game.loanBalance || 0) - (game.mortgageBalance || 0));
   }
 
   // Yearly depth ticks — called from ageUp() before checkDeath() (new rolls go at
@@ -3316,6 +3346,12 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       const pay = Math.max(0, Math.round(game.loanBalance * 0.1));
       if (c.money >= pay) { c.money -= pay; game.loanBalance -= pay; }
     }
+    // mortgage: 5%/yr interest + auto payment
+    if ((game.mortgageBalance || 0) > 0) {
+      game.mortgageBalance = Math.round(game.mortgageBalance * 1.05);
+      const mp = Math.max(0, Math.round(game.mortgageBalance * 0.08));
+      if (c.money >= mp) { c.money -= mp; game.mortgageBalance -= mp; }
+    }
     // business revenue (defined later as BUSINESSES; guard in case of an old save)
     if (game.flags && game.flags.business && typeof BUSINESSES !== "undefined") {
       const b = BUSINESSES.find(x => x.id === game.flags.business);
@@ -3329,6 +3365,13 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const d = rngPick(pool);
     c.conditions.push({ id: d.id, label: d.label, drain: d.drain, severity: d.severity, treat: d.treat, mind: !!d.mind, chronic: !!d.chronic });
     log("event", `🩺 You were diagnosed with ${d.label}.`);
+  }
+  // Add a specific condition (addictions, STDs) if not already present.
+  function addCondition(id, label, drain, severity, treat, mind) {
+    const c = game.character; c.conditions = c.conditions || [];
+    if (c.conditions.some(x => x.id === id)) return;
+    c.conditions.push({ id, label, drain, severity, treat, mind: !!mind });
+    log("event", `🩺 You developed ${label}.`);
   }
   function treatCondition(id) {
     const c = game.character; const i = (c.conditions || []).findIndex(x => x.id === id); if (i < 0) return;
@@ -3384,6 +3427,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (r < 0.000001) win = 1000000; else if (r < 0.0001) win = 10000; else if (r < 0.004) win = 500; else if (r < 0.05) win = 50; else if (r < 0.25) win = 20;
     if (win > 0) { c.money += win; log("casino", `🎟️ Lottery scratcher — won ${fmtMoney(win)}!`, win >= 100000 ? "lottery" : null); if (win >= 100000) grantAchievement("lottery"); }
     else log("casino", `🎟️ Lottery scratcher — no luck.`);
+    if (rngChance(0.03)) addCondition("gambling", "a gambling addiction", 2, 1, 1200, true);
     autosave(); renderAll();
   }
 
@@ -3440,6 +3484,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (c.age < a.minAge) { showToast(`Must be ${a.minAge}+`); return; }
     if (c.money < a.cost) { showToast("Can't afford it."); return; }
     c.money -= a.cost; applyEffects(a.eff); log("event", `${a.label.replace(/^.. /, "")}.`);
+    // hard partying can lead to alcoholism
+    if (["bar", "nightclub", "party"].includes(id) && rngChance(0.10)) addCondition("alcoholism", "alcoholism", 4, 2, 1500, true);
     autosave(); renderAll(); openActivities();
   }
 
@@ -3536,6 +3582,28 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     log("event", `👑 You performed royal duties — the treasury paid you ${fmtMoney(pay)}.`);
     autosave(); renderAll();
   }
+  // Time Machine — rewind to the start of last year (the pre-ageUp snapshot).
+  let _timeSnapshot = null;
+  function timeMachine() {
+    if (!_timeSnapshot) { showToast("No year to rewind yet — age up first."); return; }
+    game = _timeSnapshot; _timeSnapshot = null;
+    _rng = mulberry32(game.rngState >>> 0);
+    grantAchievement("timeLord");
+    closeModal(); renderFeed(); renderAll(); refreshAvatar(true);
+    showToast("⏪ Rewound one year.");
+    autosave();
+  }
+  // Lawsuit — sue for a settlement (legal fees up front, ~45% to win).
+  function fileLawsuit() {
+    const c = game.character; if (c.age < 18) { showToast("Must be 18+."); return; }
+    if (!oncePerYear("lawsuit")) return;
+    if (c.money < 2000) { showToast("Legal fees are $2,000."); return; }
+    c.money -= 2000;
+    if (rngChance(0.45)) { const award = rngInt(5000, 60000); c.money += award; applyEffects({ happiness: 6 }); log("event", `⚖️ You won your lawsuit — awarded ${fmtMoney(award)}.`); }
+    else { applyEffects({ happiness: -4 }); log("event", "⚖️ You lost your lawsuit (and the $2,000 in fees)."); }
+    autosave(); renderAll();
+  }
+
   function declareBankruptcy() {
     if ((game.loanBalance || 0) <= 0 && game.character.money >= 0) { showToast("No debt to discharge."); return; }
     game.loanBalance = 0; if (game.character.money < 0) game.character.money = 0;
