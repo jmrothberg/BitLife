@@ -13,7 +13,7 @@ interprets free-typed actions, and a local diffuser that paints your avatar + li
 
 The gap to the real game is **breadth, not the engine**:
 - **Systems present:** ~13 of the major ones, mostly as working-but-shallow versions.
-- **Content depth (v0.8.6):** **46 events / 33 careers / 32 activities / 12 degrees / 30 countries** —
+- **Content depth (v0.9.0):** **46 events / 33 careers / 32 activities / 12 degrees / 30 countries** —
   roughly 2–3× the v0.6 content, all modeled on real BitLife names/wording. Still short of the real
   game's *hundreds of events and 100+ jobs*, but no longer thin.
 - **Rough completeness:** core engine **~70–80%**, total feature surface **~40%**, content volume **~20%**.
@@ -53,30 +53,49 @@ Legend: ✅ solid · 🟡 partial/shallow · ❌ missing
 | **Typed free-form actions (local LLM)** | ❌ not in original | ✅ Gemma interprets → clamped effects | ➕ beyond original |
 | **Generated art (local diffuser)** | ❌ (emoji/clip-art) | ✅ SD 1.5 avatar + scene art, pre-baked + live | ➕ beyond original |
 
-## Concrete content counts (v0.8.6)
+## Concrete content counts (v0.9.0)
 
-- Events: **46** — baby 4, child 10, teen 10, youngAdult 6, adult 6, middleAge 5, senior 5
+- Events: **54** — baby 4, child 10, teen 11, youngAdult 8, adult 7, middleAge 7, senior 7
 - Activities: **32** — mindBody 8, doctor 7, education 3, crime 7, casino 7
 - Careers: **33** (entry → special, incl. police/firefighter/pilot/nurse/teacher/architect/CEO and
   fame paths: actor/musician/athlete/model/influencer) · Degrees: **12**
 - Market assets: **9** (4 stock / 3 crypto / 2 bond) · Real estate: **4** · Insider tips: **4**
-- Ribbons/achievements: **16** (added rich/loaded/thief/licensed) · Countries: **30**
+- Ribbons/achievements: **24** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
+- **v0.9.0 Depth Update** added: disease system, vehicles, bank loans, lottery, travel, lifestyle activities, fame activities, run-for-office, dating (Find Love) + deeper relationships, **generations (continue as heir)**, and God Mode.
 
-## Biggest gaps, in priority order
+## Gap-closure roadmap (phased — one PR per epic; content volume runs in parallel)
 
-1. **Event volume** — the game feels thin because each life sees the same ~3 events per stage. Aim for
-   15–30 events per stage with faithful wiki wording. Pure data work in `EVENTS`.
-2. **Special careers + fame path** — royalty/military/athlete/musician/mafia/politics, and fame
-   activities (social media/books/music/film). Needs a little engine plus data.
-3. **Education & finance depth** — majors/GPA/loans/scholarships; bank/loans/mortgage/taxes/inheritance.
-4. **Relationships depth** — friends/coworkers/exes/in-laws, family tree, divorce + asset split, custody,
-   and **generations** (continue as your child after death).
-5. **Prison depth** — parole, riots, escape, contraband, good behavior.
-6. **Pets & vehicles as on-demand menus** (pet store, car dealership) rather than only event-driven.
-7. **Diseases & treatments** in the Doctor menu.
+Ordered by player impact. Each epic = data tables + one/few engine functions + one modal, reusing the
+existing seams (mini-game launcher, the `minigame` event-choice hook, `modalShell`/`optRow` drill-downs,
+`applyEffects`); every epic bumps the version and advances the chart rows it closes.
+
+- **A — Relationships & family** (v0.8.7): dating / "Find Love", richer per-NPC menu (move in, prenup,
+  argue, vacation, cheat), family-tree + extended family, friends/coworkers, divorce (asset split) +
+  custody + alimony, adoption/IVF/surrogacy.
+- **B — Health & medical** (v0.8.8): `DISEASES` + `conditions[]`, illness events, treatment drill-down +
+  specialists, mental health, addictions + rehab, STDs, disabilities, pandemics.
+- **C — Money & assets depth** (v0.8.9): bank/interest, loans, **mortgages**, credit/debt, bankruptcy,
+  **taxes**, lawsuits, **lottery**, charity, **will/inheritance**; **vehicles** (dealership/insurance/
+  upkeep) + valuables (jewelry/art, pawn); `netWorth()`.
+- **D — Activities, travel & lifestyle** (v0.8.10): nightlife/museum/concert, **travel/vacation** +
+  emigrate, tattoos/shopping, **religion**, astrology, donation.
+- **E — Careers, fame & business** (v0.9.0): job **interview + salary negotiation**, fired/retire/pension,
+  **fame activities** (social/go-viral/book/album/film/endorsements/scandals), **business ownership**,
+  sports leagues.
+- **F — Crime, gangs & justice** (v0.9.1): more crimes, new **heist mini-games** (bank/jewelry/train —
+  reuse the burglary engine), **gangs/mafia**, **justice** (lawyers/trials/plea/appeals), **prison depth**
+  (riots/gangs/parole/contraband/death row).
+- **G — Structural systems** (v0.9.2): **generations/dynasties** (continue as heir + inheritance),
+  **royalty**, **politics** (run for office → elections), **military** (ranks/deployments/medals).
+- **H — God-tools & polish** (v0.9.3): **God Mode** (edit stats), **Time Machine** (rewind a year),
+  Surrender, bucket list, expanded ribbons + richer end-of-life summary.
+- **I — Content volume** (parallel, every release): scale `EVENTS` toward 15–30/stage, `CAREERS` toward
+  100+, a real `DISEASES` list, richer name pools, country flavor. Pure data.
 
 > Keep every addition deterministic-first and routed through `applyEffects` (auto-clamped). The LLM is
-> only for the free-text box; buttons stay instant local logic. See `background.md` §6 for the full roadmap.
+> only for the free-text box; buttons stay instant local logic; skill mini-games never call `rng()`.
+> Vendor any new library locally and precache it (offline rule). See `background.md` §6 and
+> `EXTENDING.md` for schemas and the mini-game/contract recipes.
 
 ## How to check parity yourself
 
