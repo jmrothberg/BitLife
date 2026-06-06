@@ -48,7 +48,7 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[PARITY.md](./PARITY.md)**.
 
-Full system-by-system table (v0.9.0). Deeper detail + the gap-closure roadmap in **[PARITY.md](./PARITY.md)**.
+Full system-by-system table (v0.9.1). Deeper detail + the gap-closure roadmap in **[PARITY.md](./PARITY.md)**.
 
 | System | Real BitLife | This game | Status |
 |---|---|---|---|
@@ -62,9 +62,9 @@ Full system-by-system table (v0.9.0). Deeper detail + the gap-closure roadmap in
 | Royalty | Born/marry in, rule, throne, scandals, exile | — | ❌ |
 | Politics | Run mayor → president, campaigns, elections | Run for office (campaign → election) | 🟡 |
 | Business ownership | Start/own businesses, employees | — | ❌ |
-| Crime | ~15 crimes; interactive burglary/heists; gangs/mafia; serial killer | 7 crimes incl. a **live burglary mini-game** (pick a target, sneak for loot) | 🟡 |
-| Prison | Escape (interactive), riots, gangs, parole, contraband, death row | Serve time **or** a **live escape mini-game**; no parole/riots/contraband | 🟡 |
-| Justice / lawsuits | Lawyers, trials, plea deals, sue / get sued | Sentence only | ❌ |
+| Crime | ~15 crimes; interactive burglary/heists; gangs/mafia; serial killer | 11 crimes + **live burglary & bank/jewelry heists**, **gangs** (→ boss), lawyers | 🟡 |
+| Prison | Escape (interactive), riots, gangs, parole, contraband, death row | Live escape mini-game + **parole, appeal, prison jobs**; no riots/contraband | 🟡 |
+| Justice / lawsuits | Lawyers, trials, plea deals, sue / get sued | **Lawyer (halves sentence), parole, appeal, prison jobs**; no lawsuits yet | 🟡 |
 | Casino & mini-games | Blackjack/slots/roulette/video poker…; escape & heist mini-games | 7 casino games (slots/blackjack/roulette/horses **live**) + prison/fight/burglary mini-games | ✅ ➕ |
 | Fights | Event stat-roll | A live **Street Fighter-style brawler** (punch/kick/jump/duck) | ➕ |
 | Relationships | Full family tree; friends/enemies/coworkers; dating app; marriage/prenup/divorce/custody/alimony; affairs | Family + **Find Love** dating, move-in, vacation, argue, cheat, marry, kids; aging & death | 🟡 |
@@ -212,5 +212,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.9.0 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.9.1 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*

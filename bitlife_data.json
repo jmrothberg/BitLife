@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content (v0.9.0). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
+  "_comment": "BitLife-style premade content (v0.9.1). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -44,7 +44,8 @@
     "gearhead":    { "label": "Gearhead",      "icon": "🚗", "desc": "Bought a vehicle." },
     "globetrotter":{ "label": "Globetrotter",  "icon": "✈️", "desc": "Travelled the world." },
     "celebrity":   { "label": "Celebrity",     "icon": "🌟", "desc": "Did a fame activity." },
-    "politician":  { "label": "Politician",    "icon": "🗳️", "desc": "Won political office." }
+    "politician":  { "label": "Politician",    "icon": "🗳️", "desc": "Won political office." },
+    "kingpin":     { "label": "Kingpin",       "icon": "👑", "desc": "Became a gang boss." }
   },
 
   "EVENTS": {
@@ -349,6 +350,10 @@
       { "id": "porchPirate","label": "Steal a porch package","minAge": 12,"payout": [10, 400],     "catchChance": 0.33, "jail": [0, 2] },
       { "id": "burglary",   "label": "Burglarize a home",  "minAge": 16, "payout": [400, 8000],    "catchChance": 0.42, "jail": [1, 6] },
       { "id": "grandTheft", "label": "Steal a car",        "minAge": 16, "payout": [2000, 30000],  "catchChance": 0.50, "jail": [2, 10] },
+      { "id": "scam",       "label": "Run an online scam", "minAge": 16, "payout": [200, 9000],    "catchChance": 0.40, "jail": [1, 5] },
+      { "id": "drugDealing","label": "Deal drugs",         "minAge": 16, "payout": [500, 18000],   "catchChance": 0.48, "jail": [2, 9] },
+      { "id": "blackmail",  "label": "Blackmail someone",  "minAge": 18, "payout": [1000, 40000],  "catchChance": 0.46, "jail": [2, 8] },
+      { "id": "arson",      "label": "Commit arson",       "minAge": 16, "payout": [0, 0],         "catchChance": 0.55, "jail": [3, 12] },
       { "id": "bankRobbery","label": "Rob a bank",         "minAge": 18, "payout": [5000, 150000], "catchChance": 0.58, "jail": [5, 25] },
       { "id": "murder",     "label": "Commit murder",      "minAge": 16, "payout": [0, 0],         "catchChance": 0.62, "jail": [15, 60], "killsRelationship": true }
     ],
