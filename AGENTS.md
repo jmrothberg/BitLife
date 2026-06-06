@@ -76,6 +76,34 @@ Add a row to the JSON and it shows up in the menu automatically.
 
 ---
 
+## Action guards (how we keep the logic correct as it grows)
+
+Menus **don't consume the turn**, and many actions shouldn't be possible in some states
+(e.g. in prison). To keep this consistent and self-checking, every player action starts with
+small guards instead of ad-hoc `if`s:
+
+```js
+function goTravel(id) {
+  if (!requireFree("travel")) return;   // refuses (with a toast) while in prison
+  if (!requireMoney(cost)) return;      // refuses if too poor
+  …
+}
+```
+- `requireFree(verb)` — blocks while in prison (`jailed()`). **Any action that needs freedom
+  (travel, casino, fame, business, trading, buying, dating/marriage, crime, etc.) must call it.**
+- `requireAge(n, verb)` / `requireMoney(n)` — the other common preconditions.
+- `oncePerYear(key)` — gate any **repeatable money-positive** action (else it's an infinite faucet,
+  since menus don't end the turn). House-edge gambling is exempt.
+
+**This is enforced, not just documented:**
+- `bash tests/check.sh` statically asserts each free-only function (list `FREE_ONLY` in the script)
+  contains `requireFree`. Add a new free-only action → add its name there.
+- `index.html#test=selfcheck` puts a character in prison and **asserts every free-only action is a
+  no-op** (money unchanged) and that no life event fires; it also checks a repeatable earner is
+  gated once-per-year. Add new free-only actions to the `probes` list in `runSelfCheck()`.
+
+So the "roommate-issues-in-jail" class of bug fails the tests instead of shipping.
+
 ## Recipes
 
 ### Add a life event

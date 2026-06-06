@@ -43,11 +43,20 @@ fb = set(re.findall(r'(\w+):\s*\{\s*label:', html))          # bareword keys in 
 js = set(d['ACHIEVEMENTS'].keys())
 missing = js - fb
 if missing: errs.append(f"FALLBACK_DATA missing ribbons present in JSON: {sorted(missing)}")
+# Guard audit: every "free-only" action function must call requireFree() near its
+# top, so it refuses while in prison (prevents the 'roommate-in-jail' bug class).
+FREE_ONLY = ["goTravel","emigrate","doFame","playLottery","runForOffice","fileLawsuit",
+             "gangJob","buyVehicle","buyValuable","buyRealEstate","takeLoan","buyAsset",
+             "startBusiness","doLifestyle","royalDuties","openAssets","openFame","openBusiness"]
+for name in FREE_ONLY:
+    m = re.search(r'\n  function '+re.escape(name)+r'\([^)]*\)\s*\{(.{0,160})', html, re.S)
+    if not m: errs.append(f"guard audit: function {name}() not found"); continue
+    if 'requireFree' not in m.group(1): errs.append(f"guard audit: {name}() is free-only but missing requireFree() — would run in prison")
 if errs:
     print("✗ data integrity:")
     for e in errs: print("   -", e)
     sys.exit(1)
-print("✓ data integrity (unique event/career ids · casino EV<1 · FALLBACK ribbons in sync)")
+print("✓ data integrity (unique ids · casino EV<1 · FALLBACK ribbons synced · free-only actions guarded)")
 PY
 
 if [ "$fail" -eq 0 ]; then echo "── all checks passed ──"; else echo "── FAILURES above ──"; fi
