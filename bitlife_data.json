@@ -134,12 +134,12 @@
           { "label": "Try it", "effects": { "happiness": 2, "health": -5 }, "outcome": { "chance": 0.3, "success": {}, "fail": { "setFlag": { "addiction": true }, "health": -3 } } },
           { "label": "Politely decline", "effects": { "smarts": 1 } }
         ] },
-      { "id": "driversLicense", "weight": 4, "minAge": 16, "maxAge": 17, "text": "You're old enough to take your driver's license test.",
+      { "id": "driversLicense", "weight": 4, "minAge": 16, "maxAge": 17, "art": "a teenager proudly holding a new driver's license by a car", "text": "You're old enough to take your driver's license test.",
         "choices": [
           { "label": "Take the test", "effects": {}, "outcome": { "chance": 0.65, "success": { "happiness": 8, "grantAchievement": "graduate2" }, "fail": { "happiness": -4, "money": -50 } } },
           { "label": "Wait another year", "effects": {} }
         ] },
-      { "id": "prom", "weight": 3, "minAge": 16, "maxAge": 17, "text": "It's prom season at your school.",
+      { "id": "prom", "weight": 3, "minAge": 16, "maxAge": 17, "art": "teenagers dressed up at a school prom under string lights", "text": "It's prom season at your school.",
         "choices": [
           { "label": "Ask someone to prom", "effects": {}, "outcome": { "chance": 0.6, "success": { "happiness": 10, "money": -200 }, "fail": { "happiness": -5, "money": -200 } } },
           { "label": "Go with friends", "effects": { "happiness": 6, "money": -120 } },
@@ -163,7 +163,7 @@
           { "label": "Passive-aggressive notes", "effects": { "happiness": -3 } },
           { "label": "Move out", "effects": { "money": -1500, "happiness": 4 } }
         ] },
-      { "id": "startup", "weight": 3, "minAge": 18, "maxAge": 25, "text": "A friend invites you to invest in their startup.",
+      { "id": "startup", "weight": 3, "minAge": 18, "maxAge": 25, "art": "a young entrepreneur pitching a startup idea at a whiteboard", "text": "A friend invites you to invest in their startup.",
         "choices": [
           { "label": "Invest $2,000", "effects": { "money": -2000 }, "outcome": { "chance": 0.35, "success": { "money": 12000, "happiness": 8 }, "fail": { "happiness": -6 } } },
           { "label": "Politely decline", "effects": {} }
@@ -232,7 +232,7 @@
           { "label": "Max out contributions", "effects": { "money": -8000, "happiness": 4, "setFlag": { "hasRetirement": true } } },
           { "label": "Decline for now", "effects": {} }
         ] },
-      { "id": "midlifeCrisis", "weight": 3, "minAge": 46, "maxAge": 58, "text": "You feel time slipping away and want to do something dramatic.",
+      { "id": "midlifeCrisis", "weight": 3, "minAge": 46, "maxAge": 58, "art": "a person buying a flashy red sports car at a dealership", "text": "You feel time slipping away and want to do something dramatic.",
         "choices": [
           { "label": "Buy a flashy sports car", "effects": { "money": -45000, "happiness": 10, "looks": 2 } },
           { "label": "Take up a new hobby", "effects": { "happiness": 6, "money": -500 } },
@@ -256,7 +256,7 @@
           { "label": "Share your wisdom", "effects": { "happiness": 8, "smarts": 2 } },
           { "label": "Tell them to figure it out", "effects": { "happiness": 1 } }
         ] },
-      { "id": "retireNow", "weight": 3, "minAge": 65, "maxAge": 72, "text": "You could finally retire, or keep working.",
+      { "id": "retireNow", "weight": 3, "minAge": 65, "maxAge": 72, "art": "a happy retiree relaxing on a porch at sunset", "text": "You could finally retire, or keep working.",
         "choices": [
           { "label": "Retire and relax", "effects": { "happiness": 10, "health": 3 } },
           { "label": "Keep working", "effects": { "happiness": -2 } }

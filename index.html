@@ -643,7 +643,7 @@
     const ev = rngWeighted(pool);
     if (ev.noChoice) {
       applyEffects(ev.effects);
-      log("event", ev.text);
+      log("event", ev.text, ev.art ? "event_" + ev.id : null);
     } else {
       game.pendingEvent = ev;
       renderAll();
@@ -665,7 +665,7 @@
     }
     game.pendingEvent = null;
     closeModal();
-    log("event", resultText);
+    log("event", resultText, ev.art ? "event_" + ev.id : null);
     checkDeath();
     autosave();
     renderAll();
@@ -710,7 +710,7 @@
     const got = rngChance(0.55 + game.character.stats.smarts / 250);
     if (!got) { log("event", `You applied to be a ${car.title} but didn't get the job.`); closeModal(); renderAll(); return; }
     game.character.job = { id: car.id, title: car.title, salary: car.baseSalary, level: 0, levelName: car.levels[0], performance: 50, yearsHeld: 0, fameGain: car.fameGain || 0 };
-    log("event", `You got hired as a ${car.levels[0]} ${car.title} ($${car.baseSalary.toLocaleString()}/yr)!`, "newJob");
+    log("event", `You got hired as a ${car.levels[0]} ${car.title} ($${car.baseSalary.toLocaleString()}/yr)!`, "job_" + car.id);
     closeModal(); autosave(); renderAll();
   }
   function workHarder() {
@@ -1524,11 +1524,29 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (url) setAvatarImg(url);
   }
 
+  // Resolve a scene prompt from a scene key. Besides the fixed milestone keys in
+  // SCENE_PROMPTS, this derives art for data-driven keys so the art set grows with
+  // the game automatically (and pregen_art.py bakes the same keys from the JSON):
+  //   job_<careerId>   → per-career hire art    (from CAREERS title or .art)
+  //   event_<eventId>  → per-event art          (from an EVENT's .art or its text)
+  function scenePromptFor(sk) {
+    if (!sk) return "";
+    if (SCENE_PROMPTS[sk]) return SCENE_PROMPTS[sk];
+    if (sk.indexOf("job_") === 0) {
+      const c = (DATA.CAREERS || []).find(x => x.id === sk.slice(4));
+      if (c) return c.art || `a ${c.title.toLowerCase()} at work, on the job`;
+    }
+    if (sk.indexOf("event_") === 0) {
+      const id = sk.slice(6);
+      for (const arr of Object.values(DATA.EVENTS || {})) { const e = arr.find(x => x.id === id); if (e) return e.art || e.text; }
+    }
+    return sk;
+  }
+
   function maybeSceneImage(entry) {
     if (!entry.sceneKey) return;
-    const promptDesc = SCENE_PROMPTS[entry.sceneKey] || entry.sceneKey;
     const key = "scene:" + entry.sceneKey;
-    generateAndAttach(entry, composeScenePrompt(promptDesc), "scene", key);
+    generateAndAttach(entry, composeScenePrompt(scenePromptFor(entry.sceneKey)), "scene", key);
   }
 
   async function generateAndAttach(entry, prompt, kind, key) {
@@ -1558,8 +1576,10 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     }
     // common life-event scenes
     for (const k of (DATA.SCENE_EVENTS || [])) {
-      pregenQueue.push({ key: "scene:" + k, prompt: composeScenePrompt(SCENE_PROMPTS[k] || k) });
+      pregenQueue.push({ key: "scene:" + k, prompt: composeScenePrompt(scenePromptFor(k)) });
     }
+    // hire art for the player's current job (instant if pre-baked by pregen_art.py)
+    if (c.job) pregenQueue.push({ key: "scene:job_" + c.job.id, prompt: composeScenePrompt(scenePromptFor("job_" + c.job.id)) });
     runPregen();
   }
   async function runPregen() {
