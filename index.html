@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.4</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.5</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -417,7 +417,7 @@
     ],
     COUNTRIES: ["USA", "UK", "Canada", "Japan"],
     NAME_POOLS: { male: ["Liam", "Noah", "James"], female: ["Emma", "Olivia", "Mia"], nonbinary: ["Alex", "Sam", "Jordan"], surnames: ["Smith", "Lee", "Garcia", "Chen"] },
-    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." } },
+    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." } },
     EVENTS: {
       baby: [{ id: "fw", weight: 5, minAge: 1, maxAge: 2, noChoice: true, text: "You said your first words!", effects: { happiness: 6, smarts: 2 } }],
       child: [{ id: "bully", weight: 7, minAge: 6, maxAge: 12, text: "A bully keeps shoving you at school.", choices: [{ label: "Ignore it", effects: { happiness: -6 } }, { label: "Tell a teacher", effects: { happiness: 2 }, outcome: { chance: 0.55, success: { happiness: 7 }, fail: { happiness: -5 } } }, { label: "Fight back", effects: {}, outcome: { chance: 0.45, success: { happiness: 9, health: -3 }, fail: { health: -12, happiness: -7 } } }] }],
@@ -2895,6 +2895,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (game.character.age >= 16 && !game.prison.inPrison) {
       list.appendChild(optRow("💘 Find Love", "Meet new people and ask someone out", "Browse", () => openFindLove(), false));
     }
+    list.appendChild(optRow("🐾 Pet store", "Adopt a pet companion", "Visit", () => openPetStore(), game.prison.inPrison));
     const alive = game.relationships.filter(r => r.alive);
     // group by relation kind for a simple family-tree feel
     const order = { partner: 0, spouse: 0, child: 1, mother: 2, father: 2, sibling: 3, grandparent: 4, friend: 5, pet: 6 };
@@ -2960,6 +2961,10 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const vh = document.createElement("div"); vh.className = "sub-h"; vh.textContent = "Vehicles (dealership)"; body.appendChild(vh);
     for (const v of VEHICLES) body.appendChild(optRow(v.name, `${fmtMoney(v.price)} · upkeep ${fmtMoney(v.upkeep)}/yr`, "Buy", () => buyVehicle(v.id), game.character.money < v.price));
     for (const owned of game.assets.filter(a => a.type === "vehicle")) body.appendChild(optRow("🚗 " + owned.name + " (owned)", `value ${fmtMoney(owned.currentValue)}`, "Sell", () => sellVehicle(owned.id)));
+    // valuables
+    const valh = document.createElement("div"); valh.className = "sub-h"; valh.textContent = "Valuables"; body.appendChild(valh);
+    for (const v of VALUABLES) body.appendChild(optRow(v.name, `${fmtMoney(v.price)} · +${Math.round(v.apprec*100)}%/yr`, "Buy", () => buyValuable(v.id), game.character.money < v.price));
+    for (const owned of game.assets.filter(a => a.type === "valuable")) body.appendChild(optRow("💎 " + owned.name + " (owned)", `value ${fmtMoney(owned.currentValue)}`, "Sell", () => sellValuable(owned.id)));
     // bank
     const bh = document.createElement("div"); bh.className = "sub-h"; bh.textContent = "Bank"; body.appendChild(bh);
     if ((game.loanBalance || 0) > 0) {
@@ -3341,6 +3346,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       c.money -= (v.upkeep || 0);
       v.currentValue = Math.round((v.currentValue || 0) * (1 - (v.deprec || 0.1)));
     }
+    // real estate + valuables appreciate
+    for (const a of (game.assets || [])) if ((a.type === "realEstate" || a.type === "valuable") && a.apprec) a.currentValue = Math.round((a.currentValue || 0) * (1 + a.apprec));
     if ((game.loanBalance || 0) > 0) {
       game.loanBalance = Math.round(game.loanBalance * 1.08);
       const pay = Math.max(0, Math.round(game.loanBalance * 0.1));
@@ -3610,6 +3617,52 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     game.flags.bankrupt = true; applyEffects({ happiness: -15 });
     log("event", "🧾 You declared bankruptcy — debts wiped, but it stings.");
     autosave(); renderAll(); openAssets();
+  }
+
+  // ── Pet store (buy a pet anytime, not just the childhood event) ──
+  const PETS = [
+    { id: "dog", name: "Dog", emoji: "🐶", cost: 600 }, { id: "cat", name: "Cat", emoji: "🐱", cost: 400 },
+    { id: "rabbit", name: "Rabbit", emoji: "🐰", cost: 120 }, { id: "parrot", name: "Parrot", emoji: "🦜", cost: 800 },
+    { id: "hamster", name: "Hamster", emoji: "🐹", cost: 40 }, { id: "snake", name: "Snake", emoji: "🐍", cost: 350 },
+    { id: "horse", name: "Horse", emoji: "🐴", cost: 9000 }
+  ];
+  function openPetStore() {
+    if (game.prison.inPrison) { showToast("You're in prison."); return; }
+    modalShell("🐾 Pet Store", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Adopt a companion — pets boost happiness and become part of the family.</div><div id="pet-list"></div>`);
+    for (const p of PETS) $("pet-list").appendChild(optRow(`${p.emoji} ${p.name}`, fmtMoney(p.cost), "Adopt", () => buyPet(p.id), game.character.money < p.cost));
+  }
+  function buyPet(id) {
+    const p = PETS.find(x => x.id === id); if (!p) return;
+    const c = game.character; if (c.money < p.cost) { showToast("Can't afford it."); return; }
+    c.money -= p.cost;
+    const g = rngPick(["male", "female"]);
+    addRelationship({ relation: "pet", name: p.emoji + " " + rngPick(DATA.NAME_POOLS[g]), gender: g, age: 0, bar: 70 });
+    applyEffects({ happiness: 8 }); grantAchievement("petlover");
+    log("event", `🐾 You adopted a ${p.name}!`);
+    autosave(); renderAll(); openRelationships();
+  }
+
+  // ── Valuables (jewelry / art / watches) — appreciate slowly ──
+  const VALUABLES = [
+    { id: "watch", name: "Luxury watch", price: 8000, apprec: 0.03 },
+    { id: "ring", name: "Diamond ring", price: 15000, apprec: 0.04 },
+    { id: "painting", name: "Fine art painting", price: 60000, apprec: 0.06 },
+    { id: "sculpture", name: "Rare sculpture", price: 250000, apprec: 0.07 }
+  ];
+  function buyValuable(id) {
+    const v = VALUABLES.find(x => x.id === id); if (!v) return;
+    const c = game.character; if (c.money < v.price) { showToast("Can't afford it."); return; }
+    c.money -= v.price;
+    game.assets.push({ id: "val" + Date.now().toString(36), type: "valuable", name: v.name, currentValue: v.price, apprec: v.apprec });
+    grantAchievement("collector");
+    log("event", `💎 You bought a ${v.name} for ${fmtMoney(v.price)}.`);
+    autosave(); renderAll(); openAssets();
+  }
+  function sellValuable(assetId) {
+    const i = game.assets.findIndex(a => a.id === assetId); if (i < 0) return;
+    const v = game.assets[i]; game.character.money += (v.currentValue || 0);
+    log("event", `💎 You sold your ${v.name} for ${fmtMoney(v.currentValue)}.`);
+    game.assets.splice(i, 1); autosave(); renderAll(); openAssets();
   }
 
   // controls wiring

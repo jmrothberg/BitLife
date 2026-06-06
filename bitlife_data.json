@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content (v0.9.4). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
+  "_comment": "BitLife-style premade content (v0.9.5). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -48,7 +48,8 @@
     "kingpin":     { "label": "Kingpin",       "icon": "👑", "desc": "Became a gang boss." },
     "royalty":     { "label": "Royalty",       "icon": "👑", "desc": "Born into a royal family." },
     "mogul":       { "label": "Mogul",         "icon": "🏢", "desc": "Started a business." },
-    "timeLord":    { "label": "Time Lord",     "icon": "⏪", "desc": "Used the Time Machine." }
+    "timeLord":    { "label": "Time Lord",     "icon": "⏪", "desc": "Used the Time Machine." },
+    "collector":   { "label": "Collector",     "icon": "💎", "desc": "Bought a valuable." }
   },
 
   "EVENTS": {
@@ -413,6 +414,11 @@
 
   "ACTIVITIES": {
     "mindBody": [
+      { "id": "yoga",        "label": "Do yoga",           "minAge": 10, "cost": 30,  "effects": { "health": 3, "happiness": 3 } },
+      { "id": "run",         "label": "Go for a run",      "minAge": 8,  "cost": 0,   "effects": { "health": 4, "happiness": 1 }, "random": { "health": [0, 3] } },
+      { "id": "cooking",     "label": "Take a cooking class", "minAge": 12, "cost": 120, "effects": { "happiness": 4, "smarts": 2 } },
+      { "id": "volunteer",   "label": "Volunteer",         "minAge": 12, "cost": 0,   "effects": { "happiness": 6, "smarts": 1 } },
+      { "id": "readBooks",   "label": "Read a stack of books", "minAge": 6, "cost": 0, "effects": { "smarts": 4, "happiness": 1 } },
       { "id": "gym",         "label": "Go to the gym",     "minAge": 12, "cost": 40,  "effects": { "health": 4, "looks": 2, "happiness": 1 }, "random": { "health": [1, 5] }, "notable": false },
       { "id": "library",     "label": "Study at library",  "minAge": 5,  "cost": 0,   "effects": { "smarts": 4, "happiness": -1 }, "random": { "smarts": [0, 3] } },
       { "id": "meditate",    "label": "Meditate",          "minAge": 8,  "cost": 0,   "effects": { "happiness": 5, "health": 1 } },
