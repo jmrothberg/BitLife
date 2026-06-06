@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8.5</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.8.6</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -417,7 +417,7 @@
     ],
     COUNTRIES: ["USA", "UK", "Canada", "Japan"],
     NAME_POOLS: { male: ["Liam", "Noah", "James"], female: ["Emma", "Olivia", "Mia"], nonbinary: ["Alex", "Sam", "Jordan"], surnames: ["Smith", "Lee", "Garcia", "Chen"] },
-    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." } },
+    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." } },
     EVENTS: {
       baby: [{ id: "fw", weight: 5, minAge: 1, maxAge: 2, noChoice: true, text: "You said your first words!", effects: { happiness: 6, smarts: 2 } }],
       child: [{ id: "bully", weight: 7, minAge: 6, maxAge: 12, text: "A bully keeps shoving you at school.", choices: [{ label: "Ignore it", effects: { happiness: -6 } }, { label: "Tell a teacher", effects: { happiness: 2 }, outcome: { chance: 0.55, success: { happiness: 7 }, fail: { happiness: -5 } } }, { label: "Fight back", effects: {}, outcome: { chance: 0.45, success: { happiness: 9, health: -3 }, fail: { health: -12, happiness: -7 } } }] }],
@@ -878,6 +878,52 @@
       }
     }
     closeModal(); autosave(); renderAll();
+  }
+
+  // ── Interactive burglary: pick a target (levels of selection), then play the
+  // sneak-and-grab mini-game. Loot is decided by the player's skill inside the
+  // game; getting caught sends you to prison for that target's sentence range. ──
+  const BURGLARY_TARGETS = [
+    { id: "bungalow", name: "Modest bungalow", lootMax: 2500, difficulty: 1, guards: 1, jail: [1, 3] },
+    { id: "suburban", name: "Suburban house", lootMax: 7000, difficulty: 2, guards: 1, jail: [2, 5] },
+    { id: "mansion", name: "Gated mansion", lootMax: 22000, difficulty: 3, guards: 2, jail: [3, 8] }
+  ];
+  function openBurglaryTargets() {
+    if (game.prison.inPrison) { showToast("You're in prison."); return; }
+    if (game.character.age < 16) { showToast("Must be 16+."); return; }
+    modalShell("🏠 Pick a target", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Sneak in, grab what you can, and get out before the homeowner spots you. Bigger houses pay more — and more guards, longer sentence if caught.</div><div id="burg-list"></div>`);
+    const diffLabel = ["", "easy", "medium", "hard"];
+    for (const t of BURGLARY_TARGETS) {
+      $("burg-list").appendChild(optRow(t.name, `up to ~$${t.lootMax.toLocaleString()} · ${t.guards} guard${t.guards > 1 ? "s" : ""} · ${diffLabel[t.difficulty]} · ${t.jail[0]}-${t.jail[1]}y if caught`, "Break in ▶", () => launchBurglary(t), false));
+    }
+  }
+  function launchBurglary(t) {
+    closeModal();
+    launchMiniGame("burglary", {
+      difficulty: t.difficulty,
+      opts: { lootMax: t.lootMax, guards: t.guards, name: t.name },
+      onWin: (payload) => {
+        const loot = (payload && payload.loot) || 0;
+        if (loot > 0) {
+          game.character.money += loot;
+          game.crimeRecord.notoriety += 1;
+          if (game.crimeRecord.notoriety >= 10) grantAchievement("thief");
+          grantAchievement("catBurglar");
+          log("crime", `🏠 You burgled the ${t.name.toLowerCase()} and slipped away with $${loot.toLocaleString()}.`);
+        } else {
+          log("crime", `🏠 You broke into the ${t.name.toLowerCase()} but left empty-handed.`);
+        }
+        autosave(); renderAll();
+      },
+      onLose: () => {
+        game.crimeRecord.arrests += 1; game.crimeRecord.convictions += 1;
+        const years = rngInt(t.jail[0], t.jail[1]);
+        log("crime", `🏠 You were caught burgling the ${t.name.toLowerCase()}!`);
+        sendToPrison(years, "burglary"); autosave(); renderAll();
+      },
+      onQuit: () => { showToast("You crept back out."); },
+      onError: () => { showToast("Couldn't start the heist."); }
+    });
   }
 
   function sendToPrison(years, reason) {
@@ -1465,7 +1511,8 @@
   // offline). Modules are pure UI: the HOST decides what win/lose means.
   const MINIGAMES = {
     prisonEscape: { module: "./minigames/prison_escape.js", title: "Prison Break" },
-    fight: { module: "./minigames/street_fight.js", title: "Street Fight" }
+    fight: { module: "./minigames/street_fight.js", title: "Street Fight" },
+    burglary: { module: "./minigames/burglary_heist.js", title: "Burglary" }
   };
   let _mgActive = false;
   async function launchMiniGame(id, handlers = {}) {
@@ -1477,18 +1524,21 @@
     host.className = "mg-host";
     document.body.appendChild(host);
     let cleanup = null, settled = false;
-    const finish = (result) => {
+    // Modules call api.finish(result, payload?). `payload` is optional and is
+    // forwarded to the handlers (e.g. burglary returns { loot }). Backward
+    // compatible: older modules call finish(result) → payload is undefined.
+    const finish = (result, payload) => {
       if (settled) return; settled = true;
       try { cleanup && cleanup(); } catch (e) { console.error(e); }
       if (host.parentNode) host.remove();
       _mgActive = false;
-      if (result === "win") handlers.onWin && handlers.onWin();
-      else if (result === "lose") handlers.onLose && handlers.onLose();
-      else handlers.onQuit && handlers.onQuit();
+      if (result === "win") handlers.onWin && handlers.onWin(payload);
+      else if (result === "lose") handlers.onLose && handlers.onLose(payload);
+      else handlers.onQuit && handlers.onQuit(payload);
     };
     try {
       const mod = await import(def.module);
-      cleanup = mod.start(host, { finish, difficulty: handlers.difficulty || 1 });
+      cleanup = mod.start(host, { finish, difficulty: handlers.difficulty || 1, opts: handlers.opts || {} });
     } catch (e) {
       console.error("Mini-game failed to load:", e);
       if (host.parentNode) host.remove();
@@ -1551,7 +1601,8 @@
     roulette:  { label: "🎡 Roulette",     run: () => openRoulette() },
     horses:    { label: "🏇 Horse Racing", run: () => openHorseRace() },
     prison:    { label: "🪜 Prison Break", run: () => attemptPrisonEscape() },
-    fight:     { label: "🥊 Street Fight", run: () => startFight() }
+    fight:     { label: "🥊 Street Fight", run: () => startFight() },
+    burglary:  { label: "🏠 Burglary",     run: () => openBurglaryTargets() }
   };
   function testIdFromHash() {
     const m = (location.hash || "").toLowerCase().match(/^#test(?:=([a-z]+))?$/);
@@ -1971,6 +2022,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (/horse|racing|the track|race/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openHorseRace(); } return "Opening the horse racing track"; }
     if (/escape|break out|jail.?break|over the wall/.test(t)) { if (game.prison && game.prison.inPrison) { attemptPrisonEscape(); return "Starting the prison break"; } showToast("You're not in prison."); return "You're not in prison"; }
     if (/fight|brawl|throw down|street ?fight|beat .*up/.test(t)) { if (game.prison && game.prison.inPrison) { showToast("Not while you're locked up."); return "Not in prison"; } startFight(); return "Starting a street fight"; }
+    if (/burgl|rob a house|break in|heist|sneak into/.test(t)) { if (game.prison && game.prison.inPrison) { showToast("Not while you're locked up."); return "Not in prison"; } openBurglaryTargets(); return "Opening burglary targets"; }
     if (/gambl|casino|bet/.test(t)) { openModal("casino"); return "Opening Casino menu"; }
     return null;
   }
@@ -2636,6 +2688,12 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     }
     for (const cr of DATA.ACTIVITIES.crime) {
       const gated = game.character.age < cr.minAge || game.prison.inPrison;
+      // Burglary is now a live sneak-and-grab mini-game with target selection,
+      // instead of an instant dice roll.
+      if (cr.id === "burglary") {
+        $("crime-list").appendChild(optRow("🏠 Burglary (live)", `Sneak through a house for loot · pick a target · ${cr.minAge}+`, "Targets ▶", () => openBurglaryTargets(), gated));
+        continue;
+      }
       const desc = cr.id === "murder" ? `${Math.round(cr.catchChance*100)}% caught · ${cr.jail[0]}-${cr.jail[1]}y` : `$${cr.payout[0]}-${cr.payout[1].toLocaleString()} · ${Math.round(cr.catchChance*100)}% caught · ${cr.jail[0]}-${cr.jail[1]}y`;
       $("crime-list").appendChild(optRow(cr.label, desc + ` · ${cr.minAge}+`, "Attempt", () => commitCrime(cr.id), gated));
     }
