@@ -55,28 +55,46 @@ Legend: ✅ solid · 🟡 partial/shallow · ❌ missing
 
 ## Concrete content counts (v0.8.6)
 
-- Events: **46** — baby 4, child 10, teen 10, youngAdult 6, adult 6, middleAge 5, senior 5
+- Events: **48** — baby 4, child 10, teen 11, youngAdult 6, adult 7, middleAge 5, senior 5
 - Activities: **32** — mindBody 8, doctor 7, education 3, crime 7, casino 7
 - Careers: **33** (entry → special, incl. police/firefighter/pilot/nurse/teacher/architect/CEO and
   fame paths: actor/musician/athlete/model/influencer) · Degrees: **12**
 - Market assets: **9** (4 stock / 3 crypto / 2 bond) · Real estate: **4** · Insider tips: **4**
-- Ribbons/achievements: **16** (added rich/loaded/thief/licensed) · Countries: **30**
+- Ribbons/achievements: **18** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
 
-## Biggest gaps, in priority order
+## Gap-closure roadmap (phased — one PR per epic; content volume runs in parallel)
 
-1. **Event volume** — the game feels thin because each life sees the same ~3 events per stage. Aim for
-   15–30 events per stage with faithful wiki wording. Pure data work in `EVENTS`.
-2. **Special careers + fame path** — royalty/military/athlete/musician/mafia/politics, and fame
-   activities (social media/books/music/film). Needs a little engine plus data.
-3. **Education & finance depth** — majors/GPA/loans/scholarships; bank/loans/mortgage/taxes/inheritance.
-4. **Relationships depth** — friends/coworkers/exes/in-laws, family tree, divorce + asset split, custody,
-   and **generations** (continue as your child after death).
-5. **Prison depth** — parole, riots, escape, contraband, good behavior.
-6. **Pets & vehicles as on-demand menus** (pet store, car dealership) rather than only event-driven.
-7. **Diseases & treatments** in the Doctor menu.
+Ordered by player impact. Each epic = data tables + one/few engine functions + one modal, reusing the
+existing seams (mini-game launcher, the `minigame` event-choice hook, `modalShell`/`optRow` drill-downs,
+`applyEffects`); every epic bumps the version and advances the chart rows it closes.
+
+- **A — Relationships & family** (v0.8.7): dating / "Find Love", richer per-NPC menu (move in, prenup,
+  argue, vacation, cheat), family-tree + extended family, friends/coworkers, divorce (asset split) +
+  custody + alimony, adoption/IVF/surrogacy.
+- **B — Health & medical** (v0.8.8): `DISEASES` + `conditions[]`, illness events, treatment drill-down +
+  specialists, mental health, addictions + rehab, STDs, disabilities, pandemics.
+- **C — Money & assets depth** (v0.8.9): bank/interest, loans, **mortgages**, credit/debt, bankruptcy,
+  **taxes**, lawsuits, **lottery**, charity, **will/inheritance**; **vehicles** (dealership/insurance/
+  upkeep) + valuables (jewelry/art, pawn); `netWorth()`.
+- **D — Activities, travel & lifestyle** (v0.8.10): nightlife/museum/concert, **travel/vacation** +
+  emigrate, tattoos/shopping, **religion**, astrology, donation.
+- **E — Careers, fame & business** (v0.9.0): job **interview + salary negotiation**, fired/retire/pension,
+  **fame activities** (social/go-viral/book/album/film/endorsements/scandals), **business ownership**,
+  sports leagues.
+- **F — Crime, gangs & justice** (v0.9.1): more crimes, new **heist mini-games** (bank/jewelry/train —
+  reuse the burglary engine), **gangs/mafia**, **justice** (lawyers/trials/plea/appeals), **prison depth**
+  (riots/gangs/parole/contraband/death row).
+- **G — Structural systems** (v0.9.2): **generations/dynasties** (continue as heir + inheritance),
+  **royalty**, **politics** (run for office → elections), **military** (ranks/deployments/medals).
+- **H — God-tools & polish** (v0.9.3): **God Mode** (edit stats), **Time Machine** (rewind a year),
+  Surrender, bucket list, expanded ribbons + richer end-of-life summary.
+- **I — Content volume** (parallel, every release): scale `EVENTS` toward 15–30/stage, `CAREERS` toward
+  100+, a real `DISEASES` list, richer name pools, country flavor. Pure data.
 
 > Keep every addition deterministic-first and routed through `applyEffects` (auto-clamped). The LLM is
-> only for the free-text box; buttons stay instant local logic. See `background.md` §6 for the full roadmap.
+> only for the free-text box; buttons stay instant local logic; skill mini-games never call `rng()`.
+> Vendor any new library locally and precache it (offline rule). See `background.md` §6 and
+> `EXTENDING.md` for schemas and the mini-game/contract recipes.
 
 ## How to check parity yourself
 

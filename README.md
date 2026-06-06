@@ -48,32 +48,50 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[PARITY.md](./PARITY.md)**.
 
-| System | Real BitLife | This game (v0.8.6) | Status |
+Full system-by-system table (v0.8.6). Deeper detail + the gap-closure roadmap in **[PARITY.md](./PARITY.md)**.
+
+| System | Real BitLife | This game | Status |
 |---|---|---|---|
-| Core stats | Happiness / Health / Smarts / Looks (+ Fame) | All four + Fame | ✅ |
-| Age-up loop + random events | Hundreds of stage-specific multi-choice events | 46 events across 7 life stages, choices + outcomes | 🟡 |
-| Activities (Mind & Body, Doctor) | Gym/library/meditate/spa, checkups/therapy/surgery, diseases | 32 activities incl. martial arts, Botox, witch doctor | 🟡 |
-| School & education | Elementary → university, majors, GPA, loans | Auto school + college with 12 degrees | 🟡 |
-| Careers / jobs | 100+ jobs with ladders & promotions | 33 jobs (entry → CEO/doctor/lawyer), promote/quit | 🟡 |
-| Special / fame careers | Royalty, military, athlete, musician, actor, mafia, politics | Actor/musician/athlete/model/influencer (fame paths) | 🟡 |
-| Crime & prison | ~10 crimes; parole, riots, escape, **interactive burglary** | 7 crimes incl. a **live burglary mini-game** (pick a target, sneak for loot); prison escape mini-game (➕) | 🟡 |
-| Fights | Resolved by a stat roll | A live **Street Fighter-style brawler** — punch/kick/jump/duck (➕) | ➕ |
-| Casino | Blackjack, slots, roulette, craps, keno, sports bet | 7 games — slots, blackjack, roulette & horse racing are live playable mini-games (➕) | ✅ |
-| Relationships | Family, friends, exes, family tree, divorce, custody | Family + date → marry → kids; aging & death | 🟡 |
-| **Investing + insider trading** | Stocks/crypto/bonds/real estate; SEC "Martha" | Stocks/crypto/bonds + real estate; SEC arrest + Martha | ✅ |
-| Finance depth | Loans, mortgages, taxes, inheritance, bankruptcy | Crypto sale tax only | ❌ |
-| Achievements / ribbons | Large ribbon set + end-of-life summary | 16 ribbons + death summary | 🟡 |
-| Countries | ~30 nations | 30 nations | ✅ |
-| New life setup | Name, gender, country | First/last name, gender, country, **talent**, **zodiac**, seed | ✅ |
+| Core stats | Happiness / Health / Smarts / Looks (+ Fame, hidden Karma) | All four + Fame; no Karma | 🟡 |
+| Character creation | Name, gender, country/city; Bitizen custom looks | Name, gender, country, **talent**, **zodiac**, **seed** | ✅ |
+| Age-up + random events | Hundreds per stage, multi-choice + outcomes | 48 events across 7 life stages | 🟡 |
+| School & education | Daycare → uni / grad / med / law; majors, GPA, clubs, sports, class president, loans, scholarships, dropout | Auto K-12 + college, 12 degrees, study/tutor | 🟡 |
+| Careers (regular) | 100+ jobs; ladders, performance, fired, retire, unions, lawsuits | 33 jobs; apply / work / promote / quit | 🟡 |
+| Special / fame careers | Actor, musician, writer, model, influencer, athlete (leagues), director | Fame-path jobs (actor/musician/athlete/model/influencer); no fame activities | 🟡 |
+| Military | Branches, ranks, deployment, court martial, medals | — | ❌ |
+| Royalty | Born/marry in, rule, throne, scandals, exile | — | ❌ |
+| Politics | Run mayor → president, campaigns, elections | — | ❌ |
+| Business ownership | Start/own businesses, employees | — | ❌ |
+| Crime | ~15 crimes; interactive burglary/heists; gangs/mafia; serial killer | 7 crimes incl. a **live burglary mini-game** (pick a target, sneak for loot) | 🟡 |
+| Prison | Escape (interactive), riots, gangs, parole, contraband, death row | Serve time **or** a **live escape mini-game**; no parole/riots/contraband | 🟡 |
+| Justice / lawsuits | Lawyers, trials, plea deals, sue / get sued | Sentence only | ❌ |
+| Casino & mini-games | Blackjack/slots/roulette/video poker…; escape & heist mini-games | 7 casino games (slots/blackjack/roulette/horses **live**) + prison/fight/burglary mini-games | ✅ ➕ |
+| Fights | Event stat-roll | A live **Street Fighter-style brawler** (punch/kick/jump/duck) | ➕ |
+| Relationships | Full family tree; friends/enemies/coworkers; dating app; marriage/prenup/divorce/custody/alimony; affairs | Parents/siblings + date → marry → kids; aging & death | 🟡 |
+| Reproduction | Pregnancy, adoption, IVF, surrogacy, donors, complications | Have-a-baby via partner | 🟡 |
+| Health & medical | 100s of diseases, specialists, surgeries, mental health, addictions/rehab, STDs, disabilities | Health stat + doctor activities; **no disease system** | ❌ |
+| Activities / lifestyle | Gym/library/spa/movies/club/museum/concert; tattoos, religion, astrology | Mind & Body / Doctor / Education only | 🟡 |
+| Travel / vacation | Countries, cruises, hotels; emigrate | — | ❌ |
+| Assets | Real estate (+ mortgage/rent/flip), vehicles (+ insurance/upkeep), jewelry/art; haggle/appraise/pawn | Real estate buy/sell only | 🟡 |
+| Money / finance | Bank, interest, loans, mortgages, cards, debt, bankruptcy, taxes, lottery, charity, will/inheritance | Money balance; crypto sale tax only | ❌ |
+| **Investing + insider trading** | Stocks/crypto/bonds/real estate; SEC "Martha" | Same, incl. insider trading + the Martha ribbon | ✅ |
+| Fame | Fame bar, social media/go-viral, books/albums/films, endorsements, scandals, paparazzi | Fame stat + Famous ribbon; no fame activities | 🟡 |
+| Pets | Pet store (many species), train/walk/vet/breed/shows | Adopt via a childhood event; pets age & die | 🟡 |
+| Achievements / ribbons | Large set + end-of-life summary | 18 ribbons + death summary | 🟡 |
+| Countries / nationality | 150+ nations, languages, citizenship | 30 (cosmetic) | 🟡 |
+| Generations / dynasties | Continue as your heir; inheritance | — | ❌ |
+| God Mode / Time Machine / Surrender | Edit stats, rewind a year, restart | New life / seed only | ❌ |
 | Save / multiple lives | Yes | localStorage, multiple slots, autosave | ✅ |
 | Reproducible (seeded) lives | — | Seed reproduces an entire life | ➕ |
 | **Type free-form actions (local LLM)** | — (buttons only) | Gemma interprets typed actions → safe effects | ➕ |
 | **AI narrator + Hint/Help** | — | LLM comments on your life; ask how anything works | ➕ |
 | **Generated art (local diffuser)** | — (emoji/clip-art) | SD 1.5 avatar + scenes, pre-baked **and** live | ➕ |
 
-> **Where it stands:** the core engine is ~70–80% of the original's loop; total feature surface ~40%;
-> content volume ~20% (and growing). The biggest remaining gap is sheer breadth — more events, jobs,
-> and deeper relationship/finance/prison systems. See [PARITY.md](./PARITY.md) for the priority list.
+> **Where it stands:** the core loop is ~70–80% of the original; total feature surface ~40%; content
+> volume ~20% (and growing). Biggest gaps: a real **health/disease** system, **finance** (loans/
+> mortgages/taxes/inheritance), **relationship depth** (dating/divorce/custody), **travel & vehicles**,
+> and the structural systems (**generations, royalty, politics, military**). A full phased roadmap to
+> close every gap is in **[PARITY.md](./PARITY.md)**.
 
 ## Play it from GitHub
 
