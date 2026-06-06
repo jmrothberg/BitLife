@@ -19,7 +19,7 @@
       web-txt2img → "web-txt2img-v1"). Caching them again would duplicate ~4 GB.
       We skip URLs ending in .onnx/.onnx_data/.bin/.safetensors/.data/etc.
 */
-const APP_CACHE = "bitlife-app-v1";
+const APP_CACHE = "bitlife-app-v2";
 
 // Files worth precaching so even a very short first visit is offline-capable for
 // the deterministic game + pre-baked art. Missing entries are ignored (best effort).
@@ -40,6 +40,10 @@ const PRECACHE_URLS = [
   "./vendor/web-txt2img/runtime/inline_client.js", "./vendor/web-txt2img/runtime/inline_host.js",
   "./vendor/web-txt2img/worker/protocol.js", "./vendor/web-txt2img/worker/client.js", "./vendor/web-txt2img/worker/host.js",
   "./vendor/web-txt2img/adapters/sd15.js", "./vendor/web-txt2img/adapters/sd-turbo.js", "./vendor/web-txt2img/adapters/janus-pro.js",
+  // Three.js engine + mini-game modules (lazy-loaded, but precached so the
+  // prison-break game still works fully offline once the app shell is cached).
+  "./vendor/three/three.module.min.js",
+  "./minigames/prison_escape.js",
 ];
 
 // Large model weights handled by the libraries' own caches — don't double-store.

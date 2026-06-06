@@ -48,7 +48,7 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[PARITY.md](./PARITY.md)**.
 
-| System | Real BitLife | This game (v0.8.3) | Status |
+| System | Real BitLife | This game (v0.8.4) | Status |
 |---|---|---|---|
 | Core stats | Happiness / Health / Smarts / Looks (+ Fame) | All four + Fame | ✅ |
 | Age-up loop + random events | Hundreds of stage-specific multi-choice events | 46 events across 7 life stages, choices + outcomes | 🟡 |
@@ -56,7 +56,7 @@ A living scorecard of how close this build is to the real game. ✅ solid · �
 | School & education | Elementary → university, majors, GPA, loans | Auto school + college with 12 degrees | 🟡 |
 | Careers / jobs | 100+ jobs with ladders & promotions | 33 jobs (entry → CEO/doctor/lawyer), promote/quit | 🟡 |
 | Special / fame careers | Royalty, military, athlete, musician, actor, mafia, politics | Actor/musician/athlete/model/influencer (fame paths) | 🟡 |
-| Crime & prison | ~10 crimes; parole, riots, escape | 7 crimes → prison (serve the sentence) | 🟡 |
+| Crime & prison | ~10 crimes; parole, riots, escape | 7 crimes → prison; serve time **or play a 3D escape mini-game** (➕) | 🟡 |
 | Casino | Blackjack, slots, roulette, craps, keno, sports bet | 7 games — slots, blackjack, roulette & horse racing are live playable mini-games (➕) | ✅ |
 | Relationships | Family, friends, exes, family tree, divorce, custody | Family + date → marry → kids; aging & death | 🟡 |
 | **Investing + insider trading** | Stocks/crypto/bonds/real estate; SEC "Martha" | Stocks/crypto/bonds + real estate; SEC arrest + Martha | ✅ |
@@ -137,10 +137,31 @@ http://localhost:8080/index.html
 | `index.html` | The entire self-contained game (engine + UI + LLM/image integration). |
 | `bitlife_data.json` | Premade content tables (events, activities, careers, market, insider tips, achievements). A minimal copy is embedded in `index.html` as `FALLBACK_DATA` so it still runs if this file can't be fetched. |
 | `vendor/web-txt2img/` | Bundled in-browser Stable Diffusion 1.5 worker (ONNX Runtime Web / WebGPU). |
+| `vendor/three/` | Bundled **Three.js** (vendored locally so the 3D prison-break game runs offline — no CDN at runtime). |
+| `minigames/` | Self-contained ES-module mini-games (e.g. `prison_escape.js`), lazy-loaded on launch. Drop-in extension point. |
 | `serve.py` | Dev server that sends the COOP/COEP headers the worker needs. |
 | `pregen_art.py` | **Optional** GPU batch baker for life-event scene art (writes `assets/` + `manifest.json`). |
 | `assets/` | Optional pre-generated PNGs used **instantly** when present. |
 | `EXTENDING.md` | **How to add content/features fast** — schemas, recipes, and the rules (offline, determinism) for humans and LLMs. |
+
+## Test the mini-games directly
+
+No need to live a whole life to reach the casino or land in prison. Open the app with a
+`#test` hash and it spins up a **sandbox life** (age 30, $1,000,000, in prison) and jumps
+straight to a mini-game:
+
+| Link | Launches |
+|------|----------|
+| `index.html#test` | A menu to launch any mini-game |
+| `index.html#test=slots` | 🎰 Slot machine |
+| `index.html#test=blackjack` | 🃏 Blackjack |
+| `index.html#test=roulette` | 🎡 Roulette (spinning wheel) |
+| `index.html#test=horses` | 🏇 Horse racing |
+| `index.html#test=prison` | 🪜 Prison Break (Three.js) |
+
+For example: `https://jmrothberg.github.io/BitLife/#test=prison`. You can also just edit the
+hash after the page has loaded to switch games. (The local `serve.py` works the same way:
+`http://localhost:8080/index.html#test`.)
 
 ## Extending the game
 
@@ -171,5 +192,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.8.3 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.8.4 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*

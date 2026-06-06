@@ -194,6 +194,48 @@ Reference numbers in this build: slots ≈ 81% RTP, roulette ≈ 97.3% (single-z
 > keno shipped at `0.25 × 6.5 = 1.625` RTP and someone bankrolled a fortune before it was fixed.)
 > Compute the EV by hand for any change to a `gamble()`-path game.
 
+### Richer / 3D mini-games (separate ES modules)
+
+Bigger interactive games (the Three.js **Prison Break** is the reference) don't live inline —
+they're **self-contained ES modules** in `minigames/`, lazy-loaded only when launched so they
+never touch the boot path. The contract is tiny:
+
+```js
+// minigames/<name>.js
+import * as THREE from "three";          // vendored at ./vendor/three/ → offline
+export function start(host, api) {
+  // host: an empty full-screen <div> — render your canvas + HUD into it
+  // api.finish(result): call ONCE with "win" | "lose" | "quit"
+  // api.difficulty: optional number
+  // return cleanup(): stop your RAF loop, dispose GPU objects, remove listeners
+}
+```
+
+To add one:
+1. Write `minigames/<name>.js` exporting `start(host, api)` (copy `prison_escape.js`).
+2. Register it in the `MINIGAMES` map (search `const MINIGAMES`) in `index.html`.
+3. Launch it from anywhere: `launchMiniGame("<id>", { onWin, onLose, onQuit })`. **The host
+   decides what win/lose means** — the module is pure UI and must not touch game state.
+4. Add the new module file (and any new vendored lib) to `PRECACHE_URLS` in
+   `coi-serviceworker.js` and bump `APP_CACHE` (`bitlife-app-vN`) so it's offline + clients refresh.
+5. Add it to the `TEST_GAMES` map (search `const TEST_GAMES`) so it's reachable from the test bench.
+
+**Rules that still apply:** the game must work offline (vendor any library locally — never load
+it from a CDN at runtime; that's why Three.js lives in `vendor/three/`), and the module must not
+call the seeded `rng()` (use `Math.random()` for cosmetic randomness — a skill game's outcome
+comes from the player, not the seed).
+
+### Testing mini-games without playing a whole life
+
+A built-in **test bench** deep-links straight to any mini-game in a sandbox life
+(age 30, $1M, in prison):
+
+- `index.html#test` → a menu of every mini-game.
+- `index.html#test=<id>` → launch one directly (`slots`, `blackjack`, `roulette`, `horses`, `prison`).
+
+It's driven by the `TEST_GAMES` map and `startTestMode()` in `index.html`; editing the hash after
+load switches games too. Register every new mini-game in `TEST_GAMES`.
+
 ---
 
 ## Why two copies of the data
