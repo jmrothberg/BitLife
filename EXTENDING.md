@@ -1,0 +1,269 @@
+# Extending JMR's BitLife
+
+A practical guide for humans **and LLMs** who want to add content or features fast,
+without breaking the game or its core promises. Read [The golden rules](#the-golden-rules)
+first — they are short and they are the difference between a clean PR and a broken build.
+
+> **Mental model:** The game is **data-driven**. Most new content is **JSON, not code** —
+> you add an object to `bitlife_data.json` and the engine, the menus, the save system, and
+> even the art baker pick it up automatically. You only touch `index.html` when you add a
+> genuinely new *mechanic* (like a casino mini-game).
+
+---
+
+## The golden rules
+
+1. **It must play offline after first load.** Once the page and `bitlife_data.json` are
+   cached, the **deterministic game must run with the network fully disconnected.** Never
+   add a *runtime* network call to the core game loop (ageing, events, activities, careers,
+   crime, casino, markets, relationships). Bundled/vendored code and local emoji/CSS are
+   fine; `fetch()` to a server at play-time is not. (The optional AI is the *only* thing
+   allowed to touch the network, it is **off by default**, and everything still works with
+   it off.)
+2. **Stay deterministic.** All gameplay randomness goes through the seeded RNG
+   (`rng`, `rngInt`, `rngChance`, `rngFloat`, `rngPick`, `rngWeighted`) — **never
+   `Math.random()` for an outcome.** Same seed ⇒ same life. (`Math.random()` is allowed
+   **only** for cosmetic animation that doesn't change the result — e.g. the blur of
+   spinning slot reels.)
+3. **Effects are clamped deltas.** Stat changes are *relative* (`+5`, `-3`), applied through
+   `applyEffects()`, and clamped to `0..100`. Don't set absolute stats or mutate
+   `game.character.stats` directly.
+4. **Don't break the save format.** Saves are JSON in `localStorage`. Adding new optional
+   fields is safe; renaming/removing existing ones breaks every saved life. Guard new reads
+   with defaults (`game.flags || {}`).
+5. **Keep `bitlife_data.json` and the embedded `FALLBACK_DATA` in sync for anything the
+   menus rely on.** See [Why two copies of the data](#why-two-copies-of-the-data).
+6. **Don't reveal model identity in artifacts.** No model IDs/marketing names in commits,
+   PRs, code comments, or docs.
+7. **Verify before you commit.** Syntax-check the script and, for anything with odds,
+   simulate it. See [Testing & verification](#testing--verification).
+
+---
+
+## File map
+
+| File | What it is | Touch it when… |
+|---|---|---|
+| `index.html` | The whole game: CSS, the `<script type="module">` engine, all UI. ~2.6k lines, organised into clearly-bannered sections (`// ENGINE: …`, `// MODALS`, `// LOG / FEED`, …). | You add a new **mechanic** or UI. |
+| `bitlife_data.json` | **All premade content** (events, careers, activities, crime, casino, markets, achievements, names, …). Fetched at boot. | You add or tune **content**. This is the main extension surface. |
+| `FALLBACK_DATA` (inside `index.html`, search `const FALLBACK_DATA`) | A **minimal** copy of the same shape, used only if the JSON fetch fails (e.g. `file://`). | You change something the **UI hard-codes** against (see rule 5). |
+| `coi-serviceworker.js` | Two jobs: (1) sets COOP/COEP so WebGPU works on static hosts; (2) **precaches the app shell and runtime-caches fetches so the game plays offline.** | Rarely. Only if you add a new top-level static file that must be offline on a *very first* short visit — add it to `PRECACHE_URLS`. |
+| `pregen_art.py` | **Optional** GPU art baker. Derives its bake list *from `bitlife_data.json`*, so new content needs zero edits here. Writes `assets/scene_*.png` + `assets/manifest.json`. | Almost never — only to bake art for new milestone keys. |
+| `serve.py` | Local dev server that sends COOP/COEP headers. `python3 serve.py` → `http://localhost:8080/index.html`. | Never (it just serves). |
+| `assets/` | Pre-baked PNGs + `manifest.json` (`"scene:<key>" → file`) for instant art. | When you bake new art. |
+| `vendor/web-txt2img/` | Vendored in-browser Stable Diffusion runtime (no install). | Never, unless upgrading the image stack. |
+| `README.md` / `PARITY.md` | Player-facing intro / parity scorecard. | Bump the version + note new features on release. |
+
+---
+
+## How a turn works (the data flow)
+
+```
+Age Up  →  ageUp()  →  pick a weighted EVENT for this life-stage/age (rng)
+                    →  applyEffects(deltas)  →  clampStat 0..100
+                    →  log("event", text, sceneKey?)  →  feed entry (+ optional art)
+                    →  autosave()  →  renderAll()
+```
+
+Menus (Activities, Careers, Crime, Casino, Relationships, Assets) open **modals** built by
+`openX()` functions that read from `DATA.*` and call engine functions
+(`doActivity`, `applyJob`, `commitCrime`, `gamble`/`openSlots`/…, `buyAsset`, …).
+Add a row to the JSON and it shows up in the menu automatically.
+
+---
+
+## Recipes
+
+### Add a life event
+`EVENTS` is keyed by **life-stage id** (`baby`, `child`, `teen`, `youngAdult`, `adult`,
+`middleAge`, `senior`). Append to the relevant array.
+
+**Auto-resolved (no choice):**
+```json
+{ "id": "spellingBee", "weight": 4, "minAge": 8, "maxAge": 12, "noChoice": true,
+  "text": "You won the school spelling bee!", "effects": { "smarts": 4, "happiness": 5 } }
+```
+
+**With choices (and a chance-based outcome):**
+```json
+{ "id": "lostWallet", "weight": 4, "minAge": 10, "maxAge": 17,
+  "text": "You find a wallet stuffed with cash on the sidewalk.",
+  "choices": [
+    { "label": "Return it", "effects": { "happiness": 6 },
+      "outcome": { "chance": 0.5, "success": { "money": 200, "happiness": 4 }, "fail": { "happiness": -2 } } },
+    { "label": "Keep the cash", "effects": { "money": 300, "happiness": -3 } }
+  ] }
+```
+- `weight` — relative likelihood within the stage (higher = more common).
+- `minAge`/`maxAge` — eligibility window.
+- A choice's `effects` apply immediately; the optional `outcome` then rolls `chance`
+  and applies `success` or `fail`.
+- Optional `"art": "a short prompt"` adds a generated scene (key `scene:event_<id>`) and is
+  picked up by `pregen_art.py`.
+
+### Add a career
+Append to `CAREERS`:
+```json
+{ "id": "teacher", "title": "Teacher", "baseSalary": 45000,
+  "requires": { "degree": "education" },
+  "levels": ["Student Teacher", "Teacher", "Senior Teacher", "Department Head"],
+  "raisePerLevel": 0.13, "fameGain": 0 }
+```
+- `requires` — any of `{ "minAge": n }`, `{ "level": "highGrad" }`, `{ "degree": "<id>" }`
+  (degree id must exist in `DEGREES`).
+- `levels` — promotion ladder; salary scales by `raisePerLevel` per level.
+- Optional `fameGain` (per year) and `art` (career hire scene, key `scene:job_<id>`).
+
+### Add an activity (mind/body, doctor, education)
+Append to `ACTIVITIES.mindBody` / `.doctor` / `.education`:
+```json
+{ "id": "yoga", "label": "Yoga class", "minAge": 12, "cost": 60,
+  "effects": { "happiness": 4, "health": 3 }, "random": { "happiness": [0, 3] } }
+```
+- `cost` is money spent; `effects` are deltas; `random` adds `rngInt(lo,hi)` to a stat.
+- `requires: { "inSchool": true }` gates education actions; `notable: true` flags it for art.
+
+### Add a crime
+Append to `ACTIVITIES.crime`:
+```json
+{ "id": "fraud", "label": "Wire fraud", "minAge": 18,
+  "payout": [2000, 40000], "catchChance": 0.5, "jail": [2, 8] }
+```
+Higher `payout` ⇒ raise `catchChance`. `killsRelationship: true` makes it a murder-type.
+
+### Add an achievement / ribbon
+Add to `ACHIEVEMENTS` (and the same entry in `FALLBACK_DATA.ACHIEVEMENTS` if the UI grants it):
+```json
+"globetrotter": { "label": "Globetrotter", "icon": "✈️", "desc": "Travelled the world." }
+```
+Grant it from anywhere with `grantAchievement("globetrotter")`, or declaratively from a
+choice via `"effects": { "grantAchievement": "globetrotter" }`.
+
+### Add a market asset (stock / crypto / bond)
+Append under `MARKET.stocks` / `.crypto` / `.bonds`:
+```json
+{ "id": "NOVA", "name": "Nova Energy", "start": 75, "vol": 0.30, "drift": 0.06 }
+```
+- `vol` = yearly volatility, `drift` = expected yearly trend, `taxable: true` for crypto-style
+  gains tax. Insider tips reference assets by `assetType`.
+
+### Add real estate / an insider tip / a country / names / a life stage
+- `REAL_ESTATE`: `{ "id", "name", "price", "apprec" }` (yearly appreciation).
+- `INSIDER_TIPS`: `{ "id", "source", "assetType", "text" (use `{co}`), "gainMult":[lo,hi],
+  "arrestChance", "sentence":[lo,hi], "achievement" }`.
+- `COUNTRIES`: just add a string.
+- `NAME_POOLS.male|female|nonbinary|surnames`: add strings.
+- `LIFE_STAGES`: `{ "id", "min", "max", "label" }` — **if you add a stage id, add an
+  `EVENTS["<id>"]` array too**, or the stage will have no events.
+
+### Add scene art for a new milestone
+1. Add the key to `SCENE_EVENTS` in the JSON.
+2. Add a prompt to `SCENE_PROMPTS` in `index.html` (search `const SCENE_PROMPTS`).
+3. (Optional) run `pregen_art.py` on a GPU box to bake `assets/scene_<key>.png`; otherwise
+   it generates on the fly (when AI is on) or shows the placeholder (when AI is off).
+Reference it from a `log(..., "<key>")` call.
+
+---
+
+## The mini-game pattern (how to add a 4th casino game)
+
+Slots, Blackjack and Roulette (in `// ENGINE: CRIME / CASINO`) are the template. Each is a
+self-contained, **offline, deterministic** UI mini-game with the same shape:
+
+1. **Config/odds as data** near the top of the block (e.g. `SLOT_CONFIG`, `ROULETTE_BETS`).
+2. **`openX()`** — builds the modal via `modalShell(title, html)`, wires the wager box with
+   the shared `wireCasinoWager()` + `CASINO_QUICKBETS`, and a Play/Spin button.
+3. **Decide the outcome up front with `rng()`** (so the result is reproducible), then run a
+   **cosmetic** animation that merely *reveals* it (cosmetic-only flashing may use
+   `Math.random()`).
+4. **`finishX()`** — pay out, `grantAchievement("lottery")` on a big win, **log wins to the
+   feed** (losses update the panel only, so rapid play doesn't flood the life log), then
+   `autosave(); renderAll();`.
+5. **Route it**: add a branch in `openCasino()` and (optionally) a keyword in the typed-action
+   router (search `Opening the slot machine`). Add the game's `id` to the `casino` arrays in
+   **both** the JSON and `FALLBACK_DATA` so it appears in the menu.
+
+**Always design a house edge and prove it** with a Monte Carlo before committing (see below).
+Reference numbers in this build: slots ≈ 81% RTP, roulette ≈ 97.3% (single-zero), blackjack
+≈ 94–99% depending on play.
+
+---
+
+## Why two copies of the data
+
+`bitlife_data.json` is the **source of truth**. `FALLBACK_DATA` (embedded in `index.html`) is
+a **minimal subset** used only if the fetch fails (offline `file://`, a bad deploy). The game
+prefers the JSON and silently falls back. Practical rule:
+
+- **Content the engine reads generically** (events, most careers/activities) → JSON is enough.
+- **Anything the UI hard-codes a branch against** (e.g. a casino game id routed in
+  `openCasino()`, or an achievement the code grants by id) → add it to **both**, so the
+  feature still works in fallback mode. When unsure, add to both.
+
+---
+
+## Determinism & RNG
+
+- `rng()` advances `game.rngState` and is the basis for all the helpers. It's persisted in the
+  save, so a reloaded life continues the same sequence.
+- Use `rngInt(lo,hi)` (inclusive), `rngChance(p)`, `rngFloat(lo,hi)`, `rngPick(arr)`,
+  `rngWeighted([{weight}, …])`.
+- A mini-game should **consume rng() for the result, then animate** — that way closing/reloading
+  mid-animation can't desync money or the RNG (resolve + `autosave()` happen together at the end).
+
+---
+
+## Offline & networking rules (don't break this)
+
+- The core game = `index.html` + `bitlife_data.json` + pre-baked `assets/`. All precached by the
+  service worker → **fully playable with the network off** after the first load.
+- The CDN `importmap` (onnxruntime / transformers) and HF model weights are **only** for the
+  optional AI, which is **off by default** since v0.8.1 and never required to play.
+- **Therefore:** new core features must not introduce `fetch()`/`import()` of remote resources at
+  play-time. Keep new assets local (emoji, CSS, inline SVG, or files added to the repo).
+- If you add a must-have static file, add its path to `PRECACHE_URLS` in
+  `coi-serviceworker.js` and bump `APP_CACHE` (e.g. `bitlife-app-v2`) so clients refresh.
+
+---
+
+## Testing & verification
+
+No build step. To check your work:
+
+1. **Syntax-check the engine** (extract the module script and run Node):
+   ```bash
+   L1=$(grep -n '<script type="module">' index.html | tail -1 | cut -d: -f1)
+   L2=$(grep -n '</script>' index.html | tail -1 | cut -d: -f1)
+   sed -n "$((L1+1)),$((L2-1))p" index.html > /tmp/engine.mjs && node --check /tmp/engine.mjs
+   ```
+2. **Validate the JSON:** `python3 -m json.tool bitlife_data.json > /dev/null`
+3. **Play it:** `python3 serve.py` → open `http://localhost:8080/index.html`. Leave **AI
+   off** (default) to test the deterministic game; toggle it on to test art/typed actions.
+4. **Prove the odds** for anything with money on the line — replicate the payout logic in a
+   tiny Node script and run a few million trials to confirm the house edge is what you intended.
+5. **Offline smoke test:** load once, then go offline (DevTools → Network → Offline) and
+   confirm you can still start a life and Age Up.
+
+---
+
+## Release checklist
+
+- [ ] `node --check` passes on the extracted engine script.
+- [ ] `bitlife_data.json` is valid JSON; new ids are unique.
+- [ ] New menu-routed ids exist in **both** the JSON and `FALLBACK_DATA`.
+- [ ] No new runtime network calls in the core loop; offline smoke test passes.
+- [ ] Odds simulated (for gambling/economy changes).
+- [ ] Version bumped in `index.html` (overlay `<h1>`), `README.md`, `PARITY.md`, and the
+      `bitlife_data.json` `_comment`.
+- [ ] No model identifiers in commits/PRs/comments.
+
+---
+
+## Anti-patterns (don't)
+
+- ❌ `Math.random()` for an outcome (breaks reproducible seeds). Cosmetic only.
+- ❌ `fetch()` to a server in the core game loop (breaks offline play).
+- ❌ Setting absolute stats / writing `game.character.stats.health = 100` (use clamped deltas).
+- ❌ Removing or renaming save fields (breaks existing saved lives).
+- ❌ Adding a casino id to only one of the two data copies (vanishes in fallback mode).
+- ❌ Caching the multi-GB model weights in the service worker (the libraries already do).
