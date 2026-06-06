@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content (v0.8.6). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
+  "_comment": "BitLife-style premade content (v0.9.0). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -38,7 +38,13 @@
     "homeowner":   { "label": "Homeowner",     "icon": "🏠", "desc": "Bought real estate." },
     "graduate2":   { "label": "Licensed",      "icon": "🚗", "desc": "Got your driver's license." },
     "escapee":     { "label": "Escape Artist", "icon": "🪜", "desc": "Broke out of prison." },
-    "catBurglar":  { "label": "Cat Burglar",   "icon": "🐾", "desc": "Pulled off a live burglary." }
+    "catBurglar":  { "label": "Cat Burglar",   "icon": "🐾", "desc": "Pulled off a live burglary." },
+    "survivor":    { "label": "Survivor",      "icon": "🩺", "desc": "Beat a serious illness." },
+    "dynasty":     { "label": "Dynasty",       "icon": "👑", "desc": "Continued as your heir." },
+    "gearhead":    { "label": "Gearhead",      "icon": "🚗", "desc": "Bought a vehicle." },
+    "globetrotter":{ "label": "Globetrotter",  "icon": "✈️", "desc": "Travelled the world." },
+    "celebrity":   { "label": "Celebrity",     "icon": "🌟", "desc": "Did a fame activity." },
+    "politician":  { "label": "Politician",    "icon": "🗳️", "desc": "Won political office." }
   },
 
   "EVENTS": {
@@ -164,6 +170,18 @@
         ] }
     ],
     "youngAdult": [
+      { "id": "roommateDrama", "weight": 4, "minAge": 18, "maxAge": 25, "text": "Your roommate keeps eating your food and never does the dishes.",
+        "choices": [
+          { "label": "Talk it out", "effects": {}, "outcome": { "chance": 0.6, "success": { "happiness": 5 }, "fail": { "happiness": -4 } } },
+          { "label": "Passive-aggressive notes", "effects": { "happiness": -2, "smarts": 1 } },
+          { "label": "Move out", "effects": { "happiness": 3, "money": -1500 } }
+        ] },
+      { "id": "startupIdea", "weight": 3, "minAge": 19, "maxAge": 25, "text": "You have an idea for a startup. Risk your savings?",
+        "choices": [
+          { "label": "Go all in", "effects": {}, "outcome": { "chance": 0.35, "success": { "money": 40000, "happiness": 10 }, "fail": { "money": -8000, "happiness": -6 } } },
+          { "label": "Keep it a side project", "effects": { "smarts": 3, "happiness": 2 } },
+          { "label": "Forget it", "effects": {} }
+        ] },
       { "id": "roommate", "weight": 5, "minAge": 18, "maxAge": 25, "text": "Your new roommate never does the dishes and plays loud music.",
         "choices": [
           { "label": "Talk it out", "effects": {}, "outcome": { "chance": 0.6, "success": { "happiness": 6 }, "fail": { "happiness": -4 } } },
@@ -230,6 +248,17 @@
         ] }
     ],
     "middleAge": [
+      { "id": "midlifeCrisis", "weight": 4, "minAge": 46, "maxAge": 60, "text": "A midlife crisis hits. You feel the urge to do something drastic.",
+        "choices": [
+          { "label": "Buy a sports car", "effects": { "happiness": 8, "money": -45000 } },
+          { "label": "Take up a new hobby", "effects": { "happiness": 6, "health": 2 } },
+          { "label": "Ride it out", "effects": { "happiness": -3 } }
+        ] },
+      { "id": "inheritanceWindfall", "weight": 3, "minAge": 46, "maxAge": 64, "text": "A distant relative left you something in their will.",
+        "choices": [
+          { "label": "Accept gratefully", "effects": { "money": 30000, "happiness": 5 } },
+          { "label": "Donate it to charity", "effects": { "happiness": 9 } }
+        ] },
       { "id": "healthScare", "weight": 5, "minAge": 46, "maxAge": 64, "text": "A routine checkup turns up something concerning.",
         "choices": [
           { "label": "Follow up immediately", "effects": { "money": -1200 }, "outcome": { "chance": 0.7, "success": { "health": 8, "happiness": 4 }, "fail": { "health": -6 } } },
@@ -258,6 +287,13 @@
         ] }
     ],
     "senior": [
+      { "id": "grandkidsVisit", "weight": 5, "minAge": 65, "maxAge": 200, "noChoice": true, "text": "Your grandkids came to visit and it made your whole year.", "effects": { "happiness": 10, "health": 1 } },
+      { "id": "retirementHobby", "weight": 4, "minAge": 65, "maxAge": 200, "text": "You have all this free time now.",
+        "choices": [
+          { "label": "Take up gardening", "effects": { "happiness": 6, "health": 3 } },
+          { "label": "Travel the world", "effects": { "happiness": 9, "money": -5000 } },
+          { "label": "Become a couch potato", "effects": { "happiness": 2, "health": -4 } }
+        ] },
       { "id": "grandkids", "weight": 4, "minAge": 65, "maxAge": 200, "text": "Your grandkids come to visit.",
         "choices": [
           { "label": "Spoil them rotten", "effects": { "happiness": 12, "money": -400 } },

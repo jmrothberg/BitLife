@@ -48,39 +48,39 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[PARITY.md](./PARITY.md)**.
 
-Full system-by-system table (v0.8.6). Deeper detail + the gap-closure roadmap in **[PARITY.md](./PARITY.md)**.
+Full system-by-system table (v0.9.0). Deeper detail + the gap-closure roadmap in **[PARITY.md](./PARITY.md)**.
 
 | System | Real BitLife | This game | Status |
 |---|---|---|---|
 | Core stats | Happiness / Health / Smarts / Looks (+ Fame, hidden Karma) | All four + Fame; no Karma | 🟡 |
 | Character creation | Name, gender, country/city; Bitizen custom looks | Name, gender, country, **talent**, **zodiac**, **seed** | ✅ |
-| Age-up + random events | Hundreds per stage, multi-choice + outcomes | 48 events across 7 life stages | 🟡 |
+| Age-up + random events | Hundreds per stage, multi-choice + outcomes | 54 events across 7 life stages | 🟡 |
 | School & education | Daycare → uni / grad / med / law; majors, GPA, clubs, sports, class president, loans, scholarships, dropout | Auto K-12 + college, 12 degrees, study/tutor | 🟡 |
 | Careers (regular) | 100+ jobs; ladders, performance, fired, retire, unions, lawsuits | 33 jobs; apply / work / promote / quit | 🟡 |
 | Special / fame careers | Actor, musician, writer, model, influencer, athlete (leagues), director | Fame-path jobs (actor/musician/athlete/model/influencer); no fame activities | 🟡 |
 | Military | Branches, ranks, deployment, court martial, medals | — | ❌ |
 | Royalty | Born/marry in, rule, throne, scandals, exile | — | ❌ |
-| Politics | Run mayor → president, campaigns, elections | — | ❌ |
+| Politics | Run mayor → president, campaigns, elections | Run for office (campaign → election) | 🟡 |
 | Business ownership | Start/own businesses, employees | — | ❌ |
 | Crime | ~15 crimes; interactive burglary/heists; gangs/mafia; serial killer | 7 crimes incl. a **live burglary mini-game** (pick a target, sneak for loot) | 🟡 |
 | Prison | Escape (interactive), riots, gangs, parole, contraband, death row | Serve time **or** a **live escape mini-game**; no parole/riots/contraband | 🟡 |
 | Justice / lawsuits | Lawyers, trials, plea deals, sue / get sued | Sentence only | ❌ |
 | Casino & mini-games | Blackjack/slots/roulette/video poker…; escape & heist mini-games | 7 casino games (slots/blackjack/roulette/horses **live**) + prison/fight/burglary mini-games | ✅ ➕ |
 | Fights | Event stat-roll | A live **Street Fighter-style brawler** (punch/kick/jump/duck) | ➕ |
-| Relationships | Full family tree; friends/enemies/coworkers; dating app; marriage/prenup/divorce/custody/alimony; affairs | Parents/siblings + date → marry → kids; aging & death | 🟡 |
+| Relationships | Full family tree; friends/enemies/coworkers; dating app; marriage/prenup/divorce/custody/alimony; affairs | Family + **Find Love** dating, move-in, vacation, argue, cheat, marry, kids; aging & death | 🟡 |
 | Reproduction | Pregnancy, adoption, IVF, surrogacy, donors, complications | Have-a-baby via partner | 🟡 |
-| Health & medical | 100s of diseases, specialists, surgeries, mental health, addictions/rehab, STDs, disabilities | Health stat + doctor activities; **no disease system** | ❌ |
-| Activities / lifestyle | Gym/library/spa/movies/club/museum/concert; tattoos, religion, astrology | Mind & Body / Doctor / Education only | 🟡 |
-| Travel / vacation | Countries, cruises, hotels; emigrate | — | ❌ |
-| Assets | Real estate (+ mortgage/rent/flip), vehicles (+ insurance/upkeep), jewelry/art; haggle/appraise/pawn | Real estate buy/sell only | 🟡 |
-| Money / finance | Bank, interest, loans, mortgages, cards, debt, bankruptcy, taxes, lottery, charity, will/inheritance | Money balance; crypto sale tax only | ❌ |
+| Health & medical | 100s of diseases, specialists, surgeries, mental health, addictions/rehab, STDs, disabilities | **Disease system** (8 illnesses, drain + treatment clinic) + doctor activities; no addictions/STDs yet | 🟡 |
+| Activities / lifestyle | Gym/library/spa/movies/club/museum/concert; tattoos, religion, astrology | Mind & Body / Doctor / Education **+ nightlife, museum, concert, shopping, tattoo, religion** | 🟡 |
+| Travel / vacation | Countries, cruises, hotels; emigrate | **5 destinations** (beach → world cruise); no emigrate yet | 🟡 |
+| Assets | Real estate (+ mortgage/rent/flip), vehicles (+ insurance/upkeep), jewelry/art; haggle/appraise/pawn | Real estate **+ vehicle dealership** (upkeep/depreciation); no valuables yet | 🟡 |
+| Money / finance | Bank, interest, loans, mortgages, cards, debt, bankruptcy, taxes, lottery, charity, will/inheritance | **Loans (interest), lottery, net worth, inheritance**, crypto tax; no mortgages/bankruptcy yet | 🟡 |
 | **Investing + insider trading** | Stocks/crypto/bonds/real estate; SEC "Martha" | Same, incl. insider trading + the Martha ribbon | ✅ |
 | Fame | Fame bar, social media/go-viral, books/albums/films, endorsements, scandals, paparazzi | Fame stat + Famous ribbon; no fame activities | 🟡 |
 | Pets | Pet store (many species), train/walk/vet/breed/shows | Adopt via a childhood event; pets age & die | 🟡 |
-| Achievements / ribbons | Large set + end-of-life summary | 18 ribbons + death summary | 🟡 |
+| Achievements / ribbons | Large set + end-of-life summary | 24 ribbons + death summary | 🟡 |
 | Countries / nationality | 150+ nations, languages, citizenship | 30 (cosmetic) | 🟡 |
-| Generations / dynasties | Continue as your heir; inheritance | — | ❌ |
-| God Mode / Time Machine / Surrender | Edit stats, rewind a year, restart | New life / seed only | ❌ |
+| Generations / dynasties | Continue as your heir; inheritance | **Continue as your heir** + inheritance (estate tax) | 🟡 |
+| God Mode / Time Machine / Surrender | Edit stats, rewind a year, restart | **God Mode** (edit stats/money/revive); Time Machine still missing | 🟡 |
 | Save / multiple lives | Yes | localStorage, multiple slots, autosave | ✅ |
 | Reproducible (seeded) lives | — | Seed reproduces an entire life | ➕ |
 | **Type free-form actions (local LLM)** | — (buttons only) | Gemma interprets typed actions → safe effects | ➕ |
@@ -212,5 +212,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.8.6 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.9.0 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*
