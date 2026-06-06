@@ -2143,14 +2143,14 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (/steal|shoplift|rob/.test(t)) { openModal("crime"); return "Opening Crime menu"; }
     if (/invest|stock|buy shares/.test(t)) { openModal("assets"); return "Opening Assets menu"; }
     if (/job|work|apply/.test(t)) { openModal("careers"); return "Opening Careers menu"; }
-    if (/slot|slots|jackpot|one-armed/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openSlots(); } return "Opening the slot machine"; }
-    if (/blackjack|black jack|\b21\b/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openBlackjack(); } return "Opening the blackjack table"; }
-    if (/roulette|the wheel/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openRoulette(); } return "Opening the roulette wheel"; }
-    if (/horse|racing|the track|race/.test(t)) { if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openHorseRace(); } return "Opening the horse racing track"; }
+    if (/slot|slots|jackpot|one-armed/.test(t)) { if (game.prison.inPrison) { showToast("No casino in prison."); return "You're in prison"; } if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openSlots(); } return "Opening the slot machine"; }
+    if (/blackjack|black jack|\b21\b/.test(t)) { if (game.prison.inPrison) { showToast("No casino in prison."); return "You're in prison"; } if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openBlackjack(); } return "Opening the blackjack table"; }
+    if (/roulette|the wheel/.test(t)) { if (game.prison.inPrison) { showToast("No casino in prison."); return "You're in prison"; } if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openRoulette(); } return "Opening the roulette wheel"; }
+    if (/horse|racing|the track|race/.test(t)) { if (game.prison.inPrison) { showToast("No casino in prison."); return "You're in prison"; } if (game.character.age < 18) { showToast("Casino is 18+."); openModal("casino"); } else { openHorseRace(); } return "Opening the horse racing track"; }
     if (/escape|break out|jail.?break|over the wall/.test(t)) { if (game.prison && game.prison.inPrison) { attemptPrisonEscape(); return "Starting the prison break"; } showToast("You're not in prison."); return "You're not in prison"; }
     if (/fight|brawl|throw down|street ?fight|beat .*up/.test(t)) { if (game.prison && game.prison.inPrison) { showToast("Not while you're locked up."); return "Not in prison"; } startFight(); return "Starting a street fight"; }
     if (/burgl|rob a house|break in|heist|sneak into/.test(t)) { if (game.prison && game.prison.inPrison) { showToast("Not while you're locked up."); return "Not in prison"; } openBurglaryTargets(); return "Opening burglary targets"; }
-    if (/gambl|casino|bet/.test(t)) { openModal("casino"); return "Opening Casino menu"; }
+    if (/gambl|casino|bet/.test(t)) { if (game.prison.inPrison) { showToast("No casino in prison."); return "You're in prison"; } openModal("casino"); return "Opening Casino menu"; }
     return null;
   }
 
@@ -2848,6 +2848,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
 
   function openCasino() {
+    if (game.prison.inPrison) { modalShell("🎰 Casino", `<div class="hint" style="color:var(--text-muted)">There's no casino in prison. Serve your time or look at the Crime menu for parole/escape.</div>`); return; }
     const wager = (window._lastWager || 100);
     modalShell("🎰 Casino", `<div class="field"><label>Wager ($)</label><input id="wager" type="number" value="${wager}" min="1" /></div><div id="casino-list"></div>`);
     $("wager").oninput = (e) => { window._lastWager = parseInt(e.target.value || "0", 10); };
