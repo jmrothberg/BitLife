@@ -48,7 +48,7 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[AGENTS.md](./AGENTS.md)**.
 
-Full system-by-system table (v0.9.9). Counts + the gap-closure roadmap live in **[AGENTS.md](./AGENTS.md)** (the contributor/LLM guide).
+Full system-by-system table (v0.10.0). Counts + the gap-closure roadmap live in **[AGENTS.md](./AGENTS.md)** (the contributor/LLM guide).
 
 | System | Real BitLife | This game | Status |
 |---|---|---|---|
@@ -57,7 +57,7 @@ Full system-by-system table (v0.9.9). Counts + the gap-closure roadmap live in *
 | Age-up + random events | Hundreds per stage, multi-choice + outcomes | 82 events across 7 life stages | 🟡 |
 | School & education | Daycare → uni / grad / med / law; majors, GPA, clubs, sports, class president, loans, scholarships, dropout | Auto K-12 + college, 12 degrees, study/tutor | 🟡 |
 | Careers (regular) | 100+ jobs; ladders, performance, fired, retire, unions, lawsuits | 43 jobs; apply / work / promote / quit | 🟡 |
-| Special / fame careers | Actor, musician, writer, model, influencer, athlete (leagues), director | Fame-path jobs (actor/musician/athlete/model/influencer); no fame activities | 🟡 |
+| Special / fame careers | Actor, musician, writer, model, influencer, athlete (leagues), director | Fame-path jobs (actor/musician/athlete/model/influencer) **+ social-media/podcast/fame activities** | ✅ |
 | Military | Branches, ranks, deployment, court martial, medals | **Army/Navy/Air Force career tracks** (ranks); no deployments yet | 🟡 |
 | Royalty | Born/marry in, rule, throne, scandals, exile | **Born royal** (rare) + royal duties (stipend/fame); no throne politics yet | 🟡 |
 | Politics | Run mayor → president, campaigns, elections | Run for office (campaign → election) | 🟡 |
@@ -75,7 +75,7 @@ Full system-by-system table (v0.9.9). Counts + the gap-closure roadmap live in *
 | Assets | Real estate (+ mortgage/rent/flip), vehicles (+ insurance/upkeep), jewelry/art; haggle/appraise/pawn | Real estate, **vehicle dealership**, **valuables** (jewelry/art, appreciate); no haggle/pawn yet | 🟡 |
 | Money / finance | Bank, interest, loans, mortgages, cards, debt, bankruptcy, taxes, lottery, charity, will/inheritance | Loans, **mortgages**, bankruptcy, lottery, net worth, inheritance, income/crypto tax | 🟡 |
 | **Investing + insider trading** | Stocks/crypto/bonds/real estate; SEC "Martha" | Same, incl. insider trading + the Martha ribbon | ✅ |
-| Fame | Fame bar, social media/go-viral, books/albums/films, endorsements, scandals, paparazzi | Fame stat + Famous ribbon; no fame activities | 🟡 |
+| Fame | Fame bar, social media/go-viral, books/albums/films, endorsements, scandals, paparazzi | Fame bar + **social media** (5 platforms — followers, verified 🔵, sponsorships, podcasts), books/albums/films, go-viral, endorsements, brand-deal & cancel events | ✅ |
 | Pets | Pet store (many species), train/walk/vet/breed/shows | **Pet store (7 species)** + childhood adopt + interactions; pets age & die; no breed/shows | 🟡 |
 | Achievements / ribbons | Large set + end-of-life summary | 29 ribbons + death summary | 🟡 |
 | Countries / nationality | 150+ nations, languages, citizenship | 30 (cosmetic) | 🟡 |
@@ -212,5 +212,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.9.9 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.10.0 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*

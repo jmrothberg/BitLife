@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.9.9</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.10.0</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -417,7 +417,7 @@
     ],
     COUNTRIES: ["USA", "UK", "Canada", "Japan"],
     NAME_POOLS: { male: ["Liam", "Noah", "James"], female: ["Emma", "Olivia", "Mia"], nonbinary: ["Alex", "Sam", "Jordan"], surnames: ["Smith", "Lee", "Garcia", "Chen"] },
-    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." } },
+    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." }, verified: { label: "Verified", icon: "🔵", desc: "Got verified on social media." }, influencer: { label: "Influencer", icon: "📱", desc: "Reached 1,000,000 followers." } },
     EVENTS: {
       baby: [{ id: "fw", weight: 5, minAge: 1, maxAge: 2, noChoice: true, text: "You said your first words!", effects: { happiness: 6, smarts: 2 } }],
       child: [{ id: "bully", weight: 7, minAge: 6, maxAge: 12, text: "A bully keeps shoving you at school.", choices: [{ label: "Ignore it", effects: { happiness: -6 } }, { label: "Tell a teacher", effects: { happiness: 2 }, outcome: { chance: 0.55, success: { happiness: 7 }, fail: { happiness: -5 } } }, { label: "Fight back", effects: {}, outcome: { chance: 0.45, success: { happiness: 9, health: -3 }, fail: { health: -12, happiness: -7 } } }] }],
@@ -562,6 +562,7 @@
     game.crimeRecord = { arrests: 0, convictions: 0, notoriety: 0 };
     game.prison = { inPrison: false, sentenceYears: 0, yearsServed: 0, reason: null };
     game.flags = {}; game.achievements = []; game.pendingEvent = null; game.activeTip = null;
+    game.social = {};        // per-platform { followers, verified } — built lazily
     game.log = [];
     game.activitiesThisYear = [];
     if (talent) applyEffects(TALENTS[talent].boost); // head start toward the matching career
@@ -1715,6 +1716,7 @@
     ["prison term is self-consistent", g => !(g.prison && g.prison.inPrison) || (g.prison.yearsServed <= g.prison.sentenceYears)],
     ["relationship bars stay 0..100", g => (g.relationships || []).every(r => Number.isFinite(r.bar) && r.bar >= 0 && r.bar <= 100)],
     ["dead character has a cause of death", g => g.character.alive || !!g.character.causeOfDeath],
+    ["social followers are finite & ≥ 0", g => Object.values(g.social || {}).every(a => Number.isFinite(a.followers) && a.followers >= 0)],
     ["all granted achievements exist", g => (g.achievements || []).every(id => !!DATA.ACHIEVEMENTS[id])],
     ["achievements are unique", g => new Set(g.achievements || []).size === (g.achievements || []).length],
   ];
@@ -1750,6 +1752,10 @@
     { fn: "startBusiness", prison: "block", run: () => startBusiness("foodtruck") },
     { fn: "doLifestyle", prison: "block", run: () => doLifestyle("bar") },
     { fn: "royalDuties", prison: "block", run: () => royalDuties() },
+    { fn: "createAccount", prison: "block", run: () => createAccount("tiktalk") },
+    { fn: "socialPost", prison: "block", run: () => socialPost("tiktalk") },
+    { fn: "socialVerify", prison: "block", run: () => socialVerify("tiktalk") },
+    { fn: "socialSponsor", prison: "block", run: () => socialSponsor("tiktalk") },
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("gift") },
     { fn: "interact", prison: "allow", guard: "rel", run: () => relAct("conversation") },
   ];
@@ -2991,7 +2997,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const mh = document.createElement("div"); mh.className = "sub-h"; mh.textContent = "More"; wrap.appendChild(mh);
     wrap.appendChild(optRow("🩺 Health clinic", (c.conditions && c.conditions.length) ? `${c.conditions.length} condition(s) to treat` : "check & treat conditions", "Open", () => openClinic(), locked));
     wrap.appendChild(optRow("✈️ Travel", "take a vacation", "Open", () => openTravel(), locked || c.age < 1));
-    wrap.appendChild(optRow("🌟 Fame", "social media, books, music, film", "Open", () => openFame(), locked));
+    wrap.appendChild(optRow("📱 Social Media", "influencer, podcasts, sponsorships · 13+", "Open", () => openSocial(), locked || c.age < 13));
+    wrap.appendChild(optRow("🌟 Fame", "books, music, film & viral fame", "Open", () => openFame(), locked));
     wrap.appendChild(optRow("🏢 Business", game.flags.business ? "manage your business" : "start a business for yearly revenue", "Open", () => openBusiness(), locked || c.age < 18));
     wrap.appendChild(optRow("🗳️ Run for office", "campaign for political office · 25+ · $50k", "Run", () => runForOffice(), locked || c.age < 25 || c.money < 50000));
     wrap.appendChild(optRow("⚖️ File a lawsuit", "$2,000 fees · ~45% to win a settlement · 18+", "Sue", () => fileLawsuit(), locked || c.age < 18 || c.money < 2000));
@@ -3488,6 +3495,18 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     { id: "single", label: "Record a single", cost: 1000, fame: [4, 14], pay: [-1000, 60000], minAge: 14 },
     { id: "movie", label: "Star in a film", cost: 0, fame: [8, 25], pay: [5000, 500000], minAge: 18, needFame: 40 }
   ];
+  // Social media: build a following, get verified, land sponsorships. Followers are
+  // NOT money, so posting is a safe repeatable activity; only sponsorship deals turn
+  // reach into cash and those are gated once per platform per year (no faucet). A big
+  // reach feeds your fame — which unlocks elections, endorsements, and movie roles.
+  const MAX_FOLLOWERS = 500000000;   // realistic planet-wide ceiling; growth is logistic toward it
+  const SOCIAL_PLATFORMS = [
+    { id: "tiktalk",  name: "TikTalk",  emoji: "🎵", verb: "Post a short clip",  verify: 50000,  rate: 0.012 },
+    { id: "instapic", name: "InstaPic", emoji: "📸", verb: "Post a photo",       verify: 75000,  rate: 0.016 },
+    { id: "viewtube", name: "ViewTube", emoji: "🎬", verb: "Upload a video",     verify: 100000, rate: 0.022 },
+    { id: "chirp",    name: "Chirp",    emoji: "🐦", verb: "Post a hot take",    verify: 100000, rate: 0.008 },
+    { id: "podcast",  name: "Podcast",  emoji: "🎙️", verb: "Record an episode",  verify: 25000,  rate: 0.030 }
+  ];
   const LIFESTYLE = [
     { id: "movie", label: "🎬 Go to the movies", cost: 30, minAge: 5, eff: { happiness: 4 } },
     { id: "museum", label: "🏛️ Visit a museum", cost: 25, minAge: 6, eff: { happiness: 3, smarts: 3 } },
@@ -3681,11 +3700,87 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (c.age < 25) { showToast("Must be 25+."); return; }
     if (c.money < 50000) { showToast("A campaign costs $50,000."); return; }
     c.money -= 50000;
-    if (rngChance(0.25 + c.fame / 250 + c.stats.looks / 400 + c.stats.smarts / 500)) {
+    // A big social-media following helps get out the vote (capped contribution).
+    const reach = Math.min(0.2, totalFollowers() / 5000000);
+    if (rngChance(0.25 + c.fame / 250 + c.stats.looks / 400 + c.stats.smarts / 500 + reach)) {
       c.fame = clampStat(c.fame + 25); applyEffects({ happiness: 15 }); game.flags.officeHeld = true; grantAchievement("politician");
       log("event", `🗳️ You won the election and took office! 🎉`);
     } else { applyEffects({ happiness: -8 }); log("event", `🗳️ You lost the election (and your $50,000 deposit).`); }
     autosave(); renderAll();
+  }
+
+  // ── Social media / influencer / podcasts ──────────────────────────────────
+  function totalFollowers() { return Object.values(game.social || {}).reduce((s, a) => s + (a.followers || 0), 0); }
+  function fmtFollowers(n) { return n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + "M" : n >= 1e3 ? (n / 1e3).toFixed(n >= 1e5 ? 0 : 1) + "K" : String(Math.round(n)); }
+  function socialPlatform(id) { return SOCIAL_PLATFORMS.find(p => p.id === id); }
+  function socialMilestones() {
+    const t = totalFollowers();
+    if (t >= 100000) grantAchievement("celebrity");
+    if (t >= 1000000) grantAchievement("influencer");
+  }
+  function openSocial() {
+    if (!requireFree("use social media")) return;
+    const c = game.character;
+    if (c.age < 13) { showToast("Must be 13+ to make an account."); return; }
+    game.social = game.social || {};
+    modalShell("📱 Social Media", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Post to grow followers (free & repeatable), get verified, then cash in with sponsorship deals (once per platform each year). Reach builds fame — which helps with movies, endorsements and elections.</div><div class="sub-h">Total reach: ${fmtFollowers(totalFollowers())} followers · fame ${c.fame}/100</div><div id="soc"></div>`);
+    const wrap = $("soc");
+    for (const p of SOCIAL_PLATFORMS) {
+      const acct = game.social[p.id];
+      const h = document.createElement("div"); h.className = "sub-h";
+      h.textContent = acct ? `${p.emoji} ${p.name} — ${fmtFollowers(acct.followers)} followers${acct.verified ? " 🔵" : ""}` : `${p.emoji} ${p.name}`;
+      wrap.appendChild(h);
+      if (!acct) { wrap.appendChild(optRow("Create account", "free · start building a following", "Join", () => createAccount(p.id), false)); continue; }
+      wrap.appendChild(optRow(p.verb, "grow your followers (free, repeatable)", "Post", () => socialPost(p.id), false));
+      if (!acct.verified) wrap.appendChild(optRow("Get verified 🔵", `needs ${fmtFollowers(p.verify)} followers`, "Verify", () => socialVerify(p.id), acct.followers < p.verify));
+      const est = Math.round(acct.followers * p.rate);
+      wrap.appendChild(optRow("Sponsorship deal 💸", est > 0 ? `~${fmtMoney(est)} · once per year` : "grow followers first", "Promote", () => socialSponsor(p.id), acct.followers < 1000));
+    }
+  }
+  function createAccount(id) {
+    if (!requireFree("use social media")) return;
+    const c = game.character; if (c.age < 13) { showToast("Must be 13+."); return; }
+    const p = socialPlatform(id); if (!p) return;
+    game.social = game.social || {};
+    if (game.social[id]) { showToast("You already have that account."); return; }
+    game.social[id] = { followers: rngInt(0, 80), verified: false };
+    log("event", `${p.emoji} You joined ${p.name}.`);
+    autosave(); renderAll(); openSocial();
+  }
+  function socialPost(id) {
+    if (!requireFree("use social media")) return;
+    const p = socialPlatform(id); const acct = (game.social || {})[id]; if (!p || !acct) { showToast("Create the account first."); return; }
+    const c = game.character;
+    const viral = rngChance(0.10 + c.fame / 400 + c.stats.looks / 1500);
+    const head = Math.max(0, 1 - acct.followers / MAX_FOLLOWERS);   // logistic: growth slows toward the ceiling
+    let gain = rngInt(20, 220) + Math.round(acct.followers * (0.015 + c.fame / 1200 + c.stats.looks / 3000) * head);
+    if (viral) gain = Math.round(gain * rngInt(3, 8));
+    const flop = !viral && rngChance(0.12);
+    if (flop) { acct.followers = Math.max(0, acct.followers - rngInt(10, 120)); applyEffects({ happiness: -1 }); log("event", `${p.emoji} Your ${p.name} post flopped — lost a few followers.`); }
+    else { acct.followers = Math.min(MAX_FOLLOWERS, acct.followers + gain); c.fame = clampStat(c.fame + (viral ? rngInt(2, 6) : rngInt(0, 2))); applyEffects({ happiness: viral ? 4 : 1 }); grantAchievement("celebrity"); log("event", `${p.emoji} ${p.verb} on ${p.name}: ${viral ? "it went viral! " : ""}+${fmtFollowers(gain)} followers.`); }
+    socialMilestones();
+    autosave(); renderAll(); openSocial();
+  }
+  function socialVerify(id) {
+    if (!requireFree("use social media")) return;
+    const p = socialPlatform(id); const acct = (game.social || {})[id]; if (!p || !acct) return;
+    if (acct.verified) { showToast("Already verified."); return; }
+    if (acct.followers < p.verify) { showToast(`Need ${fmtFollowers(p.verify)} followers.`); return; }
+    acct.verified = true; game.character.fame = clampStat(game.character.fame + 5); applyEffects({ happiness: 5 });
+    grantAchievement("verified");
+    log("event", `🔵 You got verified on ${p.name}!`);
+    autosave(); renderAll(); openSocial();
+  }
+  function socialSponsor(id) {
+    if (!requireFree("use social media")) return;
+    const p = socialPlatform(id); const acct = (game.social || {})[id]; if (!p || !acct) return;
+    if (acct.followers < 1000) { showToast("You need at least 1,000 followers."); return; }
+    if (!oncePerYear("sponsor_" + id)) return;          // one deal per platform per year (no faucet)
+    const pay = Math.max(1, Math.round(acct.followers * p.rate * rngFloat(0.5, 1.5) * (acct.verified ? 1.5 : 1)));
+    game.character.money += pay; game.character.fame = clampStat(game.character.fame + rngInt(0, 2));
+    acct.followers = Math.min(MAX_FOLLOWERS, acct.followers + rngInt(0, Math.round(acct.followers * 0.02)));   // a deal nudges reach a touch
+    log("event", `💸 Sponsored ${p.name} ${id === "podcast" ? "ad read" : "post"} — earned ${fmtMoney(pay)}.`);
+    autosave(); renderAll(); openSocial();
   }
 
   function doLifestyle(id) {
