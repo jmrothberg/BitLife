@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content (v0.11.0). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
+  "_comment": "BitLife-style premade content (v0.12.0). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -52,7 +52,9 @@
     "collector":   { "label": "Collector",     "icon": "💎", "desc": "Bought a valuable." },
     "verified":    { "label": "Verified",      "icon": "🔵", "desc": "Got verified on social media." },
     "influencer":  { "label": "Influencer",    "icon": "📱", "desc": "Reached 1,000,000 followers." },
-    "socialite":   { "label": "Socialite",     "icon": "🧑‍🤝‍🧑", "desc": "Had 5+ friends at once." }
+    "socialite":   { "label": "Socialite",     "icon": "🧑‍🤝‍🧑", "desc": "Had 5+ friends at once." },
+    "veteran":     { "label": "Veteran",       "icon": "🎖️", "desc": "Served a military deployment." },
+    "warHero":     { "label": "War Hero",      "icon": "🏅", "desc": "Earned 3+ military medals." }
   },
 
   "EVENTS": {
@@ -540,9 +542,9 @@
     { "id": "athlete",    "title": "Pro Athlete",       "baseSalary": 55000,  "requires": { "minAge": 16 }, "levels": ["Amateur", "Pro Rookie", "Starter", "All-Star", "Legend"], "raisePerLevel": 0.38, "fameGain": 10 },
     { "id": "model",      "title": "Model",             "baseSalary": 38000,  "requires": { "minAge": 16 }, "levels": ["New Face", "Runway Model", "Brand Model", "Supermodel"], "raisePerLevel": 0.34, "fameGain": 7 },
     { "id": "influencer", "title": "Social Media Influencer", "baseSalary": 22000, "requires": { "minAge": 14 }, "levels": ["Newbie", "Creator", "Influencer", "Star Creator", "Viral Icon"], "raisePerLevel": 0.5, "fameGain": 9 },
-    { "id": "armySoldier", "title": "Soldier (Army)",     "baseSalary": 35000,  "requires": { "minAge": 18 }, "levels": ["Private", "Corporal", "Sergeant", "Lieutenant", "Captain", "Major"], "raisePerLevel": 0.13 },
-    { "id": "navySailor",  "title": "Sailor (Navy)",      "baseSalary": 36000,  "requires": { "minAge": 18 }, "levels": ["Seaman", "Petty Officer", "Chief", "Ensign", "Lieutenant", "Commander"], "raisePerLevel": 0.13 },
-    { "id": "airForce",    "title": "Airman (Air Force)", "baseSalary": 40000,  "requires": { "minAge": 18 }, "levels": ["Airman", "Senior Airman", "Sergeant", "Lieutenant", "Captain", "Colonel"], "raisePerLevel": 0.14 },
+    { "id": "armySoldier", "title": "Soldier (Army)",     "baseSalary": 35000,  "requires": { "minAge": 18 }, "levels": ["Private", "Corporal", "Sergeant", "Lieutenant", "Captain", "Major"], "raisePerLevel": 0.13, "military": true },
+    { "id": "navySailor",  "title": "Sailor (Navy)",      "baseSalary": 36000,  "requires": { "minAge": 18 }, "levels": ["Seaman", "Petty Officer", "Chief", "Ensign", "Lieutenant", "Commander"], "raisePerLevel": 0.13, "military": true },
+    { "id": "airForce",    "title": "Airman (Air Force)", "baseSalary": 40000,  "requires": { "minAge": 18 }, "levels": ["Airman", "Senior Airman", "Sergeant", "Lieutenant", "Captain", "Colonel"], "raisePerLevel": 0.14, "military": true },
     { "id": "electrician", "title": "Electrician",        "baseSalary": 48000,  "requires": { "minAge": 18 }, "levels": ["Apprentice", "Journeyman", "Electrician", "Master Electrician"], "raisePerLevel": 0.13 },
     { "id": "plumber",     "title": "Plumber",            "baseSalary": 46000,  "requires": { "minAge": 18 }, "levels": ["Apprentice", "Journeyman", "Plumber", "Master Plumber"], "raisePerLevel": 0.13 },
     { "id": "mechanic",    "title": "Auto Mechanic",      "baseSalary": 42000,  "requires": { "minAge": 18 }, "levels": ["Trainee", "Mechanic", "Senior Mechanic", "Shop Owner"], "raisePerLevel": 0.13 },
