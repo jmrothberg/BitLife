@@ -48,26 +48,26 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[AGENTS.md](./AGENTS.md)**.
 
-Full system-by-system table (v0.15.0). Counts + the gap-closure roadmap live in **[AGENTS.md](./AGENTS.md)** (the contributor/LLM guide).
+Full system-by-system table (v0.20.0). Counts + the gap-closure roadmap live in **[AGENTS.md](./AGENTS.md)** (the contributor/LLM guide).
 
 | System | Real BitLife | This game | Status |
 |---|---|---|---|
 | Core stats | Happiness / Health / Smarts / Looks (+ Fame, hidden Karma) | All four + Fame; no Karma | 🟡 |
 | Character creation | Name, gender, country/city; Bitizen custom looks | Name, gender, country, **talent**, **zodiac**, **seed** | ✅ |
-| Age-up + random events | Hundreds per stage, multi-choice + outcomes | 82 events across 7 life stages | 🟡 |
+| Age-up + random events | Hundreds per stage, multi-choice + outcomes | 155 events across 7 life stages, many state-gated (royal court, family, business, military) | 🟡 |
 | School & education | Daycare → uni / grad / med / law; majors, GPA, clubs, sports, class president, loans, scholarships, dropout | Auto K-12 + college, 12 degrees, study/tutor | 🟡 |
 | Careers (regular) | 100+ jobs; ladders, performance, fired, retire, unions, lawsuits | 43 jobs; apply / work / promote / quit | 🟡 |
 | Special / fame careers | Actor, musician, writer, model, influencer, athlete (leagues), director | Fame-path jobs (actor/musician/athlete/model/influencer) **+ social-media/podcast/fame activities** | ✅ |
 | Military | Branches, ranks, deployment, court martial, medals | **Army/Navy/Air Force tracks + deployments** (hazard pay, medals 🏅, wounds/PTSD, KIA risk) | ✅ |
-| Royalty | Born/marry in, rule, throne, scandals, exile | **Born royal** (rare) + royal duties (stipend/fame); no throne politics yet | 🟡 |
+| Royalty | Born/marry in, rule, throne, scandals, exile | **Born royal** or **marry into royalty** → ascend the throne; **rule** (raise/cut taxes, festivals, wage war, name an heir, abdicate) with **approval & treasury**; overthrow/exile; **dynastic succession** | ✅ |
 | Politics | Run mayor → president, campaigns, elections | Run for office (campaign → election) | 🟡 |
 | Business ownership | Start/own businesses, employees | **Start a business** (4 types) + **hire/fire employees** (payroll vs. output, capped) + sell with goodwill | ✅ |
 | Crime | ~15 crimes; interactive burglary/heists; gangs/mafia; serial killer | 11 crimes + **live burglary & bank/jewelry heists**, **gangs** (→ boss), lawyers | 🟡 |
-| Prison | Escape (interactive), riots, gangs, parole, contraband, death row | Live escape mini-game + **parole, appeal, prison jobs**; no riots/contraband | 🟡 |
+| Prison | Escape (interactive), riots, gangs, parole, contraband, death row | Live escape mini-game + **parole, appeal, prison jobs, riots, contraband trading & prison crews** (respect 🪪 softens riots / aids parole) | ✅ |
 | Justice / lawsuits | Lawyers, trials, plea deals, sue / get sued | Lawyer, parole, appeal, prison jobs, **file a lawsuit** + **get-sued event** (settle/fight) | 🟡 |
 | Casino & mini-games | Blackjack/slots/roulette/video poker…; escape & heist mini-games | 7 casino games (slots/blackjack/roulette/horses **live**) + prison/fight/burglary mini-games | ✅ ➕ |
 | Fights | Event stat-roll | A live **Street Fighter-style brawler** (punch/kick/jump/duck) | ➕ |
-| Relationships | Full family tree; friends/enemies/coworkers; dating app; marriage/prenup/divorce/custody/alimony; affairs | Family + **make friends / coworkers / enemies** (befriend, prank, block, reconcile), **Find Love** dating, move-in, vacation, cheat, marry, kids, **divorce + prenup + asset split**; aging & death; no custody/alimony yet | 🟡 |
+| Relationships | Full family tree; friends/enemies/coworkers; dating app; marriage/prenup/divorce/custody/alimony; affairs | Family + **make friends / coworkers / enemies** (befriend, prank, block, reconcile), **Find Love** dating, move-in, vacation, cheat, marry, kids, **divorce + prenup + asset split + custody & alimony/child support**; aging & death | ✅ |
 | Reproduction | Pregnancy, adoption, IVF, surrogacy, donors, complications | Have-a-baby via partner **+ adopt / IVF (twins) / surrogacy** (single or partnered) | ✅ |
 | Health & medical | 100s of diseases, specialists, surgeries, mental health, addictions/rehab, STDs, disabilities | Disease system + **addictions & STDs** (from bars/casino/cheating) treated at the clinic | 🟡 |
 | Activities / lifestyle | Gym/library/spa/movies/club/museum/concert; tattoos, religion, astrology | Mind & Body / Doctor / Education **+ nightlife, museum, concert, shopping, tattoo, religion** | 🟡 |
@@ -77,7 +77,7 @@ Full system-by-system table (v0.15.0). Counts + the gap-closure roadmap live in 
 | **Investing + insider trading** | Stocks/crypto/bonds/real estate; SEC "Martha" | Same, incl. insider trading + the Martha ribbon | ✅ |
 | Fame | Fame bar, social media/go-viral, books/albums/films, endorsements, scandals, paparazzi | Fame bar + **social media** (5 platforms — followers, verified 🔵, sponsorships, podcasts), books/albums/films, go-viral, endorsements, brand-deal & cancel events | ✅ |
 | Pets | Pet store (many species), train/walk/vet/breed/shows | **Pet store (7 species)** + adopt, **walk/train/vet**, **breed** (same species) & **pet shows** (training → prizes 🏆); pets age & die | ✅ |
-| Achievements / ribbons | Large set + end-of-life summary | 37 ribbons + death summary | 🟡 |
+| Achievements / ribbons | Large set + end-of-life summary | 40 ribbons + death summary | 🟡 |
 | Countries / nationality | 150+ nations, languages, citizenship | 30 (cosmetic) | 🟡 |
 | Generations / dynasties | Continue as your heir; inheritance | **Continue as your heir** + inheritance (estate tax) | 🟡 |
 | God Mode / Time Machine / Surrender | Edit stats, rewind a year, restart | **God Mode** + **Time Machine** (rewind one year) + New Life | ✅ |
@@ -212,5 +212,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.15.0 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.20.0 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*

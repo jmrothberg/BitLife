@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.15.0</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.20.0</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -417,7 +417,7 @@
     ],
     COUNTRIES: ["USA", "UK", "Canada", "Japan"],
     NAME_POOLS: { male: ["Liam", "Noah", "James"], female: ["Emma", "Olivia", "Mia"], nonbinary: ["Alex", "Sam", "Jordan"], surnames: ["Smith", "Lee", "Garcia", "Chen"] },
-    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." }, verified: { label: "Verified", icon: "🔵", desc: "Got verified on social media." }, influencer: { label: "Influencer", icon: "📱", desc: "Reached 1,000,000 followers." }, socialite: { label: "Socialite", icon: "🧑‍🤝‍🧑", desc: "Had 5+ friends at once." }, veteran: { label: "Veteran", icon: "🎖️", desc: "Served a military deployment." }, warHero: { label: "War Hero", icon: "🏅", desc: "Earned 3+ military medals." }, bigFamily: { label: "Big Family", icon: "👨‍👩‍👧‍👦", desc: "Raised 4+ children." }, tycoon: { label: "Tycoon", icon: "🏭", desc: "Grew a business to full staff." }, bestInShow: { label: "Best in Show", icon: "🏆", desc: "Won a pet show." } },
+    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." }, verified: { label: "Verified", icon: "🔵", desc: "Got verified on social media." }, influencer: { label: "Influencer", icon: "📱", desc: "Reached 1,000,000 followers." }, socialite: { label: "Socialite", icon: "🧑‍🤝‍🧑", desc: "Had 5+ friends at once." }, veteran: { label: "Veteran", icon: "🎖️", desc: "Served a military deployment." }, warHero: { label: "War Hero", icon: "🏅", desc: "Earned 3+ military medals." }, bigFamily: { label: "Big Family", icon: "👨‍👩‍👧‍👦", desc: "Raised 4+ children." }, tycoon: { label: "Tycoon", icon: "🏭", desc: "Grew a business to full staff." }, bestInShow: { label: "Best in Show", icon: "🏆", desc: "Won a pet show." }, shotCaller: { label: "Shot Caller", icon: "🪪", desc: "Earned respect behind bars." }, monarch: { label: "Monarch", icon: "👑", desc: "Ascended to a throne." }, tyrant: { label: "Tyrant", icon: "🗡️", desc: "Ruled with the people against you." } },
     EVENTS: {
       baby: [{ id: "fw", weight: 5, minAge: 1, maxAge: 2, noChoice: true, text: "You said your first words!", effects: { happiness: 6, smarts: 2 } }],
       child: [{ id: "bully", weight: 7, minAge: 6, maxAge: 12, text: "A bully keeps shoving you at school.", choices: [{ label: "Ignore it", effects: { happiness: -6 } }, { label: "Tell a teacher", effects: { happiness: 2 }, outcome: { chance: 0.55, success: { happiness: 7 }, fail: { happiness: -5 } } }, { label: "Fight back", effects: {}, outcome: { chance: 0.45, success: { happiness: 9, health: -3 }, fail: { health: -12, happiness: -7 } } }] }],
@@ -528,6 +528,44 @@
     genius:   { label: "Genius",   boost: { smarts: 18 } }
   };
 
+  // ── Canonical state schema ────────────────────────────────────────────────
+  // ONE registry of every OPTIONAL top-level subsystem field, each with a factory
+  // for its default. `ensureState(game)` fills any a save / new life / heir is
+  // missing (non-destructive — it never overwrites an existing value). This is the
+  // single fix for the whole "an old save or a fresh heir lacks a field some
+  // feature reads" bug class: it runs at every load chokepoint (new life, loadLife,
+  // continueAsHeir). RULE: add a new subsystem ⇒ add its default HERE and its truth
+  // to INVARIANTS, and every later feature can just read the field, always present.
+  const STATE_SCHEMA = {
+    relationships:      () => [],
+    assets:             () => [],
+    portfolio:          () => [],
+    crimeRecord:        () => ({ arrests: 0, convictions: 0, notoriety: 0 }),
+    prison:             () => ({ inPrison: false, sentenceYears: 0, yearsServed: 0, reason: null, respect: 0, contraband: 0 }),
+    flags:              () => ({}),
+    achievements:       () => [],
+    social:             () => ({}),         // per-platform { followers, verified } — built lazily
+    military:           () => ({ deployments: 0, medals: 0 }),
+    business:           () => null,         // { id, employees } once started
+    obligations:        () => [],           // post-divorce alimony / child support (tickObligations)
+    throne:             () => null,         // monarchy sim: { title, monarch, approval, treasury }
+    log:                () => [],
+    activitiesThisYear: () => [],
+    loanBalance:        () => 0,
+    mortgageBalance:    () => 0,
+  };
+  // Fill any missing top-level subsystem field + a couple of nested fields added
+  // after older saves were written. Non-destructive: only fills what's absent.
+  function ensureState(g) {
+    if (!g) return g;
+    for (const k in STATE_SCHEMA) if (!(k in g)) g[k] = STATE_SCHEMA[k]();
+    if (g.prison && g.prison.respect == null) g.prison.respect = 0;
+    if (g.prison && g.prison.contraband == null) g.prison.contraband = 0;
+    if (g.military && g.military.deployments == null) g.military.deployments = 0;
+    if (g.military && g.military.medals == null) g.military.medals = 0;
+    return g;
+  }
+
   function createNewLife(opts) {
     const seed = (opts.seed && /^\d+$/.test(opts.seed)) ? parseInt(opts.seed, 10) : (Math.floor(Math.random() * 4294967295));
     game = { schemaVersion: 1, seed: seed >>> 0, rngState: seed >>> 0 };
@@ -582,6 +620,7 @@
     }
     // rare: born into royalty (a title + a head start)
     if (rngChance(0.03)) { game.flags.royal = true; game.character.money += 500000; grantAchievement("royalty"); log("system", "👑 You were born into a royal family!"); }
+    ensureState(game);   // backfill any optional subsystem field (obligations, throne, …)
     const talentBit = talent ? ` Born with a gift for ${TALENTS[talent].label.toLowerCase()}.` : "";
     log("system", `${name} was born in ${country} under ${ZODIAC_EMOJI[zodiac] || ""} ${zodiac}.${talentBit}`, "birth");
     return game;
@@ -691,6 +730,7 @@
         game.prison.reason = null;
       } else {
         log("system", `Year ${game.prison.yearsServed} of ${game.prison.sentenceYears} in prison.`);
+        prisonYearlyEvent();   // riots / shakedowns inside (fireYearlyEvent self-skips in prison)
       }
     }
 
@@ -744,10 +784,26 @@
     }
   }
 
+  // Optional per-event preconditions: an event may carry `"cond": "royal"` (or any
+  // key below) and it only enters the pool when that predicate holds — so royal-court,
+  // family, military and business beats fire only when they make sense. Unknown cond ⇒
+  // never fires (a typo hides the event rather than spamming it everywhere).
+  const EVENT_CONDS = {
+    royal:      g => !!g.flags.royal,
+    monarch:    g => !!(g.throne && g.throne.monarch),
+    hasJob:     g => !!g.character.job,
+    married:    g => (g.relationships || []).some(r => r.alive && r.flags && r.flags.married),
+    hasChild:   g => (g.relationships || []).some(r => r.alive && r.relation === "child"),
+    hasPartner: g => (g.relationships || []).some(r => r.alive && r.flags && (r.flags.dating || r.flags.married)),
+    veteran:    g => !!(g.military && g.military.deployments > 0),
+    business:   g => !!currentBusiness(),
+  };
+  function eventCondMet(e) { return !e.cond || (EVENT_CONDS[e.cond] && EVENT_CONDS[e.cond](game)); }
+
   function fireYearlyEvent() {
     if (jailed()) return;   // no roommate drama / phone scams / parties in a cell
     const stage = game.character.lifeStage;
-    const pool = (DATA.EVENTS[stage] || []).filter(e => game.character.age >= (e.minAge ?? 0) && game.character.age <= (e.maxAge ?? 999));
+    const pool = (DATA.EVENTS[stage] || []).filter(e => game.character.age >= (e.minAge ?? 0) && game.character.age <= (e.maxAge ?? 999) && eventCondMet(e));
     if (!pool.length || rngChance(0.25)) return; // some quiet years
     const ev = rngWeighted(pool);
     if (ev.noChoice) {
@@ -1042,7 +1098,7 @@
     if (!game.prison.inPrison) return;
     const p = game.prison; p.paroleTries = (p.paroleTries || 0) + 1;
     const served = p.yearsServed / Math.max(1, p.sentenceYears);
-    if (served >= 0.4 && rngChance(0.2 + served * 0.5)) {
+    if (served >= 0.4 && rngChance(0.2 + served * 0.5 + (p.respect || 0) / 500)) {
       p.inPrison = false; p.reason = null;
       log("crime", `⚖️ Parole granted after ${p.yearsServed} year(s) — you're free!`);
     } else { log("crime", "⚖️ Parole denied. Keep serving your time."); applyEffects({ happiness: -3 }); }
@@ -1061,6 +1117,58 @@
     if (!oncePerYear("prisonjob")) return;
     const pay = rngInt(50, 300); game.character.money += pay; applyEffects({ happiness: 2 });
     log("crime", `🧹 You worked a prison job this year and earned ${fmtMoney(pay)}.`);
+    autosave(); renderAll();
+  }
+  // ── Prison depth: life inside has its own yearly beat + two prison-only actions ──
+  // fireYearlyEvent() self-skips in prison, so this is the dedicated inside-the-walls
+  // hook (called from ageUp's prison branch). prison.respect (0..100) is protection:
+  // it softens riot injuries, helps parole, and lowers the odds of being caught.
+  function prisonYearlyEvent() {
+    const p = game.prison; if (!p || !p.inPrison) return;
+    const respect = p.respect || 0;
+    const roll = rng();
+    if (roll < 0.18) {                                  // a riot breaks out
+      if (respect >= 50 && rngChance(0.5)) {
+        if (rngChance(0.12)) { p.inPrison = false; p.reason = null; grantAchievement("escapee"); log("crime", "🔥 A riot erupted — in the chaos you slipped out. You're free!"); return; }
+        applyEffects({ happiness: -3 }); log("crime", "🔥 A riot broke out, but your reputation kept you safe.");
+      } else {
+        const hurt = Math.max(2, 12 - Math.round(respect / 10));
+        applyEffects({ health: -hurt, happiness: -6 });
+        if (rngChance(0.25)) addCondition("prisoninjury", "a prison injury", 2, 2, 1500, false);
+        if (rngChance(0.30)) { p.sentenceYears += 1; log("crime", "🔥 A riot broke out — you were hurt and caught up in it (+1 year)."); }
+        else log("crime", "🔥 A riot broke out — you took a beating staying out of it.");
+      }
+    } else if (roll < 0.30) {                           // guard shakedown
+      if ((p.contraband || 0) > 0) { p.contraband = 0; applyEffects({ happiness: -4 }); log("crime", "🔦 A guard shakedown found your stash — confiscated."); }
+      else { applyEffects({ happiness: -2 }); log("crime", "🔦 A guard shakedown turned your cell over."); }
+    }
+    // otherwise an uneventful year inside
+  }
+  function prisonContraband() {                         // smuggle & trade — risky money + respect
+    const p = game.prison; if (!p.inPrison) { showToast("Only while in prison."); return; }
+    if (!oncePerYear("contraband")) return;
+    const c = game.character;
+    if (rngChance(0.30 - (p.respect || 0) / 500)) {     // caught → sentence grows
+      p.sentenceYears += rngInt(1, 3); applyEffects({ happiness: -6 });
+      log("crime", "📦 You were caught trading contraband — your sentence grew.");
+    } else {
+      const profit = rngInt(200, 1500); c.money += profit;
+      p.contraband = (p.contraband || 0) + 1; p.respect = clampStat((p.respect || 0) + rngInt(2, 6));
+      log("crime", `📦 You smuggled and traded contraband for ${fmtMoney(profit)} (respect ${p.respect}).`);
+    }
+    autosave(); renderAll();
+  }
+  function joinPrisonGang() {                           // build respect with a crew
+    const p = game.prison; if (!p.inPrison) { showToast("Only while in prison."); return; }
+    if (!oncePerYear("prisongang")) return;
+    if (rngChance(0.6)) {
+      p.respect = clampStat((p.respect || 0) + rngInt(8, 18)); applyEffects({ happiness: 2 });
+      if (p.respect >= 70) grantAchievement("shotCaller");
+      log("crime", `🤝 You earned respect with a prison crew (respect ${p.respect}).`);
+    } else {
+      applyEffects({ health: -rngInt(4, 10), happiness: -4 }); p.respect = clampStat((p.respect || 0) - 4);
+      log("crime", "🤝 A prison crew tested you — you took a beating.");
+    }
     autosave(); renderAll();
   }
 
@@ -1766,6 +1874,12 @@
     ["pet training stays 0..100", g => (g.relationships || []).filter(r => r.relation === "pet").every(r => r.training == null || (Number.isFinite(r.training) && r.training >= 0 && r.training <= 100))],
     ["all granted achievements exist", g => (g.achievements || []).every(id => !!DATA.ACHIEVEMENTS[id])],
     ["achievements are unique", g => new Set(g.achievements || []).size === (g.achievements || []).length],
+    ["state has all schema fields", g => Object.keys(STATE_SCHEMA).every(k => k in g)],
+    ["obligations are finite & ≥ 0", g => (g.obligations || []).every(o => Number.isFinite(o.annual) && o.annual >= 0 && Number.isFinite(o.yearsLeft) && o.yearsLeft >= 0)],
+    ["custody is a known value", g => (g.relationships || []).filter(r => r.relation === "child").every(r => r.custody == null || ["you", "ex", "joint"].includes(r.custody))],
+    ["prison respect stays 0..100", g => { const v = g.prison && g.prison.respect; return v == null || (Number.isFinite(v) && v >= 0 && v <= 100); }],
+    ["prison contraband finite & ≥ 0", g => { const v = g.prison && g.prison.contraband; return v == null || (Number.isFinite(v) && v >= 0); }],
+    ["throne approval 0..100 & treasury ≥ 0", g => !g.throne || (Number.isFinite(g.throne.approval) && g.throne.approval >= 0 && g.throne.approval <= 100 && Number.isFinite(g.throne.treasury) && g.throne.treasury >= 0)],
   ];
   function checkInvariants(label, ok) {
     for (const [name, pred] of INVARIANTS) {
@@ -1812,7 +1926,13 @@
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("gift") },
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("prank") },
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("petShow") },
+    { fn: "interact", prison: "block", guard: "rel", run: () => relAct("divorce") },
     { fn: "interact", prison: "allow", guard: "rel", run: () => relAct("conversation") },
+    { fn: "prisonContraband", prison: "allow", run: () => prisonContraband() },
+    { fn: "joinPrisonGang", prison: "allow", run: () => joinPrisonGang() },
+    { fn: "royalDecree", prison: "block", run: () => royalDecree("festival") },
+    { fn: "nameThroneHeir", prison: "block", run: () => nameThroneHeir() },
+    { fn: "abdicate", prison: "block", run: () => abdicate() },
   ];
 
   // In-browser self-test: data-integrity asserts + simulate several seeded lives
@@ -2116,12 +2236,12 @@
         break;
       case "propose":
         if (r.bar < 60) { showToast("They're not ready."); return; }
-        if (rngChance(0.5 + r.bar / 300)) { r.flags.married = true; r.relation = "spouse"; r.bar = clampStat(r.bar + 15); applyEffects({ happiness: 12 }); grantAchievement("wedded"); log("event", `${r.name} said YES! You're married! 💍`, "wedding"); }
+        if (rngChance(0.5 + r.bar / 300)) { r.flags.married = true; r.relation = "spouse"; r.bar = clampStat(r.bar + 15); applyEffects({ happiness: 12 }); grantAchievement("wedded"); marryIntoRoyalty(r); log("event", `${r.name} said YES! You're married! 💍`, "wedding"); }
         else log("relationship", `${r.name} declined your proposal.`);
         break;
       case "proposePrenup":
         if (r.bar < 60) { showToast("They're not ready."); return; }
-        if (rngChance(0.4 + r.bar / 300)) { r.flags.married = true; r.flags.prenup = true; r.relation = "spouse"; r.bar = clampStat(r.bar + 10); applyEffects({ happiness: 10 }); grantAchievement("wedded"); log("event", `${r.name} signed a prenup and married you! 💍📝`, "wedding"); }
+        if (rngChance(0.4 + r.bar / 300)) { r.flags.married = true; r.flags.prenup = true; r.relation = "spouse"; r.bar = clampStat(r.bar + 10); applyEffects({ happiness: 10 }); grantAchievement("wedded"); marryIntoRoyalty(r); log("event", `${r.name} signed a prenup and married you! 💍📝`, "wedding"); }
         else { r.bar = clampStat(r.bar - 5); log("relationship", `${r.name} was put off by the prenup and declined.`); }
         break;
       case "divorce": {
@@ -2132,7 +2252,9 @@
         if (!r.flags.prenup) { lost = Math.max(0, Math.round(netWorth() * 0.4)); c.money -= lost; }
         r.flags.married = false; r.flags.dating = false; r.relation = "exspouse"; r.bar = clampStat(r.bar - 30);
         applyEffects({ happiness: -12 });
-        log("event", `You divorced ${r.name}.${r.flags.prenup ? " Your prenup protected your assets." : (lost ? ` The settlement cost you $${lost.toLocaleString()}.` : "")}`);
+        // Custody of any minor children + ongoing obligations (see tickObligations).
+        const custody = settleCustody(r);
+        log("event", `You divorced ${r.name}.${r.flags.prenup ? " Your prenup protected your assets." : (lost ? ` The settlement cost you $${lost.toLocaleString()}.` : "")}${custody}`);
         break;
       }
       case "haveBaby": {
@@ -2905,6 +3027,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     try {
       const raw = localStorage.getItem("bitlife_save_" + slot); if (!raw) return false;
       game = JSON.parse(raw); game._slot = slot;
+      ensureState(game);   // migrate older saves: add any subsystem field they predate
       _rng = mulberry32(game.rngState || game.seed || 1);
       relId = Math.max(1, ...game.relationships.map(r => r.id || 0)) + 1;
       return true;
@@ -3112,6 +3235,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     wrap.appendChild(optRow("🗳️ Run for office", "campaign for political office · 25+ · $50k", "Run", () => runForOffice(), locked || c.age < 25 || c.money < 50000));
     wrap.appendChild(optRow("⚖️ File a lawsuit", "$2,000 fees · ~45% to win a settlement · 18+", "Sue", () => fileLawsuit(), locked || c.age < 18 || c.money < 2000));
     if (game.flags.royal) wrap.appendChild(optRow("👑 Royal duties", "perform duties for fame & a treasury stipend", "Do", () => royalDuties(), locked));
+    if (game.throne && game.throne.monarch) wrap.appendChild(optRow("👑 Throne Room", `rule your realm — decrees, festivals, war, succession · approval ${game.throne.approval}/100`, "Enter", () => openThrone(), locked));
   }
 
   function openCareers() {
@@ -3138,7 +3262,9 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       $("crime-list").appendChild(optRow("⚖️ Request parole", "Ask the board for early release (better odds after serving ~40%).", "Request", () => requestParole(), false));
       $("crime-list").appendChild(optRow("⚖️ Appeal conviction", "$15,000 · ~30% chance to overturn it.", "Appeal", () => appealConviction(), game.character.money < 15000));
       $("crime-list").appendChild(optRow("🧹 Work a prison job", "Earn a little money this year.", "Work", () => prisonJob(), false));
-      const hint = document.createElement("div"); hint.className = "sub-h"; hint.textContent = "While locked up"; $("crime-list").prepend(hint);
+      $("crime-list").appendChild(optRow("📦 Trade contraband", `Smuggle for cash & respect — get caught and your sentence grows. Respect: ${game.prison.respect || 0}/100.`, "Trade", () => prisonContraband(), false));
+      $("crime-list").appendChild(optRow("🤝 Join a prison crew", "Build respect (softens riots, helps parole) — but they'll test you.", "Join", () => joinPrisonGang(), false));
+      const hint = document.createElement("div"); hint.className = "sub-h"; hint.textContent = `While locked up · respect ${game.prison.respect || 0}/100`; $("crime-list").prepend(hint);
     }
     for (const cr of DATA.ACTIVITIES.crime) {
       const gated = game.character.age < cr.minAge || game.prison.inPrison;
@@ -3200,7 +3326,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     for (const r of alive) {
       const div = document.createElement("div"); div.className = "opt"; div.style.flexWrap = "wrap";
       const petInfo = r.relation === "pet" ? ` · 🦴 ${r.training || 0}` : "";
-      div.innerHTML = `<div class="info" style="flex-basis:100%"><div class="t">${r.name} <span style="color:var(--text-muted);font-size:11px">(${r.relation}, age ${r.age}${petInfo})</span></div><div class="bar-track" style="margin-top:4px"><div class="bar-fill" style="width:${r.bar}%;background:var(--looks)"></div></div></div>`;
+      const custodyInfo = (r.relation === "child" && r.custody && (r.age || 0) < 18) ? ` · 👶 custody: ${r.custody === "you" ? "you" : r.custody === "ex" ? "ex" : "joint"}` : "";
+      div.innerHTML = `<div class="info" style="flex-basis:100%"><div class="t">${r.name} <span style="color:var(--text-muted);font-size:11px">(${r.relation}, age ${r.age}${petInfo}${custodyInfo})</span></div><div class="bar-track" style="margin-top:4px"><div class="bar-fill" style="width:${r.bar}%;background:var(--looks)"></div></div></div>`;
       const acts = document.createElement("div"); acts.style.cssText = "display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;flex-basis:100%";
       const add = (label, action) => { const b = document.createElement("button"); b.textContent = label; b.style.cssText = "flex:1 1 30%;font-size:12px;padding:6px"; b.onclick = () => interact(r.id, action); acts.appendChild(b); };
       if (r.relation === "pet") {
@@ -3230,7 +3357,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
 
   function openAssets() {
     if (!requireFree("manage your money")) return;
-    let html = `<div class="sub-h">Money: ${fmtMoney(game.character.money)}${(game.loanBalance > 0) ? ` · debt ${fmtMoney(game.loanBalance)}` : ""}${(game.mortgageBalance > 0) ? ` · mortgage ${fmtMoney(game.mortgageBalance)}` : ""} · net worth ${fmtMoney(netWorth())}</div>`;
+    const oblTotal = (game.obligations || []).reduce((s, o) => s + (o.annual || 0), 0);
+    let html = `<div class="sub-h">Money: ${fmtMoney(game.character.money)}${(game.loanBalance > 0) ? ` · debt ${fmtMoney(game.loanBalance)}` : ""}${(game.mortgageBalance > 0) ? ` · mortgage ${fmtMoney(game.mortgageBalance)}` : ""}${oblTotal > 0 ? ` · obligations ${fmtMoney(oblTotal)}/yr` : ""} · net worth ${fmtMoney(netWorth())}</div>`;
     html += `<div id="asset-body"></div>`;
     modalShell("💹 Assets & Investments", html);
     const body = $("asset-body");
@@ -3655,31 +3783,52 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     return Math.round(n - (game.loanBalance || 0) - (game.mortgageBalance || 0));
   }
 
-  // Yearly depth ticks — called from ageUp() before checkDeath() (new rolls go at
-  // the end so existing seeded event sequences stay stable).
+  // Yearly depth ticks — orchestrated by tickDepth(), called from ageUp() before
+  // checkDeath(). Each sub-tick owns ONE concern so new yearly logic has an obvious
+  // home and stays testable. ORDER IS LOAD-BEARING: it fixes the seeded RNG sequence,
+  // so keep health → assets → finances → business → obligations (obligations & most
+  // others are deterministic; only health and business consume rng).
   function tickDepth() {
+    tickHealth();
+    tickAssets();
+    tickFinances();
+    tickBusiness();
+    tickObligations();
+    tickRoyalty();    // last: draws NO rng for commoners, so non-royal lives are unchanged
+  }
+  // Conditions drain health each year; poor health/age can spawn a new illness.
+  function tickHealth() {
     const c = game.character;
     for (const cond of (c.conditions || [])) c.stats.health = clampStat(c.stats.health - (cond.drain || 0));
     if (rngChance(0.05 + Math.max(0, c.age - 40) * 0.004 + (c.stats.health < 40 ? 0.05 : 0))) addDisease();
+  }
+  // Vehicle upkeep + depreciation. (Real estate + valuables appreciation is handled
+  // in advanceMarkets, which grows every asset with an `apprec` field — not here.)
+  function tickAssets() {
+    const c = game.character;
     for (const v of (game.assets || []).filter(a => a.type === "vehicle")) {
       c.money -= (v.upkeep || 0);
       v.currentValue = Math.round((v.currentValue || 0) * (1 - (v.deprec || 0.1)));
     }
-    // (real estate + valuables appreciation is handled in advanceMarkets, which
-    // already grows every asset with an `apprec` field — don't double-count here.)
+  }
+  // Loan (8%/yr) and mortgage (5%/yr) interest + automatic payments.
+  function tickFinances() {
+    const c = game.character;
     if ((game.loanBalance || 0) > 0) {
       game.loanBalance = Math.round(game.loanBalance * 1.08);
       const pay = Math.max(0, Math.round(game.loanBalance * 0.1));
       if (c.money >= pay) { c.money -= pay; game.loanBalance -= pay; }
     }
-    // mortgage: 5%/yr interest + auto payment
     if ((game.mortgageBalance || 0) > 0) {
       game.mortgageBalance = Math.round(game.mortgageBalance * 1.05);
       const mp = Math.max(0, Math.round(game.mortgageBalance * 0.08));
       if (c.money >= mp) { c.money -= mp; game.mortgageBalance -= mp; }
     }
-    // business revenue: founder's own line (b.rev) + each employee's noisy margin
-    // (output minus salary). Migrates old saves via currentBusiness().
+  }
+  // Business revenue: founder's own line (b.rev) + each employee's noisy margin
+  // (output minus salary). Migrates old saves via currentBusiness().
+  function tickBusiness() {
+    const c = game.character;
     if (typeof currentBusiness === "function" && currentBusiness()) {
       const biz = currentBusiness(); const b = BUSINESSES.find(x => x.id === biz.id);
       if (b) {
@@ -3689,6 +3838,56 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
         if (rev !== 0) log("event", `🏢 Your ${b.name} ${rev >= 0 ? "earned" : "lost"} ${fmtMoney(Math.abs(rev))} this year.`);
       }
     }
+  }
+  // Post-divorce obligations (alimony / child support). Paid from cash each year;
+  // each entry ends when its term runs out or the ex dies. Populated in the divorce
+  // flow (settleCustody); deterministic, so it adds no rng draws.
+  function tickObligations() {
+    const c = game.character;
+    const list = game.obligations || (game.obligations = []);
+    for (const o of list) {
+      const ex = (game.relationships || []).find(r => r.id === o.exId);
+      if (ex && !ex.alive) { o.yearsLeft = 0; continue; }         // ends when the ex passes away
+      if (!(o.yearsLeft > 0) || !(o.annual > 0)) { o.yearsLeft = 0; continue; }
+      c.money -= o.annual;
+      o.yearsLeft -= 1;
+      log("event", `${o.type === "alimony" ? "💸 Alimony" : "💸 Child support"} to ${o.exName || "your ex"}: ${fmtMoney(o.annual)}${o.yearsLeft > 0 ? ` (${o.yearsLeft}y left)` : " — final payment"}.`);
+    }
+    if (list.length) game.obligations = list.filter(o => o.yearsLeft > 0);
+  }
+  // Divorce fallout: assign custody of each minor child and set up any ongoing
+  // obligation YOU owe — alimony if you're the breadwinner (no prenup), plus child
+  // support for each minor in the ex's custody. We only ever model money you OWE
+  // (annual >= 0), so there's no NPC-pays-you faucet. Returns a clause for the log.
+  function settleCustody(ex) {
+    const c = game.character;
+    const minors = (game.relationships || []).filter(k => k.alive && k.relation === "child" && k.isPlayerChild && (k.age || 0) < 18);
+    let exKept = 0, youKept = 0;
+    for (const kid of minors) {
+      const yours = 0.4 + (kid.bar - 50) / 250;          // a warmer bond tilts custody your way
+      const roll = rng();
+      kid.custody = roll < yours ? "you" : (roll < yours + 0.3 ? "joint" : "ex");
+      if (kid.custody === "ex") exKept++; else if (kid.custody === "you") youKept++;
+    }
+    const obs = [];
+    if (!ex.flags.prenup) {
+      const income = c.job ? Math.round(c.job.salary * 0.78) : Math.max(0, Math.round(netWorth() * 0.03));
+      if (income > 8000) {
+        const annual = Math.min(Math.round(income * rngFloat(0.12, 0.2)), 200000);
+        if (annual > 0) obs.push({ type: "alimony", exId: ex.id, exName: ex.name, annual, yearsLeft: rngInt(3, 8) });
+      }
+    }
+    if (exKept > 0) {
+      const annual = exKept * rngInt(4000, 8000);
+      const yearsLeft = Math.max(1, ...minors.filter(k => k.custody === "ex").map(k => 18 - (k.age || 0)));
+      obs.push({ type: "support", exId: ex.id, exName: ex.name, annual, yearsLeft });
+    }
+    if (obs.length) game.obligations = (game.obligations || []).concat(obs);
+    if (!minors.length && !obs.length) return "";
+    const bits = [];
+    if (minors.length) bits.push(youKept && exKept ? "Custody of the kids was divided." : youKept ? `You kept custody of ${youKept} child${youKept > 1 ? "ren" : ""}.` : exKept ? `${ex.name} took custody of the child${exKept > 1 ? "ren" : ""}.` : "You'll share custody.");
+    for (const o of obs) bits.push(o.type === "alimony" ? `Alimony: ${fmtMoney(o.annual)}/yr for ${o.yearsLeft}y.` : `Child support: ${fmtMoney(o.annual)}/yr.`);
+    return " " + bits.join(" ");
   }
   function addDisease() {
     const c = game.character; c.conditions = c.conditions || [];
@@ -3927,15 +4126,15 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (c.age < 16) { showToast("Too young to date."); return; }
     if (!game._lovePool || !game._lovePool.length) {
       game._lovePool = [];
-      for (let i = 0; i < 4; i++) { const cg = rngPick(["male", "female"]); game._lovePool.push({ name: rngPick(DATA.NAME_POOLS[cg]) + " " + rngPick(DATA.NAME_POOLS.surnames), gender: cg, age: Math.max(16, c.age + rngInt(-5, 5)), looks: rngInt(25, 95) }); }
+      for (let i = 0; i < 4; i++) { const cg = rngPick(["male", "female"]); game._lovePool.push({ name: rngPick(DATA.NAME_POOLS[cg]) + " " + rngPick(DATA.NAME_POOLS.surnames), gender: cg, age: Math.max(16, c.age + rngInt(-5, 5)), looks: rngInt(25, 95), royal: rngChance(0.08) }); }
     }
     modalShell("💘 Find Love", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Potential matches near you. Better looks &amp; fame improve your odds.</div><div id="love-list"></div>`);
-    game._lovePool.forEach((cand, i) => $("love-list").appendChild(optRow(cand.name, `age ${cand.age} · looks ${cand.looks} ${"★".repeat(Math.max(1, Math.round(cand.looks / 20)))}`, "Ask out", () => askOut(i), false)));
+    game._lovePool.forEach((cand, i) => $("love-list").appendChild(optRow(`${cand.royal ? "👑 " : ""}${cand.name}`, `age ${cand.age} · looks ${cand.looks} ${"★".repeat(Math.max(1, Math.round(cand.looks / 20)))}${cand.royal ? " · royalty" : ""}`, "Ask out", () => askOut(i), false)));
   }
   function askOut(i) {
     const c = game.character; const cand = game._lovePool && game._lovePool[i]; if (!cand) return;
     if (rngChance(0.3 + c.stats.looks / 300 + (100 - cand.looks) / 400 + c.fame / 400)) {
-      addRelationship({ relation: "partner", name: cand.name, gender: cand.gender, age: cand.age, bar: rngInt(55, 75), flags: { dating: true } });
+      addRelationship({ relation: "partner", name: cand.name, gender: cand.gender, age: cand.age, bar: rngInt(55, 75), flags: { dating: true, royal: !!cand.royal } });
       applyEffects({ happiness: 8 }); log("relationship", `💘 ${cand.name} agreed to date you!`);
       game._lovePool.splice(i, 1); autosave(); renderAll(); openRelationships();
     } else { log("relationship", `💔 ${cand.name} turned you down.`); game._lovePool.splice(i, 1); autosave(); renderAll(); openFindLove(); }
@@ -4025,6 +4224,10 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   function continueAsHeir(rid) {
     const heir = (game.relationships || []).find(r => r.id === rid); if (!heir) return;
     const dead = game.character; const heirs = heirCandidates();
+    // Dynastic succession: if the dying monarch named this heir (or named none), the
+    // crown — and the treasury — pass down with the bloodline.
+    const inheritThrone = !!(game.throne && game.throne.monarch && (game.throne.heirId == null || game.throne.heirId === rid));
+    const keptTreasury = inheritThrone ? game.throne.treasury : 0;
     const share = Math.round(Math.max(0, netWorth()) * 0.6 / Math.max(1, heirs.length)); // 40% estate tax, split
     const parts = (heir.name || "Heir").split(" ");
     game.generation = (game.generation || 1) + 1;
@@ -4036,10 +4239,23 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       fame: 0, money: share, education: { level: "none", inSchool: false, degree: null, major: null }, job: null, appearanceHash: ""
     };
     // fresh slate (inheritance is the cash share); clear orphaned holdings/relations
+    // AND every per-life subsystem so the heir doesn't inherit the parent's business,
+    // followers, military record, debts or obligations. ensureState() then refills the
+    // canonical defaults so every field a feature reads is present for the new life.
     game.relationships = []; game.assets = []; game.portfolio = [];
-    game.prison = { inPrison: false, sentenceYears: 0, yearsServed: 0, reason: null };
-    game.crimeRecord = { arrests: 0, convictions: 0, notoriety: 0 };
-    game.flags = {}; game.activeTip = null; game.pendingEvent = null; game.loanBalance = 0; game._lovePool = null;
+    game.prison = STATE_SCHEMA.prison(); game.crimeRecord = STATE_SCHEMA.crimeRecord();
+    game.social = STATE_SCHEMA.social(); game.military = STATE_SCHEMA.military();
+    game.business = STATE_SCHEMA.business(); game.obligations = STATE_SCHEMA.obligations();
+    game.throne = STATE_SCHEMA.throne();
+    game.loanBalance = 0; game.mortgageBalance = 0;
+    game.flags = {}; game.activeTip = null; game.pendingEvent = null; game._lovePool = null;
+    ensureState(game);
+    if (inheritThrone) {
+      const title = game.character.gender === "male" ? "King" : game.character.gender === "female" ? "Queen" : "Monarch";
+      game.flags.royal = true;
+      game.throne = { title, monarch: true, approval: 55, treasury: keptTreasury, heirId: null };
+      log("system", `👑 The crown passes with the bloodline — long live the new ${title}!`);
+    }
     grantAchievement("dynasty");
     closeModal();
     log("system", `👶 You live on as ${heir.name} (generation ${game.generation}), inheriting ${fmtMoney(share)} from ${dead.name}.`);
@@ -4127,6 +4343,108 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const c = game.character; const pay = rngInt(20000, 120000); c.money += pay; c.fame = clampStat(c.fame + rngInt(2, 8)); applyEffects({ happiness: 4 });
     log("event", `👑 You performed royal duties — the treasury paid you ${fmtMoney(pay)}.`);
     autosave(); renderAll();
+  }
+
+  // ── Monarchy sim ───────────────────────────────────────────────────────────
+  // Two ways in: born royal (createNewLife, ~3%) or marry into a royal house
+  // (Find Love, see propose). `game.flags.royal` = titled royalty (prince/princess,
+  // earns the royalDuties stipend). When the crown passes you ASCEND to a reigning
+  // monarch: `game.throne = { title, monarch, approval 0..100, treasury, heirId }`.
+  // A reigning monarch rules via decrees that trade approval ↔ treasury; collapse
+  // the people's approval and you're overthrown. Treasury is the realm's money, kept
+  // SEPARATE from personal `money` (the only personal royal income is the gated
+  // royalDuties stipend — so the throne adds no money faucet). tickRoyalty() runs
+  // last in tickDepth(); it draws NO rng for commoners, so non-royal lives are
+  // unaffected. (game.flags.abdicated stops auto-re-coronation after you step down.)
+  function tickRoyalty() {
+    if (!game.flags.royal && !game.throne) return;     // commoners: no rng, no change
+    const t = game.throne;
+    if (!t) {                                          // titled but not yet reigning
+      if (!game.flags.abdicated && game.character.age >= 18 && rngChance(0.06)) ascendThrone();
+      return;
+    }
+    if (!t.monarch) return;
+    t.treasury += rngInt(500000, 3000000);             // yearly crown revenue
+    t.approval = clampStat(t.approval + rngInt(-4, 4));
+    if (t.approval < 10) grantAchievement("tyrant");
+    if (t.approval < 20 && rngChance((20 - t.approval) / 50)) overthrowMonarch();
+  }
+  function ascendThrone() {
+    const c = game.character;
+    const title = c.gender === "male" ? "King" : c.gender === "female" ? "Queen" : "Monarch";
+    game.throne = { title, monarch: true, approval: 60, treasury: rngInt(5000000, 40000000), heirId: null };
+    game.flags.royal = true;
+    applyEffects({ happiness: 15, fame: 20 });
+    grantAchievement("monarch");
+    log("event", `👑 The crown passes to you — long live the ${title}, ${c.name}!`, "royalty");
+  }
+  function overthrowMonarch() {
+    game.throne = null; game.flags.royal = false; game.flags.abdicated = true;
+    applyEffects({ happiness: -25, fame: -8 });
+    log("event", "🏚️ The people rose up — you were overthrown and driven from the palace!", "royalty");
+  }
+  // Marrying a royal partner makes you titled royalty (eligible to ascend later).
+  function marryIntoRoyalty(spouse) {
+    if (!spouse || !spouse.flags || !spouse.flags.royal || game.flags.royal) return;
+    game.flags.royal = true; game.flags.abdicated = false;
+    grantAchievement("royalty");
+    log("event", `👑 By marrying ${spouse.name}, you joined a royal house!`);
+  }
+  function royalDecree(kind) {
+    if (!requireFree("rule")) return;
+    const t = game.throne; if (!t || !t.monarch) { showToast("You don't sit on a throne."); return; }
+    if (!oncePerYear("decree")) return;                // one royal decree per year
+    if (kind === "taxUp") {
+      const take = rngInt(1000000, 6000000); t.treasury += take; t.approval = clampStat(t.approval - rngInt(6, 14));
+      log("event", `📜 You raised taxes — the treasury gained ${fmtMoney(take)}, but the people grumble (approval ${t.approval}).`);
+    } else if (kind === "taxDown") {
+      const cost = rngInt(1000000, 5000000); t.treasury = Math.max(0, t.treasury - cost); t.approval = clampStat(t.approval + rngInt(5, 12));
+      log("event", `📜 You cut taxes — popular (approval ${t.approval}), but the treasury fell ${fmtMoney(cost)}.`);
+    } else if (kind === "festival") {
+      const cost = rngInt(500000, 3000000); if (t.treasury < cost) { showToast("The treasury can't afford a festival."); return; }
+      t.treasury -= cost; t.approval = clampStat(t.approval + rngInt(8, 16)); applyEffects({ happiness: 4, fame: 2 });
+      log("event", `🎉 You held a grand festival (${fmtMoney(cost)}) — the realm rejoices (approval ${t.approval}).`);
+    } else if (kind === "war") {
+      if (rngChance(0.5 + t.approval / 400)) {
+        const spoils = rngInt(2000000, 12000000); t.treasury += spoils; t.approval = clampStat(t.approval + rngInt(6, 14)); applyEffects({ fame: 8 });
+        log("event", `⚔️ Your armies triumphed — ${fmtMoney(spoils)} in spoils and a hero's welcome (approval ${t.approval}).`);
+      } else {
+        t.treasury = Math.max(0, t.treasury - rngInt(2000000, 8000000)); t.approval = clampStat(t.approval - rngInt(12, 25)); applyEffects({ happiness: -8 });
+        log("event", `⚔️ The war went badly — coffers drained and the people furious (approval ${t.approval}).`);
+      }
+    }
+    if (t.approval < 10) grantAchievement("tyrant");
+    autosave(); renderAll(); openThrone();
+  }
+  function nameThroneHeir(rid) {
+    if (!requireFree("rule")) return;
+    const t = game.throne; if (!t || !t.monarch) { showToast("You don't sit on a throne."); return; }
+    const heirs = heirCandidates(); if (!heirs.length) { showToast("You have no child to name as heir."); return; }
+    const heir = rid != null ? heirs.find(h => h.id === rid) : heirs[0]; if (!heir) { showToast("No such heir."); return; }
+    t.heirId = heir.id; log("event", `📜 You named ${heir.name} heir to the throne.`);
+    autosave(); renderAll();
+  }
+  function abdicate() {
+    if (!requireFree("rule")) return;
+    const t = game.throne; if (!t || !t.monarch) { showToast("You don't sit on a throne."); return; }
+    game.throne = null; game.flags.abdicated = true;   // still of royal blood, but renounce the crown
+    applyEffects({ happiness: -6 });
+    log("event", "🏳️ You abdicated the throne.");
+    autosave(); renderAll(); closeModal();
+  }
+  function openThrone() {
+    if (!requireFree("rule")) return;
+    const t = game.throne;
+    if (!t || !t.monarch) { modalShell("👑 Throne Room", `<div class="hint" style="color:var(--text-muted)">You don't sit on a throne.${game.flags.royal ? " As titled royalty you may ascend when the crown passes." : ""}</div>`); return; }
+    modalShell("👑 Throne Room", `<div class="sub-h">${t.title} ${game.character.name} · 👍 approval ${t.approval}/100 · 🏛️ treasury ${fmtMoney(t.treasury)}</div><div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">One decree per year. Keep the people happy or risk being overthrown.</div><div id="throne-list"></div>`);
+    const w = $("throne-list");
+    w.appendChild(optRow("📜 Raise taxes", "Fill the treasury, anger the people", "Decree", () => royalDecree("taxUp")));
+    w.appendChild(optRow("📜 Cut taxes", "Win hearts, drain the treasury", "Decree", () => royalDecree("taxDown")));
+    w.appendChild(optRow("🎉 Hold a festival", "Spend treasury to lift approval", "Decree", () => royalDecree("festival"), t.treasury < 500000));
+    w.appendChild(optRow("⚔️ Wage war", "Risk it all for spoils & glory", "Decree", () => royalDecree("war")));
+    const heirs = heirCandidates();
+    for (const h of heirs) w.appendChild(optRow(`👶 Name ${h.name} heir`, t.heirId === h.id ? "current heir to the throne" : `age ${h.age}`, "Name", () => nameThroneHeir(h.id), t.heirId === h.id));
+    w.appendChild(optRow("🏳️ Abdicate", "Give up the crown", "Abdicate", () => abdicate()));
   }
   // Time Machine — rewind to the start of last year (the pre-ageUp snapshot).
   let _timeSnapshot = null;

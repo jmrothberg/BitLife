@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content (v0.15.0). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
+  "_comment": "BitLife-style premade content (v0.20.0). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -57,7 +57,10 @@
     "warHero":     { "label": "War Hero",      "icon": "🏅", "desc": "Earned 3+ military medals." },
     "bigFamily":   { "label": "Big Family",    "icon": "👨‍👩‍👧‍👦", "desc": "Raised 4+ children." },
     "tycoon":      { "label": "Tycoon",        "icon": "🏭", "desc": "Grew a business to full staff." },
-    "bestInShow":  { "label": "Best in Show",  "icon": "🏆", "desc": "Won a pet show." }
+    "bestInShow":  { "label": "Best in Show",  "icon": "🏆", "desc": "Won a pet show." },
+    "shotCaller":  { "label": "Shot Caller",   "icon": "🪪", "desc": "Earned respect behind bars." },
+    "monarch":     { "label": "Monarch",       "icon": "👑", "desc": "Ascended to a throne." },
+    "tyrant":      { "label": "Tyrant",        "icon": "🗡️", "desc": "Ruled with the people against you." }
   },
 
   "EVENTS": {
@@ -68,7 +71,16 @@
       { "id": "firstWords", "weight": 5, "minAge": 1, "maxAge": 2, "noChoice": true, "text": "You said your first words! Your parents are overjoyed.", "effects": { "happiness": 6, "smarts": 2 } },
       { "id": "colic", "weight": 3, "minAge": 0, "maxAge": 1, "noChoice": true, "text": "You were a fussy, colicky baby and cried all night.", "effects": { "health": -3, "happiness": -3 } },
       { "id": "firstSteps", "weight": 5, "minAge": 1, "maxAge": 2, "noChoice": true, "text": "You took your first wobbly steps across the living room.", "effects": { "happiness": 5, "health": 2 } },
-      { "id": "peekaboo", "weight": 3, "minAge": 0, "maxAge": 2, "noChoice": true, "text": "Your family played peek-a-boo with you for hours.", "effects": { "happiness": 4, "smarts": 1 } }
+      { "id": "peekaboo", "weight": 3, "minAge": 0, "maxAge": 2, "noChoice": true, "text": "Your family played peek-a-boo with you for hours.", "effects": { "happiness": 4, "smarts": 1 } },
+      {"id": "teethingPain", "weight": 3, "minAge": 0, "maxAge": 2, "noChoice": true, "text": "Teething kept you (and everyone) up all night.", "effects": {"health": -2, "happiness": -3}},
+      {"id": "firstLaugh", "weight": 4, "minAge": 0, "maxAge": 1, "noChoice": true, "text": "You let out your very first belly laugh.", "effects": {"happiness": 6}},
+      {"id": "daycareGerms", "weight": 3, "minAge": 1, "maxAge": 2, "noChoice": true, "text": "You caught every bug going around daycare.", "effects": {"health": -4, "happiness": -2}},
+      {"id": "lullaby", "weight": 3, "minAge": 0, "maxAge": 2, "noChoice": true, "text": "A nightly lullaby always soothed you to sleep.", "effects": {"happiness": 3, "health": 1}},
+      {"id": "firstBirthdayBash", "weight": 3, "minAge": 1, "maxAge": 1, "noChoice": true, "text": "Your family threw you a big first-birthday bash — cake everywhere!", "effects": {"happiness": 6}},
+      {"id": "splashyBath", "weight": 2, "minAge": 0, "maxAge": 2, "noChoice": true, "text": "Bath time turned into a giggly splash party.", "effects": {"happiness": 4}},
+      {"id": "grandparentSpoil", "weight": 3, "minAge": 0, "maxAge": 2, "noChoice": true, "text": "Your grandparents spoiled you with gifts and cuddles.", "effects": {"happiness": 5, "money": 20}},
+      {"id": "favoriteToy", "weight": 3, "minAge": 1, "maxAge": 2, "text": "You've grown attached to one special toy.", "choices": [{"label": "A stuffed bear", "effects": {"happiness": 4}}, {"label": "A toy car", "effects": {"happiness": 3, "smarts": 1}}]},
+      {"id": "crawlRace", "weight": 2, "minAge": 0, "maxAge": 1, "noChoice": true, "text": "You won a crawling race against the neighbor's baby.", "effects": {"happiness": 4, "health": 1}}
     ],
     "child": [
       { "id": "lostTooth", "weight": 4, "minAge": 5, "maxAge": 9, "noChoice": true, "text": "You lost a tooth and the tooth fairy left you a few bucks.", "effects": { "happiness": 4, "money": 5 } },
@@ -136,7 +148,17 @@
           { "label": "Art Club", "effects": { "happiness": 4, "looks": 1 } },
           { "label": "Environmental Club", "effects": { "smarts": 3, "happiness": 2 } },
           { "label": "Don't join", "effects": {} }
-        ] }
+        ] },
+      {"id": "treeFort", "weight": 4, "minAge": 6, "maxAge": 12, "text": "The kids on your street are building a tree fort.", "choices": [{"label": "Help build it", "effects": {"happiness": 6, "health": 1}}, {"label": "Boss everyone around", "effects": {"happiness": 2}}]},
+      {"id": "sleepover", "weight": 4, "minAge": 7, "maxAge": 12, "text": "You're invited to a big sleepover.", "choices": [{"label": "Stay up all night", "effects": {"happiness": 7, "health": -2}}, {"label": "Go to bed early", "effects": {"happiness": 3, "health": 1}}]},
+      {"id": "reportCardKid", "weight": 4, "minAge": 7, "maxAge": 12, "text": "Report cards are out.", "choices": [{"label": "Study harder next term", "effects": {"smarts": 4, "happiness": -1}}, {"label": "Celebrate either way", "effects": {"happiness": 4}}]},
+      {"id": "scoutBadge", "weight": 3, "minAge": 8, "maxAge": 12, "noChoice": true, "text": "You earned a scouting badge for first aid.", "effects": {"smarts": 3, "happiness": 3}},
+      {"id": "cavityKid", "weight": 3, "minAge": 6, "maxAge": 12, "noChoice": true, "text": "Too much candy gave you a cavity.", "effects": {"health": -3, "happiness": -2}},
+      {"id": "snowDay", "weight": 3, "minAge": 5, "maxAge": 12, "noChoice": true, "text": "School was cancelled for a snow day!", "effects": {"happiness": 6}},
+      {"id": "libraryWorm", "weight": 3, "minAge": 6, "maxAge": 12, "text": "You discover the library's chapter-book section.", "choices": [{"label": "Read everything", "effects": {"smarts": 5, "happiness": 2}}, {"label": "Skim the comics", "effects": {"smarts": 1, "happiness": 3}}]},
+      {"id": "schoolPlayKid", "weight": 3, "minAge": 7, "maxAge": 12, "text": "The school is casting its annual play.", "choices": [{"label": "Audition for the lead", "effects": {}, "outcome": {"chance": 0.5, "success": {"happiness": 8, "looks": 2}, "fail": {"happiness": -3}}}, {"label": "Help backstage", "effects": {"happiness": 3, "smarts": 1}}]},
+      {"id": "newSiblingKid", "weight": 2, "minAge": 4, "maxAge": 11, "noChoice": true, "text": "Your parents brought home a new baby sibling.", "effects": {"happiness": 4, "addRelationship": {"relation": "sibling", "name": "Baby Sibling", "gender": "female"}}},
+      {"id": "bakeSale", "weight": 3, "minAge": 7, "maxAge": 12, "text": "The class is running a bake sale.", "choices": [{"label": "Bake cookies to sell", "effects": {"happiness": 3}, "outcome": {"chance": 0.6, "success": {"money": 30, "happiness": 2}, "fail": {"happiness": -1}}}, {"label": "Just buy a cupcake", "effects": {"happiness": 2, "money": -3}}]}
     ],
     "teen": [
       { "id": "promNight", "weight": 4, "minAge": 15, "maxAge": 17, "text": "It's prom night!",
@@ -220,7 +242,17 @@
         "choices": [
           { "label": "Accept the punishment", "effects": { "happiness": -3 } },
           { "label": "Sneak out anyway", "effects": {}, "outcome": { "chance": 0.5, "success": { "happiness": 6 }, "fail": { "happiness": -8 } } }
-        ] }
+        ] },
+      {"id": "driversEdTeen", "weight": 4, "minAge": 16, "maxAge": 17, "text": "You're old enough for driver's ed.", "choices": [{"label": "Get your license", "effects": {"happiness": 6, "grantAchievement": "graduate2"}}, {"label": "Wait a year", "effects": {"happiness": -1}}]},
+      {"id": "firstJobTeen", "weight": 4, "minAge": 15, "maxAge": 17, "text": "The mall is hiring part-timers.", "choices": [{"label": "Take the job", "effects": {"money": 1200, "happiness": -1, "smarts": 1}}, {"label": "Enjoy your free time", "effects": {"happiness": 3}}]},
+      {"id": "garageBand", "weight": 3, "minAge": 14, "maxAge": 17, "text": "Your friends want to start a garage band.", "choices": [{"label": "Be the frontperson", "effects": {"happiness": 6, "looks": 2, "fame": 2}}, {"label": "Play drums in the back", "effects": {"happiness": 4}}]},
+      {"id": "examCram", "weight": 4, "minAge": 14, "maxAge": 17, "text": "Final exams are tomorrow and you're not ready.", "choices": [{"label": "Pull an all-nighter", "effects": {"smarts": 4, "health": -3}}, {"label": "Cheat off a friend", "effects": {}, "outcome": {"chance": 0.5, "success": {"smarts": 2}, "fail": {"smarts": -2, "happiness": -5}}}, {"label": "Wing it", "effects": {"smarts": -1}}]},
+      {"id": "firstHeartbreak", "weight": 4, "minAge": 14, "maxAge": 17, "noChoice": true, "text": "Your first crush broke your heart.", "effects": {"happiness": -7}},
+      {"id": "volunteerTeen", "weight": 3, "minAge": 14, "maxAge": 17, "text": "There's a weekend volunteering drive.", "choices": [{"label": "Sign up", "effects": {"happiness": 4, "smarts": 2}}, {"label": "Sleep in", "effects": {"happiness": 2, "health": 1}}]},
+      {"id": "sportsTryout", "weight": 4, "minAge": 14, "maxAge": 17, "text": "Tryouts for the varsity team are this week.", "choices": [{"label": "Give it everything", "effects": {}, "outcome": {"chance": 0.5, "success": {"happiness": 8, "health": 4, "looks": 2}, "fail": {"happiness": -4, "health": -1}}}, {"label": "Don't bother", "effects": {}}]},
+      {"id": "socialMediaTeen", "weight": 3, "minAge": 13, "maxAge": 17, "text": "A post of yours is starting to blow up.", "choices": [{"label": "Chase the clout", "effects": {"fame": 4, "happiness": 3, "smarts": -1}}, {"label": "Log off and study", "effects": {"smarts": 3, "happiness": -1}}]},
+      {"id": "summerJobCamp", "weight": 3, "minAge": 15, "maxAge": 17, "text": "You can be a counselor at summer camp.", "choices": [{"label": "Take it", "effects": {"money": 900, "happiness": 4, "health": 1}}, {"label": "Pass", "effects": {"happiness": 1}}]},
+      {"id": "lockerPrankTeen", "weight": 3, "minAge": 13, "maxAge": 17, "text": "Someone dares you to prank a teacher's classroom.", "choices": [{"label": "Do it", "effects": {}, "outcome": {"chance": 0.45, "success": {"happiness": 6}, "fail": {"happiness": -6, "smarts": -1}}}, {"label": "Refuse", "effects": {"smarts": 1}}]}
     ],
     "youngAdult": [
       { "id": "wentViral", "weight": 4, "minAge": 18, "maxAge": 25, "text": "A video of you went viral overnight — millions of views!",
@@ -298,7 +330,17 @@
           { "label": "Confront them", "effects": {}, "outcome": { "chance": 0.5, "success": { "happiness": 5 }, "fail": { "happiness": -5 } } },
           { "label": "Tell your boss", "effects": {}, "outcome": { "chance": 0.55, "success": { "happiness": 6 }, "fail": { "happiness": -4 } } },
           { "label": "Let it go", "effects": { "happiness": -3 } }
-        ] }
+        ] },
+      {"id": "collegeRoommate", "weight": 4, "minAge": 18, "maxAge": 24, "text": "Your new roommate is loud and messy.", "choices": [{"label": "Talk it out", "effects": {}, "outcome": {"chance": 0.6, "success": {"happiness": 5}, "fail": {"happiness": -3}}}, {"label": "Just deal with it", "effects": {"happiness": -2}}]},
+      {"id": "studentLoanOffer", "weight": 3, "minAge": 18, "maxAge": 24, "text": "A bank offers you a big student loan.", "choices": [{"label": "Take it for tuition", "effects": {"money": 15000, "smarts": 2}}, {"label": "Work your way through instead", "effects": {"happiness": -2, "smarts": 1}}]},
+      {"id": "startupPitch", "weight": 3, "minAge": 19, "maxAge": 24, "text": "A friend wants you to co-found a startup.", "choices": [{"label": "Go all in", "effects": {}, "outcome": {"chance": 0.4, "success": {"money": 20000, "happiness": 6, "fame": 3}, "fail": {"money": -4000, "happiness": -5}}}, {"label": "Keep it as a side gig", "effects": {"happiness": 1}}]},
+      {"id": "networkingMixer", "weight": 3, "minAge": 20, "maxAge": 24, "text": "There's a young-professionals networking mixer.", "choices": [{"label": "Work the room", "effects": {"happiness": 2, "smarts": 2}}, {"label": "Hide by the snacks", "effects": {"happiness": 1}}]},
+      {"id": "roadTripYA", "weight": 3, "minAge": 18, "maxAge": 24, "text": "Friends are planning a cross-country road trip.", "choices": [{"label": "Hit the road", "effects": {"happiness": 8, "money": -1500, "health": 1}}, {"label": "Stay back and save up", "effects": {"money": 300, "happiness": -1}}]},
+      {"id": "cryptoHypeYA", "weight": 3, "minAge": 18, "maxAge": 24, "text": "Everyone's hyping a new meme coin.", "choices": [{"label": "Throw in your savings", "effects": {}, "outcome": {"chance": 0.4, "success": {"money": 8000, "happiness": 4}, "fail": {"money": -3000, "happiness": -5}}}, {"label": "Stay out of it", "effects": {"smarts": 1}}]},
+      {"id": "gymBro", "weight": 3, "minAge": 18, "maxAge": 24, "text": "You're thinking about a gym membership.", "choices": [{"label": "Commit to it", "effects": {"health": 5, "looks": 3, "money": -600}}, {"label": "Run outside for free", "effects": {"health": 3}}]},
+      {"id": "weddingSeasonYA", "weight": 3, "minAge": 21, "maxAge": 24, "text": "It feels like all your friends are getting married.", "choices": [{"label": "Attend every wedding", "effects": {"happiness": 4, "money": -1200}}, {"label": "Send your regrets", "effects": {"happiness": -1, "money": -50}}]},
+      {"id": "quarterLifeCrisis", "weight": 3, "minAge": 22, "maxAge": 24, "noChoice": true, "text": "A quarter-life crisis had you questioning everything.", "effects": {"happiness": -4, "smarts": 1}},
+      {"id": "openMicYA", "weight": 2, "minAge": 18, "maxAge": 24, "text": "There's an open-mic night downtown.", "choices": [{"label": "Take the stage", "effects": {}, "outcome": {"chance": 0.5, "success": {"happiness": 6, "fame": 3}, "fail": {"happiness": -3}}}, {"label": "Cheer from the crowd", "effects": {"happiness": 2}}]}
     ],
     "adult": [
       { "id": "identityTheft", "weight": 3, "minAge": 26, "maxAge": 64, "noChoice": true, "text": "Someone stole your identity and drained an account.", "effects": { "money": -3500, "happiness": -5 } },
@@ -362,7 +404,17 @@
         "choices": [
           { "label": "Put in $5,000", "effects": { "money": -5000 }, "outcome": { "chance": 0.25, "success": { "money": 15000, "happiness": 6 }, "fail": { "happiness": -8 } } },
           { "label": "Walk away", "effects": { "smarts": 1 } }
-        ] }
+        ] },
+      {"id": "officePolitics", "weight": 3, "minAge": 25, "maxAge": 60, "cond": "hasJob", "text": "A coworker is taking credit for your work.", "choices": [{"label": "Confront them", "effects": {}, "outcome": {"chance": 0.5, "success": {"happiness": 5}, "fail": {"happiness": -5}}}, {"label": "Document everything", "effects": {"smarts": 2, "happiness": -1}}]},
+      {"id": "midlifeCarAdult", "weight": 2, "minAge": 30, "maxAge": 45, "text": "You spot a flashy car you can't quite afford.", "choices": [{"label": "Buy it anyway", "effects": {"happiness": 7, "money": -22000}}, {"label": "Be sensible", "effects": {"smarts": 1}}]},
+      {"id": "homeRenovation", "weight": 3, "minAge": 28, "maxAge": 60, "text": "Your place could use a renovation.", "choices": [{"label": "Hire the pros", "effects": {"happiness": 5, "money": -9000}}, {"label": "DIY it", "effects": {}, "outcome": {"chance": 0.55, "success": {"happiness": 4, "money": -1500}, "fail": {"happiness": -4, "money": -3000, "health": -2}}}]},
+      {"id": "charityGalaAdult", "weight": 2, "minAge": 30, "maxAge": 65, "text": "You're invited to a charity gala.", "choices": [{"label": "Donate generously", "effects": {"happiness": 5, "fame": 3, "money": -5000}}, {"label": "Just network", "effects": {"happiness": 2, "fame": 1}}]},
+      {"id": "royalGala", "weight": 3, "minAge": 25, "maxAge": 70, "cond": "royal", "text": "The palace is hosting a royal gala in your honor.", "choices": [{"label": "Dazzle the court", "effects": {"fame": 6, "happiness": 5, "looks": 2}}, {"label": "Keep it dignified", "effects": {"fame": 3, "happiness": 2}}]},
+      {"id": "courtIntrigue", "weight": 3, "minAge": 25, "maxAge": 75, "cond": "monarch", "text": "A scheming duke is whispering against you at court.", "choices": [{"label": "Outmaneuver him publicly", "effects": {}, "outcome": {"chance": 0.55, "success": {"fame": 5, "happiness": 4}, "fail": {"fame": -4, "happiness": -5}}}, {"label": "Buy his loyalty", "effects": {"money": -8000, "happiness": 1}}]},
+      {"id": "businessAudit", "weight": 3, "minAge": 25, "maxAge": 65, "cond": "business", "text": "The tax office is auditing your business.", "choices": [{"label": "Hire a sharp accountant", "effects": {"money": -3000, "happiness": 2}}, {"label": "Handle it yourself", "effects": {}, "outcome": {"chance": 0.5, "success": {"happiness": 3}, "fail": {"money": -6000, "happiness": -4}}}]},
+      {"id": "familyReunionAdult", "weight": 3, "minAge": 25, "maxAge": 65, "cond": "hasChild", "text": "It's time for the big family reunion.", "choices": [{"label": "Host it at your place", "effects": {"happiness": 6, "money": -1500}}, {"label": "Just show up", "effects": {"happiness": 3}}]},
+      {"id": "investmentTipAdult", "weight": 2, "minAge": 25, "maxAge": 60, "text": "A friend gives you a 'sure thing' stock tip.", "choices": [{"label": "Bet big on it", "effects": {}, "outcome": {"chance": 0.45, "success": {"money": 12000, "happiness": 4}, "fail": {"money": -5000, "happiness": -4}}}, {"label": "Ignore it", "effects": {"smarts": 1}}]},
+      {"id": "burnoutAdult", "weight": 3, "minAge": 28, "maxAge": 58, "cond": "hasJob", "noChoice": true, "text": "A stretch of overtime left you completely burned out.", "effects": {"health": -4, "happiness": -5}}
     ],
     "middleAge": [
       { "id": "checkupScare", "weight": 4, "minAge": 46, "maxAge": 64, "text": "A routine checkup turns up something concerning.",
@@ -412,7 +464,18 @@
         "choices": [
           { "label": "Accept the inheritance", "effects": { "money": 18000, "happiness": 3 } },
           { "label": "Donate it to charity", "effects": { "happiness": 8, "fame": 2 } }
-        ] }
+        ] },
+      {"id": "teenagerTrouble", "weight": 4, "minAge": 40, "maxAge": 58, "cond": "hasChild", "text": "Your teenager got caught sneaking out.", "choices": [{"label": "Ground them", "effects": {}, "outcome": {"chance": 0.55, "success": {"happiness": 3}, "fail": {"happiness": -4}}}, {"label": "Have a real talk", "effects": {"happiness": 4, "smarts": 1}}]},
+      {"id": "emptyNest", "weight": 3, "minAge": 45, "maxAge": 60, "cond": "hasChild", "noChoice": true, "text": "The last of your kids moved out — the house feels quiet.", "effects": {"happiness": -4}},
+      {"id": "healthScareMid", "weight": 4, "minAge": 45, "maxAge": 64, "noChoice": true, "text": "A check-up turned up something that needs watching.", "effects": {"health": -5, "happiness": -4}},
+      {"id": "highSchoolReunion", "weight": 3, "minAge": 40, "maxAge": 55, "text": "Your high-school reunion is coming up.", "choices": [{"label": "Show off how well you're doing", "effects": {"happiness": 4, "fame": 1}}, {"label": "Quietly skip it", "effects": {"happiness": -1}}]},
+      {"id": "sportsCarMid", "weight": 2, "minAge": 45, "maxAge": 58, "text": "A midlife urge for a convertible strikes.", "choices": [{"label": "Treat yourself", "effects": {"happiness": 7, "money": -35000}}, {"label": "Stay grounded", "effects": {"smarts": 1}}]},
+      {"id": "promotionMidlife", "weight": 3, "minAge": 40, "maxAge": 60, "cond": "hasJob", "text": "You're up for a senior leadership role.", "choices": [{"label": "Go for it", "effects": {"money": 9000, "happiness": 2, "health": -2}}, {"label": "Coast to retirement", "effects": {"happiness": 3}}]},
+      {"id": "backPainMid", "weight": 3, "minAge": 45, "maxAge": 64, "noChoice": true, "text": "Chronic back pain started slowing you down.", "effects": {"health": -4, "happiness": -3}},
+      {"id": "marathonMid", "weight": 2, "minAge": 40, "maxAge": 58, "text": "You sign up for a charity marathon.", "choices": [{"label": "Train hard and run it", "effects": {}, "outcome": {"chance": 0.6, "success": {"health": 6, "happiness": 7, "fame": 1}, "fail": {"health": -3, "happiness": -2}}}, {"label": "Walk the 5k instead", "effects": {"health": 2, "happiness": 2}}]},
+      {"id": "royalScandal", "weight": 3, "minAge": 40, "maxAge": 70, "cond": "royal", "text": "A tabloid is about to run a scandalous story about you.", "choices": [{"label": "Get ahead of it", "effects": {}, "outcome": {"chance": 0.55, "success": {"fame": 3, "happiness": 2}, "fail": {"fame": -5, "happiness": -4}}}, {"label": "Pay for their silence", "effects": {"money": -15000, "happiness": -1}}]},
+      {"id": "mentorMid", "weight": 3, "minAge": 40, "maxAge": 62, "text": "A young colleague asks you to mentor them.", "choices": [{"label": "Take them under your wing", "effects": {"happiness": 5, "smarts": 2}}, {"label": "You're too busy", "effects": {"happiness": -1}}]},
+      {"id": "divorceRumorMid", "weight": 2, "minAge": 40, "maxAge": 60, "cond": "married", "text": "You and your spouse have been drifting apart.", "choices": [{"label": "Plan a second honeymoon", "effects": {"happiness": 6, "money": -4000}}, {"label": "Try counseling", "effects": {}, "outcome": {"chance": 0.6, "success": {"happiness": 5}, "fail": {"happiness": -4}}}]}
     ],
     "senior": [
       { "id": "retirementParty", "weight": 4, "minAge": 65, "maxAge": 70, "noChoice": true, "text": "Your colleagues threw you a lovely retirement party.", "effects": { "happiness": 8 } },
@@ -453,7 +516,17 @@
         "choices": [
           { "label": "Reminisce fondly", "effects": { "happiness": 7 } },
           { "label": "Reconnect with an old friend", "effects": { "happiness": 9, "addRelationship": { "relation": "friend", "name": "Old Friend", "gender": "female" } } }
-        ] }
+        ] },
+      {"id": "hipReplacement", "weight": 3, "minAge": 65, "maxAge": 99, "noChoice": true, "text": "You had a hip replacement — slow recovery, but it helped.", "effects": {"health": -3, "happiness": -2}},
+      {"id": "memoirSenior", "weight": 2, "minAge": 62, "maxAge": 90, "text": "A publisher suggests you write your memoirs.", "choices": [{"label": "Write it all down", "effects": {"happiness": 5, "fame": 4, "smarts": 2}}, {"label": "Keep your stories private", "effects": {"happiness": 2}}]},
+      {"id": "cruiseSenior", "weight": 3, "minAge": 60, "maxAge": 85, "text": "There's a discounted round-the-world cruise.", "choices": [{"label": "Set sail", "effects": {"happiness": 8, "health": 1, "money": -7000}}, {"label": "Stay home and garden", "effects": {"happiness": 3, "health": 1}}]},
+      {"id": "gardenHobby", "weight": 3, "minAge": 60, "maxAge": 99, "noChoice": true, "text": "Your garden became the envy of the neighborhood.", "effects": {"happiness": 4, "health": 1}},
+      {"id": "fallRiskSenior", "weight": 3, "minAge": 70, "maxAge": 99, "noChoice": true, "text": "A bad fall on the stairs gave everyone a scare.", "effects": {"health": -6, "happiness": -3}},
+      {"id": "wisdomShare", "weight": 3, "minAge": 60, "maxAge": 95, "text": "A local school invites you to share your life lessons.", "choices": [{"label": "Give an inspiring talk", "effects": {"happiness": 5, "fame": 2, "smarts": 1}}, {"label": "Politely decline", "effects": {"happiness": 1}}]},
+      {"id": "royalJubilee", "weight": 3, "minAge": 60, "maxAge": 99, "cond": "royal", "noChoice": true, "text": "The nation held a jubilee celebrating your long royal life.", "effects": {"happiness": 8, "fame": 8}},
+      {"id": "oldFriendPasses", "weight": 3, "minAge": 65, "maxAge": 99, "noChoice": true, "text": "A lifelong friend passed away.", "effects": {"happiness": -7}},
+      {"id": "pensionerLottery", "weight": 2, "minAge": 60, "maxAge": 99, "text": "You join the seniors' lottery pool.", "choices": [{"label": "Buy in", "effects": {"money": -50}, "outcome": {"chance": 0.2, "success": {"money": 4000, "happiness": 5}, "fail": {"happiness": -1}}}, {"label": "Save your money", "effects": {"smarts": 1}}]},
+      {"id": "legacyDonation", "weight": 2, "minAge": 62, "maxAge": 99, "text": "You're thinking about your legacy.", "choices": [{"label": "Endow a scholarship", "effects": {"happiness": 7, "fame": 3, "money": -20000}}, {"label": "Leave it all to family", "effects": {"happiness": 3}}]}
     ]
   },
 
