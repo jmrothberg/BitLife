@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content (v0.10.0). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
+  "_comment": "BitLife-style premade content (v0.11.0). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -51,7 +51,8 @@
     "timeLord":    { "label": "Time Lord",     "icon": "⏪", "desc": "Used the Time Machine." },
     "collector":   { "label": "Collector",     "icon": "💎", "desc": "Bought a valuable." },
     "verified":    { "label": "Verified",      "icon": "🔵", "desc": "Got verified on social media." },
-    "influencer":  { "label": "Influencer",    "icon": "📱", "desc": "Reached 1,000,000 followers." }
+    "influencer":  { "label": "Influencer",    "icon": "📱", "desc": "Reached 1,000,000 followers." },
+    "socialite":   { "label": "Socialite",     "icon": "🧑‍🤝‍🧑", "desc": "Had 5+ friends at once." }
   },
 
   "EVENTS": {

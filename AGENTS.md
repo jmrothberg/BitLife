@@ -413,43 +413,38 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 
 # Status, content counts & roadmap
 
-## Concrete content counts (v0.9.4)
+## Concrete content counts (v0.11.0)
 
-- Events: **77** — baby 7, child 14, teen 15, youngAdult 11, adult 10, middleAge 10, senior 10
-- Activities: **32** — mindBody 8, doctor 7, education 3, crime 7, casino 7
+- Events: **85** — baby 7, child 14, teen 15, youngAdult 15, adult 14, middleAge 10, senior 10
+- Activities: **41** — mindBody 13, doctor 7, education 3, crime 11, casino 7
 - Careers: **43** (incl. military Army/Navy/Air Force, trades, journalist, scientist, fame paths) · Degrees: **12**
 - Market assets: **9** (4 stock / 3 crypto / 2 bond) · Real estate: **4** · Insider tips: **4**
-- Ribbons/achievements: **28** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
-- **v0.9.0 Depth Update** added: disease system, vehicles, bank loans, lottery, travel, lifestyle activities, fame activities, run-for-office, dating (Find Love) + deeper relationships, **generations (continue as heir)**, and God Mode.
+- Ribbons/achievements: **32** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
+- Beyond the v0.9 depth update: **social media** (5 platforms — followers/verified/sponsorships/podcasts,
+  v0.10.0) and **friends / coworkers / enemies** (make friends, befriend, prank, block, reconcile, v0.11.0).
 
-## Gap-closure roadmap (phased — one PR per epic; content volume runs in parallel)
+## Gap-closure roadmap
 
-Ordered by player impact. Each epic = data tables + one/few engine functions + one modal, reusing the
-existing seams (mini-game launcher, the `minigame` event-choice hook, `modalShell`/`optRow` drill-downs,
-`applyEffects`); every epic bumps the version and advances the chart rows it closes.
+**Shipped** (the chart in `README.md` is the live source of truth): relationships/dating/divorce +
+friends/coworkers/enemies, health/disease, money/loans/mortgages/taxes/inheritance, activities/travel,
+careers/fame/business/social-media, crime/gangs/heists/justice, generations/royalty(stipend)/politics,
+God Mode/Time Machine. Most of the old A–H epics are done.
 
-- **A — Relationships & family** (v0.8.7): dating / "Find Love", richer per-NPC menu (move in, prenup,
-  argue, vacation, cheat), family-tree + extended family, friends/coworkers, divorce (asset split) +
-  custody + alimony, adoption/IVF/surrogacy.
-- **B — Health & medical** (v0.8.8): `DISEASES` + `conditions[]`, illness events, treatment drill-down +
-  specialists, mental health, addictions + rehab, STDs, disabilities, pandemics.
-- **C — Money & assets depth** (v0.8.9): bank/interest, loans, **mortgages**, credit/debt, bankruptcy,
-  **taxes**, lawsuits, **lottery**, charity, **will/inheritance**; **vehicles** (dealership/insurance/
-  upkeep) + valuables (jewelry/art, pawn); `netWorth()`.
-- **D — Activities, travel & lifestyle** (v0.8.10): nightlife/museum/concert, **travel/vacation** +
-  emigrate, tattoos/shopping, **religion**, astrology, donation.
-- **E — Careers, fame & business** (v0.9.0): job **interview + salary negotiation**, fired/retire/pension,
-  **fame activities** (social/go-viral/book/album/film/endorsements/scandals), **business ownership**,
-  sports leagues.
-- **F — Crime, gangs & justice** (v0.9.1): more crimes, new **heist mini-games** (bank/jewelry/train —
-  reuse the burglary engine), **gangs/mafia**, **justice** (lawyers/trials/plea/appeals), **prison depth**
-  (riots/gangs/parole/contraband/death row).
-- **G — Structural systems** (v0.9.2): **generations/dynasties** (continue as heir + inheritance),
-  **royalty**, **politics** (run for office → elections), **military** (ranks/deployments/medals).
-- **H — God-tools & polish** (v0.9.3): **God Mode** (edit stats), **Time Machine** (rewind a year),
-  Surrender, bucket list, expanded ribbons + richer end-of-life summary.
-- **I — Content volume** (parallel, every release): scale `EVENTS` toward 15–30/stage, `CAREERS` toward
-  100+, a real `DISEASES` list, richer name pools, country flavor. Pure data.
+**Remaining gaps — next features (one PR + version bump each, reusing existing seams):**
+1. **Friends & social circle** — ✅ shipped v0.11.0.
+2. **Military deployments** — add a `deploy` action on top of the existing military careers (medals,
+   promotion, injuries via `addCondition`, court-martial); ribbons Veteran / War Hero.
+3. **Adoption, IVF & surrogacy** — `adoptChild`/IVF/surrogacy funnelling into `addRelationship({relation:"child"})`.
+4. **Business with employees** — migrate `flags.business` → `game.business = {id, employees, value}`; hire/fire.
+5. **Pet breeding & shows** — pet `training` stat (train/walk/vet), breed two pets, `petShow` (`oncePerYear`).
+
+**Runners-up:** royalty/throne politics (+ marry-into-royalty), prison depth (riots/contraband),
+custody/alimony on divorce, and **content volume** (scale `EVENTS` toward 15–30/stage, `CAREERS` 100+).
+
+Each feature = data tables + one/few engine functions + one modal, reusing the existing seams
+(mini-game launcher, the `minigame` event-choice hook, `modalShell`/`optRow` drill-downs, `applyEffects`).
+**Every feature must register new actions in `PLAYER_ACTIONS` and new truths in `INVARIANTS`** (see
+"Keeping the logic correct as it grows" above), then bump the version and advance the chart row it closes.
 
 > Keep every addition deterministic-first and routed through `applyEffects` (auto-clamped). The LLM is
 > only for the free-text box; buttons stay instant local logic; skill mini-games never call `rng()`.
