@@ -16,21 +16,24 @@
 // soaks both. Outcome is pure player skill — it never calls the game's rng().
 // ─────────────────────────────────────────────────────────────────────────
 
-// ── SKIN — swap this to reskin the fighters with real sprite art ───────────
-// To use a sprite sheet instead of the built-in vector fighters:
-//   1. Drop an image in ./minigames/assets/ (e.g. fighter.png), one row of
-//      frames per state.
-//   2. Set SKIN.sheet to its URL and fill SKIN.frames[state] = [{x,y,w,h}, …].
-//   3. Done — drawFighter() draws from the sheet when it has loaded, and uses
-//      the vector fighter until then (or whenever a state has no frames).
+// ── SKIN — per-fighter sprite art in ./assets/ (vector fallback if missing) ─
+// Each side maps game state → { src, face }. face = art default direction (+1 right, −1 left).
+// States without art reuse stateAlias; drawFighter() flips to match f.facing.
+const ASSET = (name) => new URL(`./assets/${name}`, import.meta.url).href;
 const SKIN = {
-  sheet: null,                 // e.g. new URL("./assets/fighter.png", import.meta.url).href
-  frames: {                    // state -> array of {x,y,w,h} source rects
-    // idle: [], walk: [], punch: [], kick: [], jump: [], duck: [], hit: [], ko: []
-  },
   drawH: 0.34,                 // fighter height as a fraction of canvas height
-  fps: 8,
-  // Per-side tint applied to the vector fighter (ignored when a sheet is used).
+  stateAlias: { walk: "idle", jump: "idle", duck: "idle", block: "idle", hit: "idle", ko: "idle" },
+  player: {
+    idle:  { src: ASSET("player_idle.png"),  face: 1 },
+    punch: { src: ASSET("player_punch.png"), face: 1 },
+    kick:  { src: ASSET("player_kick.png"),  face: 1 },
+  },
+  enemy: {
+    idle:  { src: ASSET("opponent_idle.png"),  face: -1 },
+    punch: { src: ASSET("opponent_punch.png"), face: -1 },
+    kick:  { src: ASSET("opponent_kick.png"),  face: 1 },
+  },
+  // Per-side tint for the built-in vector fallback only.
   playerColor: "#4aa3ff",
   enemyColor: "#ff5a4a"
 };
@@ -57,9 +60,16 @@ export function start(host, api) {
   resize();
   window.addEventListener("resize", resize);
 
-  // ── Optional sprite sheet (loads async; vector fighter shows meanwhile) ──
-  let sheetImg = null;
-  if (SKIN.sheet) { const im = new Image(); im.onload = () => { sheetImg = im; }; im.src = SKIN.sheet; }
+  // ── Sprite art (loads async; vector fighter shows meanwhile) ──
+  const spriteCache = {};
+  for (const side of ["player", "enemy"]) {
+    for (const [state, spec] of Object.entries(SKIN[side])) {
+      const key = `${side}:${state}`;
+      const im = new Image();
+      im.onload = () => { spriteCache[key] = im; };
+      im.src = spec.src;
+    }
+  }
 
   // ── Fighter model ──
   function makeFighter(x, isPlayer, color) {
@@ -199,6 +209,9 @@ export function start(host, api) {
     const onGround = f.onGround;
     const ducking = f.input.duck && onGround && f.attackTimer <= 0;
     const blocking = f.input.block && onGround && f.attackTimer <= 0 && !ducking;
+    // Set early so tryHit() in the same frame sees current duck/block.
+    f.ducking = ducking;
+    f.blocking = blocking;
 
     // jump (edge)
     if (f.input.jump && onGround) { f.vy = -JUMP_V; f.onGround = false; }
@@ -229,8 +242,7 @@ export function start(host, api) {
       if (f.attackTimer <= 0) { f.cooldown = (f.attackType === "kick" ? KICK.cd : PUNCH.cd); f.attackType = null; }
     }
 
-    f.ducking = ducking; f.blocking = blocking;
-    f.state = !onGround ? "jump" : f.attackTimer > 0 ? f.attackType : ducking ? "duck" : blocking ? "block" : vx ? "walk" : "idle";
+    f.state = !f.onGround ? "jump" : f.attackTimer > 0 ? f.attackType : ducking ? "duck" : blocking ? "block" : vx ? "walk" : "idle";
   }
 
   function applyGravity(f, dt) {
@@ -294,23 +306,62 @@ export function start(host, api) {
     for (const f of order) drawFighter(ctx, f);
   }
 
-  // The single visual funnel. Uses the sprite sheet if SKIN provides frames for
-  // the state; otherwise draws the built-in vector fighter. Reskin = fill SKIN.
+  // Resolve loaded sprite for this fighter + state (null → vector fallback).
+  function resolveSprite(f) {
+    const side = f.isPlayer ? "player" : "enemy";
+    const table = SKIN[side];
+    let state = f.state;
+    if (!table[state]) state = SKIN.stateAlias[state] || "idle";
+    if (!table[state]) return null;
+    const img = spriteCache[`${side}:${state}`];
+    if (!img) return null;
+    return { img, face: table[state].face || 1 };
+  }
+
+  // The single visual funnel. Uses per-side sprite art when loaded; otherwise vector.
   function drawFighter(ctx, f) {
-    const baseX = f.x, baseY = GROUND - f.y;
-    // shadow
+    const baseX = f.x, baseY = GROUND + f.y; // f.y < 0 = airborne = draw higher on screen
+    // shadow (stays on the floor while the fighter rises)
     ctx.save();
-    ctx.globalAlpha = 0.35; ctx.fillStyle = "#000";
-    ctx.beginPath(); ctx.ellipse(baseX, GROUND + 2, FH * 0.32, FH * 0.08, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = f.onGround ? 0.35 : 0.18;
+    const sh = f.onGround ? 1 : 0.55;
+    ctx.fillStyle = "#000";
+    ctx.beginPath(); ctx.ellipse(baseX, GROUND + 2, FH * 0.32 * sh, FH * 0.08 * sh, 0, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
 
-    const frames = SKIN.frames[f.state];
-    if (sheetImg && frames && frames.length) {
-      const fr = frames[Math.floor(f.anim * SKIN.fps) % frames.length];
-      const h = FH, w = h * (fr.w / fr.h), dx = baseX - w / 2 * f.facing;
-      ctx.save(); ctx.translate(baseX, baseY); ctx.scale(f.facing, 1); ctx.translate(-baseX, -baseY);
-      ctx.drawImage(sheetImg, fr.x, fr.y, fr.w, fr.h, baseX - w / 2, baseY - h, w, h);
+    const spr = resolveSprite(f);
+    if (spr) {
+      const { img, face } = spr;
+      const h = FH, w = h * (img.width / img.height);
+      const flip = f.facing * face;
+      ctx.save();
+      if (f.hitFlash > 0) ctx.filter = "brightness(2.2)";
+      if (f.state === "ko") {
+        ctx.translate(baseX, baseY);
+        ctx.rotate(f.facing * Math.PI / 2.1);
+        ctx.translate(-baseX, -baseY);
+      } else if (f.state === "duck") {
+        // Crouch — squash toward the feet so duck reads clearly vs block.
+        ctx.translate(baseX, baseY);
+        ctx.scale(1, 0.68);
+        ctx.translate(-baseX, -baseY);
+      }
+      ctx.translate(baseX, baseY);
+      ctx.scale(flip, 1);
+      ctx.translate(-baseX, -baseY);
+      ctx.drawImage(img, baseX - w / 2, baseY - h, w, h);
       ctx.restore();
+      if (f.state === "block") {
+        // Raised guard overlay (screen space) — block soaks damage, duck dodges punches.
+        const gx = baseX + f.facing * FH * 0.22, gy = baseY - FH * 0.58, gw = FH * 0.36, gh = FH * 0.44;
+        ctx.save();
+        ctx.fillStyle = "rgba(255,255,255,0.22)";
+        ctx.strokeStyle = "rgba(255,255,255,0.65)";
+        ctx.lineWidth = 3;
+        ctx.fillRect(gx - gw / 2, gy - gh / 2, gw, gh);
+        ctx.strokeRect(gx - gw / 2, gy - gh / 2, gw, gh);
+        ctx.restore();
+      }
       return;
     }
     drawVectorFighter(ctx, f, baseX, baseY);
