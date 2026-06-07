@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content (v0.12.0). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
+  "_comment": "BitLife-style premade content (v0.13.0). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -54,7 +54,8 @@
     "influencer":  { "label": "Influencer",    "icon": "📱", "desc": "Reached 1,000,000 followers." },
     "socialite":   { "label": "Socialite",     "icon": "🧑‍🤝‍🧑", "desc": "Had 5+ friends at once." },
     "veteran":     { "label": "Veteran",       "icon": "🎖️", "desc": "Served a military deployment." },
-    "warHero":     { "label": "War Hero",      "icon": "🏅", "desc": "Earned 3+ military medals." }
+    "warHero":     { "label": "War Hero",      "icon": "🏅", "desc": "Earned 3+ military medals." },
+    "bigFamily":   { "label": "Big Family",    "icon": "👨‍👩‍👧‍👦", "desc": "Raised 4+ children." }
   },
 
   "EVENTS": {
