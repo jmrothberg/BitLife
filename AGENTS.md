@@ -413,7 +413,7 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 
 # Status, content counts & roadmap
 
-## Concrete content counts (v0.11.0)
+## Concrete content counts (v0.12.0)
 
 - Events: **85** — baby 7, child 14, teen 15, youngAdult 15, adult 14, middleAge 10, senior 10
 - Activities: **41** — mindBody 13, doctor 7, education 3, crime 11, casino 7
