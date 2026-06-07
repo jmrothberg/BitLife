@@ -166,6 +166,10 @@ actions in `PLAYER_ACTIONS`. That's it.**
 ```
 - `weight` — relative likelihood within the stage (higher = more common).
 - `minAge`/`maxAge` — eligibility window.
+- `cond` *(optional)* — gate the event to a relevant state; it only enters the pool when the
+  named predicate holds. Available: `royal`, `monarch`, `hasJob`, `married`, `hasChild`,
+  `hasPartner`, `veteran`, `business` (see `EVENT_CONDS` in `index.html`). Unknown cond ⇒ never
+  fires (a typo hides the event rather than spamming it). Add a new predicate there to gate on more.
 - A choice's `effects` apply immediately; the optional `outcome` then rolls `chance`
   and applies `success` or `fail`.
 - Optional `"art": "a short prompt"` adds a generated scene (key `scene:event_<id>`) and is
@@ -443,7 +447,7 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 
 # Status, content counts & roadmap
 
-## Concrete content counts (v0.19.0)
+## Concrete content counts (v0.20.0)
 
 > **v0.16.0** — engine foundation (canonical `STATE_SCHEMA` + `ensureState()` at every load chokepoint,
 > `tickDepth()` split into ordered single-concern sub-ticks, headless `tests/headless.mjs` in `check.sh`).
@@ -453,9 +457,11 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 > **v0.19.0** — **royalty & full monarchy sim**: born-royal or marry-in → `ascendThrone`, rule via
 > `royalDecree`/`openThrone` (approval ↔ treasury, festivals, war, name-heir, abdicate), overthrow, and
 > dynastic succession in `continueAsHeir`; `game.throne` state, `tickRoyalty` yearly hook (+2 ribbons).
+> **v0.20.0** — **content volume**: events 85 → **155** (≈ doubled per stage), with optional `cond`
+> gating (`EVENT_CONDS`) so royal-court, family, business and military beats fire only when relevant.
 
 
-- Events: **85** — baby 7, child 14, teen 15, youngAdult 15, adult 14, middleAge 10, senior 10
+- Events: **155** — baby 16, child 24, teen 25, youngAdult 25, adult 24, middleAge 21, senior 20
 - Activities: **41** — mindBody 13, doctor 7, education 3, crime 11, casino 7
 - Careers: **43** (incl. military Army/Navy/Air Force, trades, journalist, scientist, fame paths) · Degrees: **12**
 - Market assets: **9** (4 stock / 3 crypto / 2 bond) · Real estate: **4** · Insider tips: **4**
@@ -481,8 +487,9 @@ God Mode/Time Machine. Most of the old A–H epics are done.
 **Runners-up:** custody/alimony on divorce — ✅ v0.17.0 (`settleCustody`/`tickObligations`); prison
 depth — ✅ v0.18.0 (`prisonYearlyEvent`, `prisonContraband`/`joinPrisonGang`, `prison.respect`); royalty
 & full monarchy sim (+ marry-into-royalty) — ✅ v0.19.0 (`tickRoyalty`/`ascendThrone`/`royalDecree`/
-`openThrone`, `game.throne`, dynastic succession in `continueAsHeir`). Still open: **content volume**
-(scale `EVENTS` toward 15–30/stage, `CAREERS` 100+).
+`openThrone`, `game.throne`, dynastic succession in `continueAsHeir`); content volume — ✅ v0.20.0
+(events 85 → 155, ~16–25/stage, with `cond`-gated royal/family/business/military beats). Still open:
+deeper **careers** (toward 100+ with ladders/firing/retire) and more mini-games.
 
 Each feature = data tables + one/few engine functions + one modal, reusing the existing seams
 (mini-game launcher, the `minigame` event-choice hook, `modalShell`/`optRow` drill-downs, `applyEffects`).

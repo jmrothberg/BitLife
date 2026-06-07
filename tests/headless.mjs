@@ -201,6 +201,18 @@ const royalPartner = addRelationship({ relation: "partner", name: "Royal Match",
 interact(royalPartner.id, "propose");
 ok(!royalPartner.flags.married || game.flags.royal, "marrying a royal grants royal status");
 
+// 7) Event cond-gating: a royal-only event is hidden from a commoner, shown to royalty.
+createNewLife({ first: "Cond", last: "Gate", seed: "7777" });
+const royalEv = (DATA.EVENTS.adult || []).find(e => e.cond === "royal");
+ok(!!royalEv, "a royal-gated event exists");
+ok(royalEv && !eventCondMet(royalEv), "royal event hidden from a commoner");
+game.flags.royal = true;
+ok(royalEv && eventCondMet(royalEv), "royal event available once royal");
+// every event's cond (if any) names a known predicate
+let badCond = null;
+for (const arr of Object.values(DATA.EVENTS)) for (const e of arr) if (e.cond && !EVENT_CONDS[e.cond]) badCond = e.id;
+ok(badCond === null, "no event names an unknown cond" + (badCond ? " (" + badCond + ")" : ""));
+
 const green = fail === 0;
 console.log((green ? "ALL PASS \\u2705" : "FAILURES \\u274c") + " — " + pass + " passed, " + fail + " failed (" + INVARIANTS.length + " invariants, " + PLAYER_ACTIONS.length + " actions)");
 if (!green) { for (const m of fails) console.log("  FAIL: " + m); }

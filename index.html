@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.19.0</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.20.0</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -784,10 +784,26 @@
     }
   }
 
+  // Optional per-event preconditions: an event may carry `"cond": "royal"` (or any
+  // key below) and it only enters the pool when that predicate holds — so royal-court,
+  // family, military and business beats fire only when they make sense. Unknown cond ⇒
+  // never fires (a typo hides the event rather than spamming it everywhere).
+  const EVENT_CONDS = {
+    royal:      g => !!g.flags.royal,
+    monarch:    g => !!(g.throne && g.throne.monarch),
+    hasJob:     g => !!g.character.job,
+    married:    g => (g.relationships || []).some(r => r.alive && r.flags && r.flags.married),
+    hasChild:   g => (g.relationships || []).some(r => r.alive && r.relation === "child"),
+    hasPartner: g => (g.relationships || []).some(r => r.alive && r.flags && (r.flags.dating || r.flags.married)),
+    veteran:    g => !!(g.military && g.military.deployments > 0),
+    business:   g => !!currentBusiness(),
+  };
+  function eventCondMet(e) { return !e.cond || (EVENT_CONDS[e.cond] && EVENT_CONDS[e.cond](game)); }
+
   function fireYearlyEvent() {
     if (jailed()) return;   // no roommate drama / phone scams / parties in a cell
     const stage = game.character.lifeStage;
-    const pool = (DATA.EVENTS[stage] || []).filter(e => game.character.age >= (e.minAge ?? 0) && game.character.age <= (e.maxAge ?? 999));
+    const pool = (DATA.EVENTS[stage] || []).filter(e => game.character.age >= (e.minAge ?? 0) && game.character.age <= (e.maxAge ?? 999) && eventCondMet(e));
     if (!pool.length || rngChance(0.25)) return; // some quiet years
     const ev = rngWeighted(pool);
     if (ev.noChoice) {
