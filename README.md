@@ -48,7 +48,7 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[AGENTS.md](./AGENTS.md)**.
 
-Full system-by-system table (v0.14.0). Counts + the gap-closure roadmap live in **[AGENTS.md](./AGENTS.md)** (the contributor/LLM guide).
+Full system-by-system table (v0.15.0). Counts + the gap-closure roadmap live in **[AGENTS.md](./AGENTS.md)** (the contributor/LLM guide).
 
 | System | Real BitLife | This game | Status |
 |---|---|---|---|
@@ -76,8 +76,8 @@ Full system-by-system table (v0.14.0). Counts + the gap-closure roadmap live in 
 | Money / finance | Bank, interest, loans, mortgages, cards, debt, bankruptcy, taxes, lottery, charity, will/inheritance | Loans, **mortgages**, bankruptcy, lottery, net worth, inheritance, income/crypto tax | 🟡 |
 | **Investing + insider trading** | Stocks/crypto/bonds/real estate; SEC "Martha" | Same, incl. insider trading + the Martha ribbon | ✅ |
 | Fame | Fame bar, social media/go-viral, books/albums/films, endorsements, scandals, paparazzi | Fame bar + **social media** (5 platforms — followers, verified 🔵, sponsorships, podcasts), books/albums/films, go-viral, endorsements, brand-deal & cancel events | ✅ |
-| Pets | Pet store (many species), train/walk/vet/breed/shows | **Pet store (7 species)** + childhood adopt + interactions; pets age & die; no breed/shows | 🟡 |
-| Achievements / ribbons | Large set + end-of-life summary | 36 ribbons + death summary | 🟡 |
+| Pets | Pet store (many species), train/walk/vet/breed/shows | **Pet store (7 species)** + adopt, **walk/train/vet**, **breed** (same species) & **pet shows** (training → prizes 🏆); pets age & die | ✅ |
+| Achievements / ribbons | Large set + end-of-life summary | 37 ribbons + death summary | 🟡 |
 | Countries / nationality | 150+ nations, languages, citizenship | 30 (cosmetic) | 🟡 |
 | Generations / dynasties | Continue as your heir; inheritance | **Continue as your heir** + inheritance (estate tax) | 🟡 |
 | God Mode / Time Machine / Surrender | Edit stats, rewind a year, restart | **God Mode** + **Time Machine** (rewind one year) + New Life | ✅ |
@@ -212,5 +212,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.14.0 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.15.0 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*

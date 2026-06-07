@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.14.0</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.15.0</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -417,7 +417,7 @@
     ],
     COUNTRIES: ["USA", "UK", "Canada", "Japan"],
     NAME_POOLS: { male: ["Liam", "Noah", "James"], female: ["Emma", "Olivia", "Mia"], nonbinary: ["Alex", "Sam", "Jordan"], surnames: ["Smith", "Lee", "Garcia", "Chen"] },
-    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." }, verified: { label: "Verified", icon: "🔵", desc: "Got verified on social media." }, influencer: { label: "Influencer", icon: "📱", desc: "Reached 1,000,000 followers." }, socialite: { label: "Socialite", icon: "🧑‍🤝‍🧑", desc: "Had 5+ friends at once." }, veteran: { label: "Veteran", icon: "🎖️", desc: "Served a military deployment." }, warHero: { label: "War Hero", icon: "🏅", desc: "Earned 3+ military medals." }, bigFamily: { label: "Big Family", icon: "👨‍👩‍👧‍👦", desc: "Raised 4+ children." }, tycoon: { label: "Tycoon", icon: "🏭", desc: "Grew a business to full staff." } },
+    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." }, verified: { label: "Verified", icon: "🔵", desc: "Got verified on social media." }, influencer: { label: "Influencer", icon: "📱", desc: "Reached 1,000,000 followers." }, socialite: { label: "Socialite", icon: "🧑‍🤝‍🧑", desc: "Had 5+ friends at once." }, veteran: { label: "Veteran", icon: "🎖️", desc: "Served a military deployment." }, warHero: { label: "War Hero", icon: "🏅", desc: "Earned 3+ military medals." }, bigFamily: { label: "Big Family", icon: "👨‍👩‍👧‍👦", desc: "Raised 4+ children." }, tycoon: { label: "Tycoon", icon: "🏭", desc: "Grew a business to full staff." }, bestInShow: { label: "Best in Show", icon: "🏆", desc: "Won a pet show." } },
     EVENTS: {
       baby: [{ id: "fw", weight: 5, minAge: 1, maxAge: 2, noChoice: true, text: "You said your first words!", effects: { happiness: 6, smarts: 2 } }],
       child: [{ id: "bully", weight: 7, minAge: 6, maxAge: 12, text: "A bully keeps shoving you at school.", choices: [{ label: "Ignore it", effects: { happiness: -6 } }, { label: "Tell a teacher", effects: { happiness: 2 }, outcome: { chance: 0.55, success: { happiness: 7 }, fail: { happiness: -5 } } }, { label: "Fight back", effects: {}, outcome: { chance: 0.45, success: { happiness: 9, health: -3 }, fail: { health: -12, happiness: -7 } } }] }],
@@ -1763,6 +1763,7 @@
     ["military counters finite & ≥ 0", g => !g.military || (Number.isFinite(g.military.deployments) && g.military.deployments >= 0 && Number.isFinite(g.military.medals) && g.military.medals >= 0)],
     ["children have finite, non-negative ages", g => (g.relationships || []).filter(r => r.relation === "child").every(r => Number.isFinite(r.age) && r.age >= 0)],
     ["business employees finite & ≥ 0", g => !g.business || (Number.isFinite(g.business.employees) && g.business.employees >= 0)],
+    ["pet training stays 0..100", g => (g.relationships || []).filter(r => r.relation === "pet").every(r => r.training == null || (Number.isFinite(r.training) && r.training >= 0 && r.training <= 100))],
     ["all granted achievements exist", g => (g.achievements || []).every(id => !!DATA.ACHIEVEMENTS[id])],
     ["achievements are unique", g => new Set(g.achievements || []).size === (g.achievements || []).length],
   ];
@@ -1810,6 +1811,7 @@
     { fn: "hireEmployee", prison: "block", run: () => hireEmployee() },
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("gift") },
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("prank") },
+    { fn: "interact", prison: "block", guard: "rel", run: () => relAct("petShow") },
     { fn: "interact", prison: "allow", guard: "rel", run: () => relAct("conversation") },
   ];
 
@@ -2090,6 +2092,7 @@
 
   // In prison only basic visitation is possible (no gifts/dates/marriage/divorce/etc.).
   const PRISON_REL_OK = new Set(["compliment", "conversation", "spendTime", "insult", "argue"]);
+  const PET_ACTIONS = new Set(["petWalk", "petTrain", "petVet", "petBreed", "petShow"]);
   // A soured non-family social tie can turn into an enemy (but never your active
   // partner/spouse, your kids, parents, or pets).
   function canBecomeEnemy(r) { return ["friend", "coworker", "exspouse"].includes(r.relation) && !r.flags.married && !r.flags.dating; }
@@ -2098,6 +2101,7 @@
     const r = game.relationships.find(x => x.id === rid); if (!r || !r.alive) return;
     const c = game.character;
     if (jailed() && !PRISON_REL_OK.has(action)) { showToast("You can only visit with people in prison."); return; }
+    if (PET_ACTIONS.has(action) && r.relation !== "pet") { showToast("That's not a pet."); return; }
     switch (action) {
       case "compliment": r.bar = clampStat(r.bar + rngInt(2, 7)); applyEffects({ happiness: 1 }); log("relationship", `You complimented ${r.name}.`); break;
       case "conversation": r.bar = clampStat(r.bar + rngInt(3, 8)); applyEffects({ happiness: 2 }); log("relationship", `You had a nice conversation with ${r.name}.`); break;
@@ -2179,6 +2183,34 @@
         // cut them out of your life (removed like any lost relationship)
         r.alive = false; applyEffects({ happiness: 2 });
         log("relationship", `You cut ${r.name} out of your life.`); break;
+      // ── Pet care (training feeds pet shows) ──
+      case "petWalk": r.bar = clampStat(r.bar + rngInt(3, 8)); r.training = clampStat((r.training || 0) + rngInt(1, 4)); applyEffects({ happiness: 2, health: 1 }); log("relationship", `You took ${r.name} for a walk. 🚶`); break;
+      case "petTrain": r.training = clampStat((r.training || 0) + rngInt(5, 12)); r.bar = clampStat(r.bar + rngInt(1, 4)); applyEffects({ happiness: 2 }); log("relationship", `You trained ${r.name} (training ${r.training}). 🦴`); break;
+      case "petVet": if (c.money < 300) { showToast("A vet visit is $300."); return; } c.money -= 300; r.bar = clampStat(r.bar + rngInt(6, 12)); applyEffects({ happiness: 1 }); log("relationship", `You took ${r.name} to the vet. 🩺`); break;
+      case "petBreed": {
+        const mate = game.relationships.find(x => x.alive && x.relation === "pet" && x.id !== r.id && x.species === r.species);
+        if (!r.species) { showToast("This pet can't be bred."); return; }
+        if (!mate) { showToast(`You need two ${r.species}s to breed.`); return; }
+        if (r.age < 1 || mate.age < 1) { showToast("Pets must be grown to breed."); return; }
+        if (!oncePerYear("petBreed")) return;
+        const bg = rngPick(["male", "female"]);
+        const baby = addRelationship({ relation: "pet", species: r.species, emoji: r.emoji, name: (r.emoji || "🐾") + " " + rngPick(DATA.NAME_POOLS[bg]), gender: bg, age: 0, bar: 75, training: 0 });
+        applyEffects({ happiness: 6 }); grantAchievement("petlover");
+        log("event", `🐾 ${r.name} & ${mate.name} had a litter — welcome ${baby.name}!`);
+        break;
+      }
+      case "petShow": {
+        if (c.money < 200) { showToast("Entry fee is $200."); return; }
+        if (!oncePerYear("petShow")) return;
+        c.money -= 200;
+        const t = r.training || 0;
+        if (rngChance(0.15 + t / 150)) {            // trained pets win more often & bigger
+          const prize = 300 + Math.round(t * 15);
+          c.money += prize; r.bar = clampStat(r.bar + 8); applyEffects({ happiness: 8 }); grantAchievement("bestInShow");
+          log("event", `🏆 ${r.name} won the pet show — prize ${fmtMoney(prize)}!`);
+        } else { applyEffects({ happiness: -2 }); log("event", `🐾 ${r.name} didn't place at the show this time.`); }
+        break;
+      }
     }
     autosave(); renderAll(); openModal("relationships");
   }
@@ -3167,18 +3199,23 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (!alive.length) { const d = document.createElement("div"); d.className = "hint"; d.style.color = "var(--text-muted)"; d.textContent = "No living relationships."; list.appendChild(d); }
     for (const r of alive) {
       const div = document.createElement("div"); div.className = "opt"; div.style.flexWrap = "wrap";
-      div.innerHTML = `<div class="info" style="flex-basis:100%"><div class="t">${r.name} <span style="color:var(--text-muted);font-size:11px">(${r.relation}, age ${r.age})</span></div><div class="bar-track" style="margin-top:4px"><div class="bar-fill" style="width:${r.bar}%;background:var(--looks)"></div></div></div>`;
+      const petInfo = r.relation === "pet" ? ` · 🦴 ${r.training || 0}` : "";
+      div.innerHTML = `<div class="info" style="flex-basis:100%"><div class="t">${r.name} <span style="color:var(--text-muted);font-size:11px">(${r.relation}, age ${r.age}${petInfo})</span></div><div class="bar-track" style="margin-top:4px"><div class="bar-fill" style="width:${r.bar}%;background:var(--looks)"></div></div></div>`;
       const acts = document.createElement("div"); acts.style.cssText = "display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;flex-basis:100%";
       const add = (label, action) => { const b = document.createElement("button"); b.textContent = label; b.style.cssText = "flex:1 1 30%;font-size:12px;padding:6px"; b.onclick = () => interact(r.id, action); acts.appendChild(b); };
-      add("Compliment", "compliment"); add("Talk", "conversation"); add("Spend time", "spendTime"); add("Gift $200", "gift"); add("Give $1k", "giveMoney"); add("Ask for $", "askMoney"); add("Argue", "argue"); add("Insult", "insult");
-      if (!["mother", "father", "sibling", "child", "pet", "grandparent", "enemy"].includes(r.relation)) add("Date", "date");
-      if (r.relation === "coworker" || r.relation === "exspouse") add("Befriend", "befriend");
-      if (r.relation === "enemy") add("Reconcile", "reconcile");
-      if (["friend", "coworker", "exspouse", "enemy", "sibling"].includes(r.relation)) add("Prank", "prank");
-      if (["friend", "coworker", "exspouse", "enemy"].includes(r.relation)) add("Block", "block");
-      if (r.flags.dating && !r.flags.married) { add("Move in", "moveIn"); add("Propose", "propose"); add("Propose 📝prenup", "proposePrenup"); }
-      if (r.flags.married || r.flags.dating) { add("Vacation", "vacation"); add("Cheat", "cheat"); add("Have baby", "haveBaby"); }
-      if (r.flags.married) add("Divorce", "divorce"); else if (r.flags.dating) add("Break up", "breakUp");
+      if (r.relation === "pet") {
+        add("Walk", "petWalk"); add("Train", "petTrain"); add("Vet $300", "petVet"); add("Breed", "petBreed"); add("🏆 Pet show", "petShow");
+      } else {
+        add("Compliment", "compliment"); add("Talk", "conversation"); add("Spend time", "spendTime"); add("Gift $200", "gift"); add("Give $1k", "giveMoney"); add("Ask for $", "askMoney"); add("Argue", "argue"); add("Insult", "insult");
+        if (!["mother", "father", "sibling", "child", "grandparent", "enemy"].includes(r.relation)) add("Date", "date");
+        if (r.relation === "coworker" || r.relation === "exspouse") add("Befriend", "befriend");
+        if (r.relation === "enemy") add("Reconcile", "reconcile");
+        if (["friend", "coworker", "exspouse", "enemy", "sibling"].includes(r.relation)) add("Prank", "prank");
+        if (["friend", "coworker", "exspouse", "enemy"].includes(r.relation)) add("Block", "block");
+        if (r.flags.dating && !r.flags.married) { add("Move in", "moveIn"); add("Propose", "propose"); add("Propose 📝prenup", "proposePrenup"); }
+        if (r.flags.married || r.flags.dating) { add("Vacation", "vacation"); add("Cheat", "cheat"); add("Have baby", "haveBaby"); }
+        if (r.flags.married) add("Divorce", "divorce"); else if (r.flags.dating) add("Break up", "breakUp");
+      }
       div.appendChild(acts); list.appendChild(div);
     }
   }
@@ -4139,7 +4176,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const c = game.character; if (c.money < p.cost) { showToast("Can't afford it."); return; }
     c.money -= p.cost;
     const g = rngPick(["male", "female"]);
-    addRelationship({ relation: "pet", name: p.emoji + " " + rngPick(DATA.NAME_POOLS[g]), gender: g, age: 0, bar: 70 });
+    addRelationship({ relation: "pet", species: p.id, emoji: p.emoji, name: p.emoji + " " + rngPick(DATA.NAME_POOLS[g]), gender: g, age: 0, bar: 70, training: 0 });
     applyEffects({ happiness: 8 }); grantAchievement("petlover");
     log("event", `🐾 You adopted a ${p.name}!`);
     autosave(); renderAll(); openRelationships();
