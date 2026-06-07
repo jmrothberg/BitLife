@@ -72,5 +72,10 @@ if errs:
 print("✓ data integrity (unique ids · casino EV<1 · FALLBACK ribbons synced · free-only actions guarded)")
 PY
 
+# 5) Headless self-check: boots the real engine under DOM stubs and runs 6 lives +
+#    fuzz + the prison audit + an old-save migration test (same checks as
+#    index.html#test=selfcheck, but in CI without a browser).
+if out=$(node tests/headless.mjs 2>&1); then echo "✓ ${out}"; else echo "✗ headless self-check"; echo "$out"; fail=1; fi
+
 if [ "$fail" -eq 0 ]; then echo "── all checks passed ──"; else echo "── FAILURES above ──"; fi
 exit $fail

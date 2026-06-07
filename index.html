@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.15.0</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.16.0</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -528,6 +528,44 @@
     genius:   { label: "Genius",   boost: { smarts: 18 } }
   };
 
+  // ── Canonical state schema ────────────────────────────────────────────────
+  // ONE registry of every OPTIONAL top-level subsystem field, each with a factory
+  // for its default. `ensureState(game)` fills any a save / new life / heir is
+  // missing (non-destructive — it never overwrites an existing value). This is the
+  // single fix for the whole "an old save or a fresh heir lacks a field some
+  // feature reads" bug class: it runs at every load chokepoint (new life, loadLife,
+  // continueAsHeir). RULE: add a new subsystem ⇒ add its default HERE and its truth
+  // to INVARIANTS, and every later feature can just read the field, always present.
+  const STATE_SCHEMA = {
+    relationships:      () => [],
+    assets:             () => [],
+    portfolio:          () => [],
+    crimeRecord:        () => ({ arrests: 0, convictions: 0, notoriety: 0 }),
+    prison:             () => ({ inPrison: false, sentenceYears: 0, yearsServed: 0, reason: null, respect: 0, contraband: 0 }),
+    flags:              () => ({}),
+    achievements:       () => [],
+    social:             () => ({}),         // per-platform { followers, verified } — built lazily
+    military:           () => ({ deployments: 0, medals: 0 }),
+    business:           () => null,         // { id, employees } once started
+    obligations:        () => [],           // post-divorce alimony / child support (tickObligations)
+    throne:             () => null,         // monarchy sim: { title, monarch, approval, treasury }
+    log:                () => [],
+    activitiesThisYear: () => [],
+    loanBalance:        () => 0,
+    mortgageBalance:    () => 0,
+  };
+  // Fill any missing top-level subsystem field + a couple of nested fields added
+  // after older saves were written. Non-destructive: only fills what's absent.
+  function ensureState(g) {
+    if (!g) return g;
+    for (const k in STATE_SCHEMA) if (!(k in g)) g[k] = STATE_SCHEMA[k]();
+    if (g.prison && g.prison.respect == null) g.prison.respect = 0;
+    if (g.prison && g.prison.contraband == null) g.prison.contraband = 0;
+    if (g.military && g.military.deployments == null) g.military.deployments = 0;
+    if (g.military && g.military.medals == null) g.military.medals = 0;
+    return g;
+  }
+
   function createNewLife(opts) {
     const seed = (opts.seed && /^\d+$/.test(opts.seed)) ? parseInt(opts.seed, 10) : (Math.floor(Math.random() * 4294967295));
     game = { schemaVersion: 1, seed: seed >>> 0, rngState: seed >>> 0 };
@@ -582,6 +620,7 @@
     }
     // rare: born into royalty (a title + a head start)
     if (rngChance(0.03)) { game.flags.royal = true; game.character.money += 500000; grantAchievement("royalty"); log("system", "👑 You were born into a royal family!"); }
+    ensureState(game);   // backfill any optional subsystem field (obligations, throne, …)
     const talentBit = talent ? ` Born with a gift for ${TALENTS[talent].label.toLowerCase()}.` : "";
     log("system", `${name} was born in ${country} under ${ZODIAC_EMOJI[zodiac] || ""} ${zodiac}.${talentBit}`, "birth");
     return game;
@@ -1766,6 +1805,8 @@
     ["pet training stays 0..100", g => (g.relationships || []).filter(r => r.relation === "pet").every(r => r.training == null || (Number.isFinite(r.training) && r.training >= 0 && r.training <= 100))],
     ["all granted achievements exist", g => (g.achievements || []).every(id => !!DATA.ACHIEVEMENTS[id])],
     ["achievements are unique", g => new Set(g.achievements || []).size === (g.achievements || []).length],
+    ["state has all schema fields", g => Object.keys(STATE_SCHEMA).every(k => k in g)],
+    ["obligations are finite & ≥ 0", g => (g.obligations || []).every(o => Number.isFinite(o.annual) && o.annual >= 0 && Number.isFinite(o.yearsLeft) && o.yearsLeft >= 0)],
   ];
   function checkInvariants(label, ok) {
     for (const [name, pred] of INVARIANTS) {
@@ -2905,6 +2946,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     try {
       const raw = localStorage.getItem("bitlife_save_" + slot); if (!raw) return false;
       game = JSON.parse(raw); game._slot = slot;
+      ensureState(game);   // migrate older saves: add any subsystem field they predate
       _rng = mulberry32(game.rngState || game.seed || 1);
       relId = Math.max(1, ...game.relationships.map(r => r.id || 0)) + 1;
       return true;
@@ -3655,31 +3697,51 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     return Math.round(n - (game.loanBalance || 0) - (game.mortgageBalance || 0));
   }
 
-  // Yearly depth ticks — called from ageUp() before checkDeath() (new rolls go at
-  // the end so existing seeded event sequences stay stable).
+  // Yearly depth ticks — orchestrated by tickDepth(), called from ageUp() before
+  // checkDeath(). Each sub-tick owns ONE concern so new yearly logic has an obvious
+  // home and stays testable. ORDER IS LOAD-BEARING: it fixes the seeded RNG sequence,
+  // so keep health → assets → finances → business → obligations (obligations & most
+  // others are deterministic; only health and business consume rng).
   function tickDepth() {
+    tickHealth();
+    tickAssets();
+    tickFinances();
+    tickBusiness();
+    tickObligations();
+  }
+  // Conditions drain health each year; poor health/age can spawn a new illness.
+  function tickHealth() {
     const c = game.character;
     for (const cond of (c.conditions || [])) c.stats.health = clampStat(c.stats.health - (cond.drain || 0));
     if (rngChance(0.05 + Math.max(0, c.age - 40) * 0.004 + (c.stats.health < 40 ? 0.05 : 0))) addDisease();
+  }
+  // Vehicle upkeep + depreciation. (Real estate + valuables appreciation is handled
+  // in advanceMarkets, which grows every asset with an `apprec` field — not here.)
+  function tickAssets() {
+    const c = game.character;
     for (const v of (game.assets || []).filter(a => a.type === "vehicle")) {
       c.money -= (v.upkeep || 0);
       v.currentValue = Math.round((v.currentValue || 0) * (1 - (v.deprec || 0.1)));
     }
-    // (real estate + valuables appreciation is handled in advanceMarkets, which
-    // already grows every asset with an `apprec` field — don't double-count here.)
+  }
+  // Loan (8%/yr) and mortgage (5%/yr) interest + automatic payments.
+  function tickFinances() {
+    const c = game.character;
     if ((game.loanBalance || 0) > 0) {
       game.loanBalance = Math.round(game.loanBalance * 1.08);
       const pay = Math.max(0, Math.round(game.loanBalance * 0.1));
       if (c.money >= pay) { c.money -= pay; game.loanBalance -= pay; }
     }
-    // mortgage: 5%/yr interest + auto payment
     if ((game.mortgageBalance || 0) > 0) {
       game.mortgageBalance = Math.round(game.mortgageBalance * 1.05);
       const mp = Math.max(0, Math.round(game.mortgageBalance * 0.08));
       if (c.money >= mp) { c.money -= mp; game.mortgageBalance -= mp; }
     }
-    // business revenue: founder's own line (b.rev) + each employee's noisy margin
-    // (output minus salary). Migrates old saves via currentBusiness().
+  }
+  // Business revenue: founder's own line (b.rev) + each employee's noisy margin
+  // (output minus salary). Migrates old saves via currentBusiness().
+  function tickBusiness() {
+    const c = game.character;
     if (typeof currentBusiness === "function" && currentBusiness()) {
       const biz = currentBusiness(); const b = BUSINESSES.find(x => x.id === biz.id);
       if (b) {
@@ -3689,6 +3751,20 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
         if (rev !== 0) log("event", `🏢 Your ${b.name} ${rev >= 0 ? "earned" : "lost"} ${fmtMoney(Math.abs(rev))} this year.`);
       }
     }
+  }
+  // Post-divorce obligations (alimony / child support). Paid from cash each year;
+  // each entry ends when its term runs out (or the payee is gone). Populated in the
+  // divorce flow (see interact "divorce"); deterministic, so it adds no rng draws.
+  function tickObligations() {
+    const c = game.character;
+    const list = game.obligations || (game.obligations = []);
+    for (const o of list) {
+      if (!(o.yearsLeft > 0) || !(o.annual > 0)) { o.yearsLeft = 0; continue; }
+      c.money -= o.annual;
+      o.yearsLeft -= 1;
+      log("event", `${o.type === "alimony" ? "💸 Alimony" : "💸 Child support"} to ${o.exName || "your ex"}: ${fmtMoney(o.annual)}${o.yearsLeft > 0 ? ` (${o.yearsLeft}y left)` : " — final payment"}.`);
+    }
+    if (list.length) game.obligations = list.filter(o => o.yearsLeft > 0);
   }
   function addDisease() {
     const c = game.character; c.conditions = c.conditions || [];
@@ -4036,10 +4112,17 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       fame: 0, money: share, education: { level: "none", inSchool: false, degree: null, major: null }, job: null, appearanceHash: ""
     };
     // fresh slate (inheritance is the cash share); clear orphaned holdings/relations
+    // AND every per-life subsystem so the heir doesn't inherit the parent's business,
+    // followers, military record, debts or obligations. ensureState() then refills the
+    // canonical defaults so every field a feature reads is present for the new life.
     game.relationships = []; game.assets = []; game.portfolio = [];
-    game.prison = { inPrison: false, sentenceYears: 0, yearsServed: 0, reason: null };
-    game.crimeRecord = { arrests: 0, convictions: 0, notoriety: 0 };
-    game.flags = {}; game.activeTip = null; game.pendingEvent = null; game.loanBalance = 0; game._lovePool = null;
+    game.prison = STATE_SCHEMA.prison(); game.crimeRecord = STATE_SCHEMA.crimeRecord();
+    game.social = STATE_SCHEMA.social(); game.military = STATE_SCHEMA.military();
+    game.business = STATE_SCHEMA.business(); game.obligations = STATE_SCHEMA.obligations();
+    game.throne = STATE_SCHEMA.throne();
+    game.loanBalance = 0; game.mortgageBalance = 0;
+    game.flags = {}; game.activeTip = null; game.pendingEvent = null; game._lovePool = null;
+    ensureState(game);
     grantAchievement("dynasty");
     closeModal();
     log("system", `👶 You live on as ${heir.name} (generation ${game.generation}), inheriting ${fmtMoney(share)} from ${dead.name}.`);

@@ -79,7 +79,31 @@ Add a row to the JSON and it shows up in the menu automatically.
 ## Keeping the logic correct as it grows
 
 The goal isn't to write a test per bug — it's a **general net** that catches logic errors
-in *any* feature, present or future. Three layers do this; you extend the data, not the tests.
+in *any* feature, present or future. Four layers do this; you extend the data, not the tests.
+
+### 0. Canonical state schema (`const STATE_SCHEMA` + `ensureState`)
+Every **optional top-level subsystem field** (`social`, `military`, `business`, `obligations`,
+`throne`, `loanBalance`, …) is declared once in `STATE_SCHEMA` with a factory for its default.
+`ensureState(game)` fills any a save / new life / heir is missing (non-destructive). It runs at
+the **three load chokepoints** — `createNewLife()`, `loadLife()`, `continueAsHeir()` — so an old
+save or a fresh heir can never lack a field a feature reads. This kills the whole "undefined
+subsystem field" / "stale state carried to the heir" bug class. **Rule: a new subsystem ⇒ add its
+default to `STATE_SCHEMA` and its truth to `INVARIANTS`; then every feature just reads the field.**
+
+| Field | Default | Owner / notes |
+|---|---|---|
+| `relationships` / `assets` / `portfolio` | `[]` | family, vehicles/valuables/realty, stock holdings |
+| `crimeRecord` | `{arrests,convictions,notoriety}` | crime/justice |
+| `prison` | `{inPrison,sentenceYears,yearsServed,reason,respect,contraband}` | incarceration + prison depth |
+| `flags` | `{}` | misc booleans (royal, gang, lawyer, …) |
+| `achievements` | `[]` | granted ribbon ids |
+| `social` | `{}` | per-platform `{followers,verified}` (lazy) |
+| `military` | `{deployments,medals}` | deployments |
+| `business` | `null` | `{id,employees}` once started |
+| `obligations` | `[]` | post-divorce alimony / child support (`tickObligations`) |
+| `throne` | `null` | monarchy sim `{title,monarch,approval,treasury}` |
+| `log` / `activitiesThisYear` | `[]` | feed / per-year action list |
+| `loanBalance` / `mortgageBalance` | `0` | debts |
 
 ### 1. Action guards (state the precondition once)
 Menus **don't consume the turn**, and many actions are illegal in some states (e.g. in prison).
@@ -115,7 +139,8 @@ asserts every `prison:"block"` action's function contains `requireFree()`; `inde
 runs 6 lives + the fuzz pass + the prison audit, reporting `N invariants · M actions`.
 
 So the "roommate-issues-in-jail" bug — and its whole class — fails the tests instead of shipping.
-**When you add a feature: add its truths to `INVARIANTS` and its actions to `PLAYER_ACTIONS`. That's it.**
+**When you add a feature: declare its state in `STATE_SCHEMA`, its truths in `INVARIANTS`, and its
+actions in `PLAYER_ACTIONS`. That's it.**
 
 ## Recipes
 
@@ -352,7 +377,10 @@ prefers the JSON and silently falls back. Practical rule:
 ## v0.9.x systems quick-map (where the depth lives)
 
 All added as **JS consts (offline-safe) + one engine fn + one `openX()` modal**, wired into a menu and
-ticked yearly in `tickDepth()` (called near the end of `ageUp`). Reuse these patterns:
+ticked yearly via `tickDepth()` (called near the end of `ageUp`). `tickDepth()` is a thin orchestrator
+that calls single-concern sub-ticks **in a fixed order** (`tickHealth` → `tickAssets` → `tickFinances`
+→ `tickBusiness` → `tickObligations`) — the order is load-bearing because it fixes the seeded RNG
+sequence, so add new yearly logic to the matching sub-tick (or append a new one at the end). Reuse these patterns:
 
 - **Health/disease:** `DISEASES` const, `game.character.conditions[]`, `addDisease()`/`addCondition()`
   (addictions & STDs), `openClinic()`/`treatCondition()`; untreated severity raises `checkDeath` mortality.
@@ -378,7 +406,9 @@ No build step. Two fast tiers — run both before committing:
    parity). Exits non-zero on failure; safe to wire into a SessionStart hook or CI.
 2. **In-game self-test:** open `index.html#test=selfcheck` — data asserts + **6 seeded lives simulated
    to death**, checking stats stay clamped, money/age finite, no exceptions, and saves round-trip.
-   Shows a green/red PASS/FAIL summary.
+   Shows a green/red PASS/FAIL summary. The **same checks run headlessly in CI**: `bash tests/check.sh`
+   now boots the real engine under DOM stubs (`node tests/headless.mjs`) and runs the 6 lives + the
+   200-action fuzz pass + the prison audit + an old-save `ensureState` migration test — no browser needed.
 
 Then, for anything risky: **play it** (`python3 serve.py`; AI off by default), **prove the odds** with
 a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTools → Network → Offline).
@@ -413,7 +443,12 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 
 # Status, content counts & roadmap
 
-## Concrete content counts (v0.15.0)
+## Concrete content counts (v0.16.0)
+
+> v0.16.0 is an **engine-foundation** release (no new player content): a canonical `STATE_SCHEMA` +
+> `ensureState()` at every load chokepoint, `tickDepth()` split into ordered single-concern sub-ticks,
+> and a headless `tests/headless.mjs` self-check wired into `tests/check.sh`. Counts below are unchanged.
+
 
 - Events: **85** — baby 7, child 14, teen 15, youngAdult 15, adult 14, middleAge 10, senior 10
 - Activities: **41** — mindBody 13, doctor 7, education 3, crime 11, casino 7

@@ -4,3 +4,4 @@ __pycache__/
 .env
 .claude/
 .venv/
+tests/.bl_headless.gen.mjs
