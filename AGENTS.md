@@ -443,11 +443,12 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 
 # Status, content counts & roadmap
 
-## Concrete content counts (v0.16.0)
+## Concrete content counts (v0.17.0)
 
-> v0.16.0 is an **engine-foundation** release (no new player content): a canonical `STATE_SCHEMA` +
-> `ensureState()` at every load chokepoint, `tickDepth()` split into ordered single-concern sub-ticks,
-> and a headless `tests/headless.mjs` self-check wired into `tests/check.sh`. Counts below are unchanged.
+> **v0.16.0** was an **engine-foundation** release (canonical `STATE_SCHEMA` + `ensureState()` at every
+> load chokepoint, `tickDepth()` split into ordered single-concern sub-ticks, headless `tests/headless.mjs`
+> wired into `tests/check.sh`). **v0.17.0** adds **custody & alimony** on divorce (`settleCustody`,
+> `tickObligations`, `game.obligations`) — no new JSON content. Counts below are unchanged.
 
 
 - Events: **85** — baby 7, child 14, teen 15, youngAdult 15, adult 14, middleAge 10, senior 10
@@ -473,8 +474,9 @@ God Mode/Time Machine. Most of the old A–H epics are done.
 4. **Business with employees** — migrate `flags.business` → `game.business = {id, employees, value}`; hire/fire.
 5. **Pet breeding & shows** — pet `training` stat (train/walk/vet), breed two pets, `petShow` (`oncePerYear`).
 
-**Runners-up:** royalty/throne politics (+ marry-into-royalty), prison depth (riots/contraband),
-custody/alimony on divorce, and **content volume** (scale `EVENTS` toward 15–30/stage, `CAREERS` 100+).
+**Runners-up:** custody/alimony on divorce — ✅ shipped v0.17.0 (`settleCustody`/`tickObligations`,
+`game.obligations`). Still open: royalty/throne politics (+ marry-into-royalty), prison depth
+(riots/contraband), and **content volume** (scale `EVENTS` toward 15–30/stage, `CAREERS` 100+).
 
 Each feature = data tables + one/few engine functions + one modal, reusing the existing seams
 (mini-game launcher, the `minigame` event-choice hook, `modalShell`/`optRow` drill-downs, `applyEffects`).

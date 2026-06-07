@@ -80,6 +80,35 @@ ok(Object.keys(STATE_SCHEMA).every(k => k in game), "ensureState backfilled ever
 ok(Array.isArray(game.obligations) && game.throne === null && game.prison.respect === 0, "migrated defaults correct");
 checkInvariants("post-migration", ok);
 
+// 1b) Custody & alimony: marry, have a minor child, divorce → obligations set up,
+//     custody assigned, and tickObligations drains cash then ends the obligation.
+createNewLife({ first: "Div", last: "Test", seed: "4242" });
+game.character.age = 35; game.character.lifeStage = lifeStageFor(35); game.character.money = 500000;
+game.character.job = { title: "Engineer", salary: 120000, levelName: "Senior", yearsHeld: 5 };
+const spouse = addRelationship({ relation: "spouse", name: "Pat Ex", gender: "female", age: 34, bar: 70 });
+spouse.flags.married = true;
+const kid = addRelationship({ relation: "child", name: "Kid Test", gender: "male", age: 8, bar: 60, isPlayerChild: true });
+interact(spouse.id, "divorce");
+ok(spouse.relation === "exspouse", "spouse becomes ex on divorce");
+ok(["you","ex","joint"].includes(kid.custody), "minor child gets a custody value");
+ok(game.obligations.some(o => o.type === "alimony"), "alimony obligation created (breadwinner, no prenup)");
+checkInvariants("post-divorce", ok);
+const oblBefore = game.obligations.length, moneyBefore = game.character.money;
+tickObligations();
+ok(game.character.money < moneyBefore, "tickObligations drains cash");
+checkInvariants("post-tickObligations", ok);
+// run out the longest term; obligations must all expire (no permanent drain)
+for (let y = 0; y < 25; y++) tickObligations();
+ok(game.obligations.length === 0, "all obligations expire within their term");
+// prenup divorce: no alimony
+createNewLife({ first: "Pre", last: "Nup", seed: "4243" });
+game.character.age = 35; game.character.lifeStage = lifeStageFor(35); game.character.money = 500000;
+game.character.job = { title: "Engineer", salary: 120000, levelName: "Senior", yearsHeld: 5 };
+const sp2 = addRelationship({ relation: "spouse", name: "Prenup Ex", gender: "male", age: 36, bar: 65 });
+sp2.flags.married = true; sp2.flags.prenup = true;
+interact(sp2.id, "divorce");
+ok(!game.obligations.some(o => o.type === "alimony"), "prenup blocks alimony");
+
 // 2) Six seeded lives to death; ALL invariants each year
 for (let s = 0; s < 6; s++) {
   createNewLife({ first: "Sim", last: "Test", seed: String(7000 + s) });

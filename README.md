@@ -48,7 +48,7 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[AGENTS.md](./AGENTS.md)**.
 
-Full system-by-system table (v0.16.0). Counts + the gap-closure roadmap live in **[AGENTS.md](./AGENTS.md)** (the contributor/LLM guide).
+Full system-by-system table (v0.17.0). Counts + the gap-closure roadmap live in **[AGENTS.md](./AGENTS.md)** (the contributor/LLM guide).
 
 | System | Real BitLife | This game | Status |
 |---|---|---|---|
@@ -67,7 +67,7 @@ Full system-by-system table (v0.16.0). Counts + the gap-closure roadmap live in 
 | Justice / lawsuits | Lawyers, trials, plea deals, sue / get sued | Lawyer, parole, appeal, prison jobs, **file a lawsuit** + **get-sued event** (settle/fight) | 🟡 |
 | Casino & mini-games | Blackjack/slots/roulette/video poker…; escape & heist mini-games | 7 casino games (slots/blackjack/roulette/horses **live**) + prison/fight/burglary mini-games | ✅ ➕ |
 | Fights | Event stat-roll | A live **Street Fighter-style brawler** (punch/kick/jump/duck) | ➕ |
-| Relationships | Full family tree; friends/enemies/coworkers; dating app; marriage/prenup/divorce/custody/alimony; affairs | Family + **make friends / coworkers / enemies** (befriend, prank, block, reconcile), **Find Love** dating, move-in, vacation, cheat, marry, kids, **divorce + prenup + asset split**; aging & death; no custody/alimony yet | 🟡 |
+| Relationships | Full family tree; friends/enemies/coworkers; dating app; marriage/prenup/divorce/custody/alimony; affairs | Family + **make friends / coworkers / enemies** (befriend, prank, block, reconcile), **Find Love** dating, move-in, vacation, cheat, marry, kids, **divorce + prenup + asset split + custody & alimony/child support**; aging & death | ✅ |
 | Reproduction | Pregnancy, adoption, IVF, surrogacy, donors, complications | Have-a-baby via partner **+ adopt / IVF (twins) / surrogacy** (single or partnered) | ✅ |
 | Health & medical | 100s of diseases, specialists, surgeries, mental health, addictions/rehab, STDs, disabilities | Disease system + **addictions & STDs** (from bars/casino/cheating) treated at the clinic | 🟡 |
 | Activities / lifestyle | Gym/library/spa/movies/club/museum/concert; tattoos, religion, astrology | Mind & Body / Doctor / Education **+ nightlife, museum, concert, shopping, tattoo, religion** | 🟡 |
@@ -212,5 +212,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.16.0 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.17.0 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*

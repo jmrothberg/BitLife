@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.16.0</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.17.0</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -1807,6 +1807,7 @@
     ["achievements are unique", g => new Set(g.achievements || []).size === (g.achievements || []).length],
     ["state has all schema fields", g => Object.keys(STATE_SCHEMA).every(k => k in g)],
     ["obligations are finite & ≥ 0", g => (g.obligations || []).every(o => Number.isFinite(o.annual) && o.annual >= 0 && Number.isFinite(o.yearsLeft) && o.yearsLeft >= 0)],
+    ["custody is a known value", g => (g.relationships || []).filter(r => r.relation === "child").every(r => r.custody == null || ["you", "ex", "joint"].includes(r.custody))],
   ];
   function checkInvariants(label, ok) {
     for (const [name, pred] of INVARIANTS) {
@@ -1853,6 +1854,7 @@
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("gift") },
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("prank") },
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("petShow") },
+    { fn: "interact", prison: "block", guard: "rel", run: () => relAct("divorce") },
     { fn: "interact", prison: "allow", guard: "rel", run: () => relAct("conversation") },
   ];
 
@@ -2173,7 +2175,9 @@
         if (!r.flags.prenup) { lost = Math.max(0, Math.round(netWorth() * 0.4)); c.money -= lost; }
         r.flags.married = false; r.flags.dating = false; r.relation = "exspouse"; r.bar = clampStat(r.bar - 30);
         applyEffects({ happiness: -12 });
-        log("event", `You divorced ${r.name}.${r.flags.prenup ? " Your prenup protected your assets." : (lost ? ` The settlement cost you $${lost.toLocaleString()}.` : "")}`);
+        // Custody of any minor children + ongoing obligations (see tickObligations).
+        const custody = settleCustody(r);
+        log("event", `You divorced ${r.name}.${r.flags.prenup ? " Your prenup protected your assets." : (lost ? ` The settlement cost you $${lost.toLocaleString()}.` : "")}${custody}`);
         break;
       }
       case "haveBaby": {
@@ -3242,7 +3246,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     for (const r of alive) {
       const div = document.createElement("div"); div.className = "opt"; div.style.flexWrap = "wrap";
       const petInfo = r.relation === "pet" ? ` · 🦴 ${r.training || 0}` : "";
-      div.innerHTML = `<div class="info" style="flex-basis:100%"><div class="t">${r.name} <span style="color:var(--text-muted);font-size:11px">(${r.relation}, age ${r.age}${petInfo})</span></div><div class="bar-track" style="margin-top:4px"><div class="bar-fill" style="width:${r.bar}%;background:var(--looks)"></div></div></div>`;
+      const custodyInfo = (r.relation === "child" && r.custody && (r.age || 0) < 18) ? ` · 👶 custody: ${r.custody === "you" ? "you" : r.custody === "ex" ? "ex" : "joint"}` : "";
+      div.innerHTML = `<div class="info" style="flex-basis:100%"><div class="t">${r.name} <span style="color:var(--text-muted);font-size:11px">(${r.relation}, age ${r.age}${petInfo}${custodyInfo})</span></div><div class="bar-track" style="margin-top:4px"><div class="bar-fill" style="width:${r.bar}%;background:var(--looks)"></div></div></div>`;
       const acts = document.createElement("div"); acts.style.cssText = "display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;flex-basis:100%";
       const add = (label, action) => { const b = document.createElement("button"); b.textContent = label; b.style.cssText = "flex:1 1 30%;font-size:12px;padding:6px"; b.onclick = () => interact(r.id, action); acts.appendChild(b); };
       if (r.relation === "pet") {
@@ -3272,7 +3277,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
 
   function openAssets() {
     if (!requireFree("manage your money")) return;
-    let html = `<div class="sub-h">Money: ${fmtMoney(game.character.money)}${(game.loanBalance > 0) ? ` · debt ${fmtMoney(game.loanBalance)}` : ""}${(game.mortgageBalance > 0) ? ` · mortgage ${fmtMoney(game.mortgageBalance)}` : ""} · net worth ${fmtMoney(netWorth())}</div>`;
+    const oblTotal = (game.obligations || []).reduce((s, o) => s + (o.annual || 0), 0);
+    let html = `<div class="sub-h">Money: ${fmtMoney(game.character.money)}${(game.loanBalance > 0) ? ` · debt ${fmtMoney(game.loanBalance)}` : ""}${(game.mortgageBalance > 0) ? ` · mortgage ${fmtMoney(game.mortgageBalance)}` : ""}${oblTotal > 0 ? ` · obligations ${fmtMoney(oblTotal)}/yr` : ""} · net worth ${fmtMoney(netWorth())}</div>`;
     html += `<div id="asset-body"></div>`;
     modalShell("💹 Assets & Investments", html);
     const body = $("asset-body");
@@ -3753,18 +3759,54 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     }
   }
   // Post-divorce obligations (alimony / child support). Paid from cash each year;
-  // each entry ends when its term runs out (or the payee is gone). Populated in the
-  // divorce flow (see interact "divorce"); deterministic, so it adds no rng draws.
+  // each entry ends when its term runs out or the ex dies. Populated in the divorce
+  // flow (settleCustody); deterministic, so it adds no rng draws.
   function tickObligations() {
     const c = game.character;
     const list = game.obligations || (game.obligations = []);
     for (const o of list) {
+      const ex = (game.relationships || []).find(r => r.id === o.exId);
+      if (ex && !ex.alive) { o.yearsLeft = 0; continue; }         // ends when the ex passes away
       if (!(o.yearsLeft > 0) || !(o.annual > 0)) { o.yearsLeft = 0; continue; }
       c.money -= o.annual;
       o.yearsLeft -= 1;
       log("event", `${o.type === "alimony" ? "💸 Alimony" : "💸 Child support"} to ${o.exName || "your ex"}: ${fmtMoney(o.annual)}${o.yearsLeft > 0 ? ` (${o.yearsLeft}y left)` : " — final payment"}.`);
     }
     if (list.length) game.obligations = list.filter(o => o.yearsLeft > 0);
+  }
+  // Divorce fallout: assign custody of each minor child and set up any ongoing
+  // obligation YOU owe — alimony if you're the breadwinner (no prenup), plus child
+  // support for each minor in the ex's custody. We only ever model money you OWE
+  // (annual >= 0), so there's no NPC-pays-you faucet. Returns a clause for the log.
+  function settleCustody(ex) {
+    const c = game.character;
+    const minors = (game.relationships || []).filter(k => k.alive && k.relation === "child" && k.isPlayerChild && (k.age || 0) < 18);
+    let exKept = 0, youKept = 0;
+    for (const kid of minors) {
+      const yours = 0.4 + (kid.bar - 50) / 250;          // a warmer bond tilts custody your way
+      const roll = rng();
+      kid.custody = roll < yours ? "you" : (roll < yours + 0.3 ? "joint" : "ex");
+      if (kid.custody === "ex") exKept++; else if (kid.custody === "you") youKept++;
+    }
+    const obs = [];
+    if (!ex.flags.prenup) {
+      const income = c.job ? Math.round(c.job.salary * 0.78) : Math.max(0, Math.round(netWorth() * 0.03));
+      if (income > 8000) {
+        const annual = Math.min(Math.round(income * rngFloat(0.12, 0.2)), 200000);
+        if (annual > 0) obs.push({ type: "alimony", exId: ex.id, exName: ex.name, annual, yearsLeft: rngInt(3, 8) });
+      }
+    }
+    if (exKept > 0) {
+      const annual = exKept * rngInt(4000, 8000);
+      const yearsLeft = Math.max(1, ...minors.filter(k => k.custody === "ex").map(k => 18 - (k.age || 0)));
+      obs.push({ type: "support", exId: ex.id, exName: ex.name, annual, yearsLeft });
+    }
+    if (obs.length) game.obligations = (game.obligations || []).concat(obs);
+    if (!minors.length && !obs.length) return "";
+    const bits = [];
+    if (minors.length) bits.push(youKept && exKept ? "Custody of the kids was divided." : youKept ? `You kept custody of ${youKept} child${youKept > 1 ? "ren" : ""}.` : exKept ? `${ex.name} took custody of the child${exKept > 1 ? "ren" : ""}.` : "You'll share custody.");
+    for (const o of obs) bits.push(o.type === "alimony" ? `Alimony: ${fmtMoney(o.annual)}/yr for ${o.yearsLeft}y.` : `Child support: ${fmtMoney(o.annual)}/yr.`);
+    return " " + bits.join(" ");
   }
   function addDisease() {
     const c = game.character; c.conditions = c.conditions || [];
