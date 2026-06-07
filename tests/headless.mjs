@@ -168,6 +168,39 @@ game.character.age = 30; game.character.lifeStage = lifeStageFor(30);
 const fb = snap(); prisonContraband(); joinPrisonGang();
 ok(snap() === fb, "prison actions no-op when not jailed");
 
+// 6) Monarchy: ascend, rule via decrees, keep approval/treasury bounded; abdicate.
+createNewLife({ first: "Reg", last: "Ina", seed: "6160" });
+game.character.age = 40; game.character.lifeStage = lifeStageFor(40); game.character.gender = "female";
+game.flags.royal = true;
+ascendThrone();
+ok(game.throne && game.throne.monarch && game.throne.title === "Queen", "ascend creates a reigning Queen");
+ok(game.achievements.includes("monarch"), "monarch ribbon granted on ascension");
+for (let y = 0; y < 80; y++) {
+  game.yearActions = {};
+  royalDecree(["taxUp","taxDown","festival","war"][y % 4]);
+  ok(game.throne == null || (game.throne.approval >= 0 && game.throne.approval <= 100 && game.throne.treasury >= 0), "throne bounded year " + y);
+  checkInvariants("monarchy year " + y, ok);
+  if (!game.throne) break;   // overthrown
+}
+// decrees only personal income is gated royalDuties — a decree must NOT raise money
+if (game.throne) {
+  game.yearActions = {}; const mBefore = game.character.money; royalDecree("taxUp");
+  ok(game.character.money === mBefore, "decrees never touch personal money (no faucet)");
+}
+// abdication relinquishes the crown
+if (game.throne) { game.yearActions = {}; abdicate(); ok(game.throne == null && game.flags.abdicated, "abdicate gives up the throne"); }
+// monarchy actions no-op for a commoner
+createNewLife({ first: "Com", last: "Moner", seed: "6161" });
+game.character.age = 40; game.character.lifeStage = lifeStageFor(40);
+const cb = snap(); royalDecree("festival"); nameThroneHeir(); abdicate();
+ok(snap() === cb, "monarchy actions no-op without a throne");
+// marry-into-royalty grants royal status
+createNewLife({ first: "Mar", last: "Ryin", seed: "6162" });
+game.character.age = 28; game.character.lifeStage = lifeStageFor(28); game.character.stats.looks = 99; game.character.fame = 50;
+const royalPartner = addRelationship({ relation: "partner", name: "Royal Match", gender: "male", age: 30, bar: 95, flags: { dating: true, royal: true } });
+interact(royalPartner.id, "propose");
+ok(!royalPartner.flags.married || game.flags.royal, "marrying a royal grants royal status");
+
 const green = fail === 0;
 console.log((green ? "ALL PASS \\u2705" : "FAILURES \\u274c") + " — " + pass + " passed, " + fail + " failed (" + INVARIANTS.length + " invariants, " + PLAYER_ACTIONS.length + " actions)");
 if (!green) { for (const m of fails) console.log("  FAIL: " + m); }

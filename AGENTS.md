@@ -443,20 +443,23 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 
 # Status, content counts & roadmap
 
-## Concrete content counts (v0.18.0)
+## Concrete content counts (v0.19.0)
 
 > **v0.16.0** — engine foundation (canonical `STATE_SCHEMA` + `ensureState()` at every load chokepoint,
 > `tickDepth()` split into ordered single-concern sub-ticks, headless `tests/headless.mjs` in `check.sh`).
 > **v0.17.0** — **custody & alimony** on divorce (`settleCustody`, `tickObligations`, `game.obligations`).
 > **v0.18.0** — **prison depth**: a yearly inside-the-walls hook (`prisonYearlyEvent` — riots/shakedowns),
 > `prisonContraband` & `joinPrisonGang` actions, and `prison.respect`/`contraband` state (+1 ribbon).
+> **v0.19.0** — **royalty & full monarchy sim**: born-royal or marry-in → `ascendThrone`, rule via
+> `royalDecree`/`openThrone` (approval ↔ treasury, festivals, war, name-heir, abdicate), overthrow, and
+> dynastic succession in `continueAsHeir`; `game.throne` state, `tickRoyalty` yearly hook (+2 ribbons).
 
 
 - Events: **85** — baby 7, child 14, teen 15, youngAdult 15, adult 14, middleAge 10, senior 10
 - Activities: **41** — mindBody 13, doctor 7, education 3, crime 11, casino 7
 - Careers: **43** (incl. military Army/Navy/Air Force, trades, journalist, scientist, fame paths) · Degrees: **12**
 - Market assets: **9** (4 stock / 3 crypto / 2 bond) · Real estate: **4** · Insider tips: **4**
-- Ribbons/achievements: **38** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
+- Ribbons/achievements: **40** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
 - Beyond the v0.9 depth update: **social media** (5 platforms — followers/verified/sponsorships/podcasts,
   v0.10.0) and **friends / coworkers / enemies** (make friends, befriend, prank, block, reconcile, v0.11.0).
 
@@ -475,10 +478,11 @@ God Mode/Time Machine. Most of the old A–H epics are done.
 4. **Business with employees** — migrate `flags.business` → `game.business = {id, employees, value}`; hire/fire.
 5. **Pet breeding & shows** — pet `training` stat (train/walk/vet), breed two pets, `petShow` (`oncePerYear`).
 
-**Runners-up:** custody/alimony on divorce — ✅ shipped v0.17.0 (`settleCustody`/`tickObligations`,
-`game.obligations`); prison depth — ✅ shipped v0.18.0 (`prisonYearlyEvent` riots/shakedowns,
-`prisonContraband`/`joinPrisonGang`, `prison.respect`/`contraband`). Still open: royalty/throne
-politics (+ marry-into-royalty) and **content volume** (scale `EVENTS` toward 15–30/stage, `CAREERS` 100+).
+**Runners-up:** custody/alimony on divorce — ✅ v0.17.0 (`settleCustody`/`tickObligations`); prison
+depth — ✅ v0.18.0 (`prisonYearlyEvent`, `prisonContraband`/`joinPrisonGang`, `prison.respect`); royalty
+& full monarchy sim (+ marry-into-royalty) — ✅ v0.19.0 (`tickRoyalty`/`ascendThrone`/`royalDecree`/
+`openThrone`, `game.throne`, dynastic succession in `continueAsHeir`). Still open: **content volume**
+(scale `EVENTS` toward 15–30/stage, `CAREERS` 100+).
 
 Each feature = data tables + one/few engine functions + one modal, reusing the existing seams
 (mini-game launcher, the `minigame` event-choice hook, `modalShell`/`optRow` drill-downs, `applyEffects`).
