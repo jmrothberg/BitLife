@@ -1,5 +1,5 @@
 {
-  "_comment": "BitLife-style premade content (v0.9.9). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
+  "_comment": "BitLife-style premade content (v0.10.0). Loaded at boot by index.html. A minimal FALLBACK_DATA copy is embedded in the HTML so the game still runs if this fetch fails. All effects are DELTAS applied through applyEffects() and clamped 0-100. Content names/premises/choices are modeled faithfully on BitLife by Candywriter (BitLife Fandom wiki); stat/salary numbers are balanced estimates (the original does not publish them).",
 
   "LIFE_STAGES": [
     { "id": "baby", "min": 0, "max": 2, "label": "Baby" },
@@ -49,7 +49,9 @@
     "royalty":     { "label": "Royalty",       "icon": "👑", "desc": "Born into a royal family." },
     "mogul":       { "label": "Mogul",         "icon": "🏢", "desc": "Started a business." },
     "timeLord":    { "label": "Time Lord",     "icon": "⏪", "desc": "Used the Time Machine." },
-    "collector":   { "label": "Collector",     "icon": "💎", "desc": "Bought a valuable." }
+    "collector":   { "label": "Collector",     "icon": "💎", "desc": "Bought a valuable." },
+    "verified":    { "label": "Verified",      "icon": "🔵", "desc": "Got verified on social media." },
+    "influencer":  { "label": "Influencer",    "icon": "📱", "desc": "Reached 1,000,000 followers." }
   },
 
   "EVENTS": {
@@ -225,6 +227,16 @@
           { "label": "Shoot your shot", "effects": {}, "outcome": { "chance": 0.4, "success": { "happiness": 10, "fame": 6 }, "fail": { "happiness": -4 } } },
           { "label": "Play it cool", "effects": { "happiness": 2 } }
         ] },
+      { "id": "brandDeal", "weight": 3, "minAge": 18, "maxAge": 30, "text": "A brand offers you a sponsorship to promote their product to your followers.",
+        "choices": [
+          { "label": "Take the bag", "effects": { "fame": 3 }, "outcome": { "chance": 0.7, "success": { "money": 8000, "happiness": 4 }, "fail": { "fame": -4, "happiness": -4 } } },
+          { "label": "Stay authentic", "effects": { "happiness": 3, "fame": 1 } }
+        ] },
+      { "id": "podcastBlowup", "weight": 2, "minAge": 18, "maxAge": 25, "text": "An episode of your podcast blew up and topped the charts.",
+        "choices": [
+          { "label": "Ride the wave", "effects": { "fame": 8, "happiness": 6 }, "outcome": { "chance": 0.5, "success": { "money": 12000 }, "fail": {} } },
+          { "label": "Keep it low-key", "effects": { "fame": 3, "happiness": 3 } }
+        ] },
       { "id": "collegeParty", "weight": 4, "minAge": 18, "maxAge": 23, "text": "There's a huge party the night before an exam.",
         "choices": [
           { "label": "Party hard", "effects": { "happiness": 8, "health": -3, "smarts": -2 } },
@@ -284,6 +296,11 @@
     ],
     "adult": [
       { "id": "identityTheft", "weight": 3, "minAge": 26, "maxAge": 64, "noChoice": true, "text": "Someone stole your identity and drained an account.", "effects": { "money": -3500, "happiness": -5 } },
+      { "id": "cancelled", "weight": 2, "minAge": 26, "maxAge": 55, "text": "An old post resurfaced and you're getting cancelled online.",
+        "choices": [
+          { "label": "Issue an apology", "effects": {}, "outcome": { "chance": 0.6, "success": { "fame": -3, "happiness": -3 }, "fail": { "fame": -12, "happiness": -8 } } },
+          { "label": "Double down", "effects": {}, "outcome": { "chance": 0.4, "success": { "fame": 6, "happiness": 2 }, "fail": { "fame": -15, "happiness": -10 } } }
+        ] },
       { "id": "loanShark", "weight": 2, "minAge": 26, "maxAge": 64, "text": "A shady 'investor' offers fast cash with no questions asked.",
         "choices": [
           { "label": "Take the money", "effects": { "money": 8000 }, "outcome": { "chance": 0.5, "success": { "happiness": 3 }, "fail": { "money": -20000, "health": -8, "happiness": -8 } } },
