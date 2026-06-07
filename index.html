@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.13.0</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.14.0</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -417,7 +417,7 @@
     ],
     COUNTRIES: ["USA", "UK", "Canada", "Japan"],
     NAME_POOLS: { male: ["Liam", "Noah", "James"], female: ["Emma", "Olivia", "Mia"], nonbinary: ["Alex", "Sam", "Jordan"], surnames: ["Smith", "Lee", "Garcia", "Chen"] },
-    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." }, verified: { label: "Verified", icon: "🔵", desc: "Got verified on social media." }, influencer: { label: "Influencer", icon: "📱", desc: "Reached 1,000,000 followers." }, socialite: { label: "Socialite", icon: "🧑‍🤝‍🧑", desc: "Had 5+ friends at once." }, veteran: { label: "Veteran", icon: "🎖️", desc: "Served a military deployment." }, warHero: { label: "War Hero", icon: "🏅", desc: "Earned 3+ military medals." }, bigFamily: { label: "Big Family", icon: "👨‍👩‍👧‍👦", desc: "Raised 4+ children." } },
+    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." }, verified: { label: "Verified", icon: "🔵", desc: "Got verified on social media." }, influencer: { label: "Influencer", icon: "📱", desc: "Reached 1,000,000 followers." }, socialite: { label: "Socialite", icon: "🧑‍🤝‍🧑", desc: "Had 5+ friends at once." }, veteran: { label: "Veteran", icon: "🎖️", desc: "Served a military deployment." }, warHero: { label: "War Hero", icon: "🏅", desc: "Earned 3+ military medals." }, bigFamily: { label: "Big Family", icon: "👨‍👩‍👧‍👦", desc: "Raised 4+ children." }, tycoon: { label: "Tycoon", icon: "🏭", desc: "Grew a business to full staff." } },
     EVENTS: {
       baby: [{ id: "fw", weight: 5, minAge: 1, maxAge: 2, noChoice: true, text: "You said your first words!", effects: { happiness: 6, smarts: 2 } }],
       child: [{ id: "bully", weight: 7, minAge: 6, maxAge: 12, text: "A bully keeps shoving you at school.", choices: [{ label: "Ignore it", effects: { happiness: -6 } }, { label: "Tell a teacher", effects: { happiness: 2 }, outcome: { chance: 0.55, success: { happiness: 7 }, fail: { happiness: -5 } } }, { label: "Fight back", effects: {}, outcome: { chance: 0.45, success: { happiness: 9, health: -3 }, fail: { health: -12, happiness: -7 } } }] }],
@@ -1762,6 +1762,7 @@
     ["social followers are finite & ≥ 0", g => Object.values(g.social || {}).every(a => Number.isFinite(a.followers) && a.followers >= 0)],
     ["military counters finite & ≥ 0", g => !g.military || (Number.isFinite(g.military.deployments) && g.military.deployments >= 0 && Number.isFinite(g.military.medals) && g.military.medals >= 0)],
     ["children have finite, non-negative ages", g => (g.relationships || []).filter(r => r.relation === "child").every(r => Number.isFinite(r.age) && r.age >= 0)],
+    ["business employees finite & ≥ 0", g => !g.business || (Number.isFinite(g.business.employees) && g.business.employees >= 0)],
     ["all granted achievements exist", g => (g.achievements || []).every(id => !!DATA.ACHIEVEMENTS[id])],
     ["achievements are unique", g => new Set(g.achievements || []).size === (g.achievements || []).length],
   ];
@@ -1806,6 +1807,7 @@
     { fn: "adoptChild", prison: "block", run: () => adoptChild() },
     { fn: "doIVF", prison: "block", run: () => doIVF() },
     { fn: "doSurrogacy", prison: "block", run: () => doSurrogacy() },
+    { fn: "hireEmployee", prison: "block", run: () => hireEmployee() },
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("gift") },
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("prank") },
     { fn: "interact", prison: "allow", guard: "rel", run: () => relAct("conversation") },
@@ -3074,7 +3076,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     wrap.appendChild(optRow("✈️ Travel", "take a vacation", "Open", () => openTravel(), locked || c.age < 1));
     wrap.appendChild(optRow("📱 Social Media", "influencer, podcasts, sponsorships · 13+", "Open", () => openSocial(), locked || c.age < 13));
     wrap.appendChild(optRow("🌟 Fame", "books, music, film & viral fame", "Open", () => openFame(), locked));
-    wrap.appendChild(optRow("🏢 Business", game.flags.business ? "manage your business" : "start a business for yearly revenue", "Open", () => openBusiness(), locked || c.age < 18));
+    wrap.appendChild(optRow("🏢 Business", currentBusiness() ? "manage your business & staff" : "start a business for yearly revenue", "Open", () => openBusiness(), locked || c.age < 18));
     wrap.appendChild(optRow("🗳️ Run for office", "campaign for political office · 25+ · $50k", "Run", () => runForOffice(), locked || c.age < 25 || c.money < 50000));
     wrap.appendChild(optRow("⚖️ File a lawsuit", "$2,000 fees · ~45% to win a settlement · 18+", "Sue", () => fileLawsuit(), locked || c.age < 18 || c.money < 2000));
     if (game.flags.royal) wrap.appendChild(optRow("👑 Royal duties", "perform duties for fame & a treasury stipend", "Do", () => royalDuties(), locked));
@@ -3639,10 +3641,16 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       const mp = Math.max(0, Math.round(game.mortgageBalance * 0.08));
       if (c.money >= mp) { c.money -= mp; game.mortgageBalance -= mp; }
     }
-    // business revenue (defined later as BUSINESSES; guard in case of an old save)
-    if (game.flags && game.flags.business && typeof BUSINESSES !== "undefined") {
-      const b = BUSINESSES.find(x => x.id === game.flags.business);
-      if (b) { const rev = rngInt(b.rev[0], b.rev[1]); c.money += rev; if (rev !== 0) log("event", `🏢 Your ${b.name} ${rev >= 0 ? "earned" : "lost"} ${fmtMoney(Math.abs(rev))} this year.`); }
+    // business revenue: founder's own line (b.rev) + each employee's noisy margin
+    // (output minus salary). Migrates old saves via currentBusiness().
+    if (typeof currentBusiness === "function" && currentBusiness()) {
+      const biz = currentBusiness(); const b = BUSINESSES.find(x => x.id === biz.id);
+      if (b) {
+        let rev = rngInt(b.rev[0], b.rev[1]);
+        for (let i = 0; i < (biz.employees || 0); i++) rev += Math.round(b.perEmp * rngFloat(0.2, 1.3)) - b.salary;
+        c.money += rev;
+        if (rev !== 0) log("event", `🏢 Your ${b.name} ${rev >= 0 ? "earned" : "lost"} ${fmtMoney(Math.abs(rev))} this year.`);
+      }
     }
   }
   function addDisease() {
@@ -4014,35 +4022,66 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   }
 
   // ── Epic E/G extras: business ownership, royalty duties, bankruptcy ──
+  // perEmp = an employee's average yearly output; salary = their yearly cost. perEmp >
+  // salary so hiring is profitable on average, but a bad year (low roll) can still lose
+  // money. maxEmp caps each business so passive income stays bounded.
   const BUSINESSES = [
-    { id: "foodtruck", name: "Food truck", cost: 25000, rev: [-4000, 18000] },
-    { id: "cafe", name: "Coffee shop", cost: 80000, rev: [-12000, 50000] },
-    { id: "tech", name: "Tech startup", cost: 200000, rev: [-80000, 400000] },
-    { id: "realty", name: "Realty firm", cost: 500000, rev: [-60000, 350000] }
+    { id: "foodtruck", name: "Food truck",   cost: 25000,  rev: [-4000, 18000],   perEmp: 30000,  salary: 18000, maxEmp: 6 },
+    { id: "cafe",      name: "Coffee shop",  cost: 80000,  rev: [-12000, 50000],  perEmp: 46000,  salary: 28000, maxEmp: 12 },
+    { id: "tech",      name: "Tech startup", cost: 200000, rev: [-80000, 400000], perEmp: 160000, salary: 90000, maxEmp: 40 },
+    { id: "realty",    name: "Realty firm",  cost: 500000, rev: [-60000, 350000], perEmp: 95000,  salary: 55000, maxEmp: 25 }
   ];
+  // Single source of truth for the owned business; migrates pre-v0.14 saves that
+  // stored just an id in game.flags.business → { id, employees }.
+  function currentBusiness() {
+    if (!game.business && game.flags && game.flags.business) { game.business = { id: game.flags.business, employees: 0 }; game.flags.business = null; }
+    return game.business || null;
+  }
   function openBusiness() {
     if (!requireFree("run a business")) return;
     const c = game.character;
-    modalShell("🏢 Business", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Own a business for yearly revenue (it can lose money too).</div><div id="biz"></div>`);
+    modalShell("🏢 Business", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Own a business for yearly revenue (it can lose money too). Hire staff to scale up — each employee earns more than they cost on average, but bad years still happen.</div><div id="biz"></div>`);
     const wrap = $("biz");
-    if (game.flags.business) {
-      const b = BUSINESSES.find(x => x.id === game.flags.business);
-      wrap.appendChild(optRow("📈 " + (b ? b.name : "Your business") + " (owned)", "earns/loses revenue each year", "Sell", () => sellBusiness(), false));
+    const biz = currentBusiness();
+    if (biz) {
+      const b = BUSINESSES.find(x => x.id === biz.id);
+      const emp = biz.employees || 0; const max = b ? b.maxEmp : 0;
+      wrap.appendChild(optRow("📈 " + (b ? b.name : "Your business"), `${emp}/${max} employees · payroll ${fmtMoney(emp * (b ? b.salary : 0))}/yr`, "Sell", () => sellBusiness(), false));
+      wrap.appendChild(optRow("➕ Hire an employee", b ? `+${fmtMoney(b.perEmp)} avg output · ${fmtMoney(b.salary)} salary` : "", "Hire", () => hireEmployee(), !b || emp >= max));
+      wrap.appendChild(optRow("➖ Lay off an employee", "trim payroll", "Fire", () => fireEmployee(), emp <= 0));
+      const sh = document.createElement("div"); sh.className = "sub-h"; sh.textContent = "Other ventures"; wrap.appendChild(sh);
     }
-    for (const b of BUSINESSES) wrap.appendChild(optRow(b.name, `${fmtMoney(b.cost)} to start`, "Buy", () => startBusiness(b.id), !!game.flags.business || c.money < b.cost || c.age < 18));
+    for (const b of BUSINESSES) wrap.appendChild(optRow(b.name, `${fmtMoney(b.cost)} to start · up to ${b.maxEmp} staff`, "Buy", () => startBusiness(b.id), !!biz || c.money < b.cost || c.age < 18));
   }
   function startBusiness(id) {
     if (!requireFree("start a business")) return;
     const b = BUSINESSES.find(x => x.id === id); if (!b) return;
     const c = game.character; if (c.money < b.cost) { showToast("Can't afford it."); return; }
-    if (game.flags.business) { showToast("Sell your current business first."); return; }
-    c.money -= b.cost; game.flags.business = b.id; grantAchievement("mogul");
+    if (currentBusiness()) { showToast("Sell your current business first."); return; }
+    c.money -= b.cost; game.business = { id: b.id, employees: 0 }; grantAchievement("mogul");
     log("event", `🏢 You started ${b.name}.`); autosave(); renderAll(); openBusiness();
   }
+  function hireEmployee() {
+    if (!requireFree("run a business")) return;
+    const biz = currentBusiness(); if (!biz) return;
+    const b = BUSINESSES.find(x => x.id === biz.id); if (!b) return;
+    if ((biz.employees || 0) >= b.maxEmp) { showToast("You're fully staffed."); return; }
+    biz.employees = (biz.employees || 0) + 1;
+    if (biz.employees >= b.maxEmp) grantAchievement("tycoon");
+    log("event", `🏢 You hired an employee at ${b.name} (${biz.employees}/${b.maxEmp}).`);
+    autosave(); renderAll(); openBusiness();
+  }
+  function fireEmployee() {
+    const biz = currentBusiness(); if (!biz || (biz.employees || 0) <= 0) return;
+    biz.employees -= 1;
+    log("event", `🏢 You laid off an employee.`); autosave(); renderAll(); openBusiness();
+  }
   function sellBusiness() {
-    const b = BUSINESSES.find(x => x.id === game.flags.business); if (!b) return;
-    game.character.money += Math.round(b.cost * 0.6); game.flags.business = null;
-    log("event", `🏢 You sold ${b.name}.`); autosave(); renderAll(); openBusiness();
+    const biz = currentBusiness(); if (!biz) return;
+    const b = BUSINESSES.find(x => x.id === biz.id);
+    const goodwill = b ? Math.round(b.cost * 0.6 + (biz.employees || 0) * b.perEmp * 0.5) : 0;
+    game.character.money += goodwill; game.business = null;
+    log("event", `🏢 You sold ${b ? b.name : "your business"} for ${fmtMoney(goodwill)}.`); autosave(); renderAll(); openBusiness();
   }
   function royalDuties() {
     if (!requireFree("do that")) return;
