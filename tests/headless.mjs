@@ -149,6 +149,25 @@ for (const a of PLAYER_ACTIONS) {
   checkInvariants("prison " + a.fn, ok);
 }
 
+// 5) Prison depth: respect stays bounded, contraband never negative, riots/shakedowns
+//    keep every invariant across many years inside.
+createNewLife({ first: "Pris", last: "Depth", seed: "5150" });
+game.character.age = 30; game.character.lifeStage = lifeStageFor(30); game.character.money = 50000;
+game.prison = { inPrison: true, sentenceYears: 40, yearsServed: 1, reason: "test", respect: 0, contraband: 0 };
+for (let y = 0; y < 60 && game.prison.inPrison; y++) {
+  game.yearActions = {};
+  joinPrisonGang(); prisonContraband(); prisonYearlyEvent();
+  ok(game.prison.respect >= 0 && game.prison.respect <= 100, "respect bounded year " + y);
+  ok((game.prison.contraband || 0) >= 0, "contraband >= 0 year " + y);
+  ok(game.prison.yearsServed <= game.prison.sentenceYears, "sentence self-consistent year " + y);
+  checkInvariants("prison-depth year " + y, ok);
+}
+// prison-only actions must no-op when free
+createNewLife({ first: "Free", last: "Pris", seed: "5151" });
+game.character.age = 30; game.character.lifeStage = lifeStageFor(30);
+const fb = snap(); prisonContraband(); joinPrisonGang();
+ok(snap() === fb, "prison actions no-op when not jailed");
+
 const green = fail === 0;
 console.log((green ? "ALL PASS \\u2705" : "FAILURES \\u274c") + " — " + pass + " passed, " + fail + " failed (" + INVARIANTS.length + " invariants, " + PLAYER_ACTIONS.length + " actions)");
 if (!green) { for (const m of fails) console.log("  FAIL: " + m); }

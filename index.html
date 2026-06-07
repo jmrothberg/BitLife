@@ -272,7 +272,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.17.0</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.18.0</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -417,7 +417,7 @@
     ],
     COUNTRIES: ["USA", "UK", "Canada", "Japan"],
     NAME_POOLS: { male: ["Liam", "Noah", "James"], female: ["Emma", "Olivia", "Mia"], nonbinary: ["Alex", "Sam", "Jordan"], surnames: ["Smith", "Lee", "Garcia", "Chen"] },
-    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." }, verified: { label: "Verified", icon: "🔵", desc: "Got verified on social media." }, influencer: { label: "Influencer", icon: "📱", desc: "Reached 1,000,000 followers." }, socialite: { label: "Socialite", icon: "🧑‍🤝‍🧑", desc: "Had 5+ friends at once." }, veteran: { label: "Veteran", icon: "🎖️", desc: "Served a military deployment." }, warHero: { label: "War Hero", icon: "🏅", desc: "Earned 3+ military medals." }, bigFamily: { label: "Big Family", icon: "👨‍👩‍👧‍👦", desc: "Raised 4+ children." }, tycoon: { label: "Tycoon", icon: "🏭", desc: "Grew a business to full staff." }, bestInShow: { label: "Best in Show", icon: "🏆", desc: "Won a pet show." } },
+    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." }, verified: { label: "Verified", icon: "🔵", desc: "Got verified on social media." }, influencer: { label: "Influencer", icon: "📱", desc: "Reached 1,000,000 followers." }, socialite: { label: "Socialite", icon: "🧑‍🤝‍🧑", desc: "Had 5+ friends at once." }, veteran: { label: "Veteran", icon: "🎖️", desc: "Served a military deployment." }, warHero: { label: "War Hero", icon: "🏅", desc: "Earned 3+ military medals." }, bigFamily: { label: "Big Family", icon: "👨‍👩‍👧‍👦", desc: "Raised 4+ children." }, tycoon: { label: "Tycoon", icon: "🏭", desc: "Grew a business to full staff." }, bestInShow: { label: "Best in Show", icon: "🏆", desc: "Won a pet show." }, shotCaller: { label: "Shot Caller", icon: "🪪", desc: "Earned respect behind bars." } },
     EVENTS: {
       baby: [{ id: "fw", weight: 5, minAge: 1, maxAge: 2, noChoice: true, text: "You said your first words!", effects: { happiness: 6, smarts: 2 } }],
       child: [{ id: "bully", weight: 7, minAge: 6, maxAge: 12, text: "A bully keeps shoving you at school.", choices: [{ label: "Ignore it", effects: { happiness: -6 } }, { label: "Tell a teacher", effects: { happiness: 2 }, outcome: { chance: 0.55, success: { happiness: 7 }, fail: { happiness: -5 } } }, { label: "Fight back", effects: {}, outcome: { chance: 0.45, success: { happiness: 9, health: -3 }, fail: { health: -12, happiness: -7 } } }] }],
@@ -730,6 +730,7 @@
         game.prison.reason = null;
       } else {
         log("system", `Year ${game.prison.yearsServed} of ${game.prison.sentenceYears} in prison.`);
+        prisonYearlyEvent();   // riots / shakedowns inside (fireYearlyEvent self-skips in prison)
       }
     }
 
@@ -1081,7 +1082,7 @@
     if (!game.prison.inPrison) return;
     const p = game.prison; p.paroleTries = (p.paroleTries || 0) + 1;
     const served = p.yearsServed / Math.max(1, p.sentenceYears);
-    if (served >= 0.4 && rngChance(0.2 + served * 0.5)) {
+    if (served >= 0.4 && rngChance(0.2 + served * 0.5 + (p.respect || 0) / 500)) {
       p.inPrison = false; p.reason = null;
       log("crime", `⚖️ Parole granted after ${p.yearsServed} year(s) — you're free!`);
     } else { log("crime", "⚖️ Parole denied. Keep serving your time."); applyEffects({ happiness: -3 }); }
@@ -1100,6 +1101,58 @@
     if (!oncePerYear("prisonjob")) return;
     const pay = rngInt(50, 300); game.character.money += pay; applyEffects({ happiness: 2 });
     log("crime", `🧹 You worked a prison job this year and earned ${fmtMoney(pay)}.`);
+    autosave(); renderAll();
+  }
+  // ── Prison depth: life inside has its own yearly beat + two prison-only actions ──
+  // fireYearlyEvent() self-skips in prison, so this is the dedicated inside-the-walls
+  // hook (called from ageUp's prison branch). prison.respect (0..100) is protection:
+  // it softens riot injuries, helps parole, and lowers the odds of being caught.
+  function prisonYearlyEvent() {
+    const p = game.prison; if (!p || !p.inPrison) return;
+    const respect = p.respect || 0;
+    const roll = rng();
+    if (roll < 0.18) {                                  // a riot breaks out
+      if (respect >= 50 && rngChance(0.5)) {
+        if (rngChance(0.12)) { p.inPrison = false; p.reason = null; grantAchievement("escapee"); log("crime", "🔥 A riot erupted — in the chaos you slipped out. You're free!"); return; }
+        applyEffects({ happiness: -3 }); log("crime", "🔥 A riot broke out, but your reputation kept you safe.");
+      } else {
+        const hurt = Math.max(2, 12 - Math.round(respect / 10));
+        applyEffects({ health: -hurt, happiness: -6 });
+        if (rngChance(0.25)) addCondition("prisoninjury", "a prison injury", 2, 2, 1500, false);
+        if (rngChance(0.30)) { p.sentenceYears += 1; log("crime", "🔥 A riot broke out — you were hurt and caught up in it (+1 year)."); }
+        else log("crime", "🔥 A riot broke out — you took a beating staying out of it.");
+      }
+    } else if (roll < 0.30) {                           // guard shakedown
+      if ((p.contraband || 0) > 0) { p.contraband = 0; applyEffects({ happiness: -4 }); log("crime", "🔦 A guard shakedown found your stash — confiscated."); }
+      else { applyEffects({ happiness: -2 }); log("crime", "🔦 A guard shakedown turned your cell over."); }
+    }
+    // otherwise an uneventful year inside
+  }
+  function prisonContraband() {                         // smuggle & trade — risky money + respect
+    const p = game.prison; if (!p.inPrison) { showToast("Only while in prison."); return; }
+    if (!oncePerYear("contraband")) return;
+    const c = game.character;
+    if (rngChance(0.30 - (p.respect || 0) / 500)) {     // caught → sentence grows
+      p.sentenceYears += rngInt(1, 3); applyEffects({ happiness: -6 });
+      log("crime", "📦 You were caught trading contraband — your sentence grew.");
+    } else {
+      const profit = rngInt(200, 1500); c.money += profit;
+      p.contraband = (p.contraband || 0) + 1; p.respect = clampStat((p.respect || 0) + rngInt(2, 6));
+      log("crime", `📦 You smuggled and traded contraband for ${fmtMoney(profit)} (respect ${p.respect}).`);
+    }
+    autosave(); renderAll();
+  }
+  function joinPrisonGang() {                           // build respect with a crew
+    const p = game.prison; if (!p.inPrison) { showToast("Only while in prison."); return; }
+    if (!oncePerYear("prisongang")) return;
+    if (rngChance(0.6)) {
+      p.respect = clampStat((p.respect || 0) + rngInt(8, 18)); applyEffects({ happiness: 2 });
+      if (p.respect >= 70) grantAchievement("shotCaller");
+      log("crime", `🤝 You earned respect with a prison crew (respect ${p.respect}).`);
+    } else {
+      applyEffects({ health: -rngInt(4, 10), happiness: -4 }); p.respect = clampStat((p.respect || 0) - 4);
+      log("crime", "🤝 A prison crew tested you — you took a beating.");
+    }
     autosave(); renderAll();
   }
 
@@ -1808,6 +1861,8 @@
     ["state has all schema fields", g => Object.keys(STATE_SCHEMA).every(k => k in g)],
     ["obligations are finite & ≥ 0", g => (g.obligations || []).every(o => Number.isFinite(o.annual) && o.annual >= 0 && Number.isFinite(o.yearsLeft) && o.yearsLeft >= 0)],
     ["custody is a known value", g => (g.relationships || []).filter(r => r.relation === "child").every(r => r.custody == null || ["you", "ex", "joint"].includes(r.custody))],
+    ["prison respect stays 0..100", g => { const v = g.prison && g.prison.respect; return v == null || (Number.isFinite(v) && v >= 0 && v <= 100); }],
+    ["prison contraband finite & ≥ 0", g => { const v = g.prison && g.prison.contraband; return v == null || (Number.isFinite(v) && v >= 0); }],
   ];
   function checkInvariants(label, ok) {
     for (const [name, pred] of INVARIANTS) {
@@ -1856,6 +1911,8 @@
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("petShow") },
     { fn: "interact", prison: "block", guard: "rel", run: () => relAct("divorce") },
     { fn: "interact", prison: "allow", guard: "rel", run: () => relAct("conversation") },
+    { fn: "prisonContraband", prison: "allow", run: () => prisonContraband() },
+    { fn: "joinPrisonGang", prison: "allow", run: () => joinPrisonGang() },
   ];
 
   // In-browser self-test: data-integrity asserts + simulate several seeded lives
@@ -3184,7 +3241,9 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       $("crime-list").appendChild(optRow("⚖️ Request parole", "Ask the board for early release (better odds after serving ~40%).", "Request", () => requestParole(), false));
       $("crime-list").appendChild(optRow("⚖️ Appeal conviction", "$15,000 · ~30% chance to overturn it.", "Appeal", () => appealConviction(), game.character.money < 15000));
       $("crime-list").appendChild(optRow("🧹 Work a prison job", "Earn a little money this year.", "Work", () => prisonJob(), false));
-      const hint = document.createElement("div"); hint.className = "sub-h"; hint.textContent = "While locked up"; $("crime-list").prepend(hint);
+      $("crime-list").appendChild(optRow("📦 Trade contraband", `Smuggle for cash & respect — get caught and your sentence grows. Respect: ${game.prison.respect || 0}/100.`, "Trade", () => prisonContraband(), false));
+      $("crime-list").appendChild(optRow("🤝 Join a prison crew", "Build respect (softens riots, helps parole) — but they'll test you.", "Join", () => joinPrisonGang(), false));
+      const hint = document.createElement("div"); hint.className = "sub-h"; hint.textContent = `While locked up · respect ${game.prison.respect || 0}/100`; $("crime-list").prepend(hint);
     }
     for (const cr of DATA.ACTIVITIES.crime) {
       const gated = game.character.age < cr.minAge || game.prison.inPrison;
