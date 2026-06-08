@@ -556,6 +556,40 @@
     genius:   { label: "Genius",   boost: { smarts: 18 } }
   };
 
+  // ════════════════════════════════════════════════════════════════════════════
+  // BALANCE — every tunable number a designer would change, grouped by system, in
+  // ONE reviewable place. Probabilities are 0..1; `[lo,hi]` are inclusive rng
+  // ranges; money is whole $. Structural formula *shapes* (e.g. fame/250) stay in
+  // code next to their logic, but their knobs live here. A reasonableness audit
+  // (tests/check.sh + #test=selfcheck) asserts these stay in sane bounds, so an
+  // out-of-range value fails CI instead of shipping (this is how the "keno prints
+  // money" / "100 babies" classes are caught). Casino/crime/gamble odds that are
+  // pure content live in bitlife_data.json (ACTIVITIES) and are EV-audited there.
+  // Pure data tables (VEHICLES, DISEASES, LIFESTYLE, …) are indexed in the TUNING
+  // INDEX banner; relocating them is a follow-up — names are unchanged for now.
+  // ════════════════════════════════════════════════════════════════════════════
+  const BALANCE = {
+    // Hard caps so the sim can't run away (no 100s of kids, no dozens of spouses).
+    limits:   { maxChildren: 20, maxSpouses: 3, fertileMaxAge: 50 },
+    // Yearly money mechanics (tickFinances / tickAssets / continueAsHeir).
+    finance:  { loanInterest: 0.08, loanPayment: 0.10, mortgageInterest: 0.05, mortgagePayment: 0.08, estateTax: 0.40, vehicleDeprec: 0.10 },
+    // Disease onset (tickHealth): base + per-year-over-40 + a bump when already sick.
+    health:   { diseaseBase: 0.05, diseaseAgeCoef: 0.004, lowHealthThresh: 40, lowHealthBonus: 0.05 },
+    // Conception odds (haveBaby / IVF / surrogacy / adoption); bigFamilyAt grants the ribbon.
+    family:   { ivfBase: 0.75, ivfAgeCoef: 0.02, ivfTwins: 0.20, surrogacy: 0.90, adoptBase: 0.60, adoptWealthCap: 0.25, bigFamilyAt: 4 },
+    // Marriage / bigamy (interact + tickBigamy): risk scales with #spouses.
+    marriage: { proposeBase: 0.5, prenupBase: 0.4, bigamyRiskPerSpouse: 0.15, bigamyArrestShare: 0.34, bigamySentence: [1, 4] },
+    // Visiting a prostitute (visitProstitute).
+    vice:     { prostituteCost: [150, 500], prostituteHappy: [4, 9], stdChance: 0.18, solicitationArrest: 0.07, partnerCatch: 0.25 },
+    // Hire-a-hitman tiers (openHitman/hireHitman): higher pay ⇒ cleaner job.
+    hitman:   { sentence: [15, 40], notoriety: [8, 20],
+                tiers: [ { id: "street", label: "Street thug",      cost: 15000,  catch: 0.55, botch: 0.20 },
+                         { id: "pro",    label: "Professional",     cost: 75000,  catch: 0.32, botch: 0.06 },
+                         { id: "ghost",  label: "Untraceable ghost", cost: 250000, catch: 0.15, botch: 0.0  } ] },
+    // Elections (openElection/runForOffice): a named rival's strength lowers your odds.
+    election: { campaignCost: 50000, oppStrength: [0.2, 0.7], winBase: 0.25 },
+  };
+
   // ── Canonical state schema ────────────────────────────────────────────────
   // ONE registry of every OPTIONAL top-level subsystem field, each with a factory
   // for its default. `ensureState(game)` fills any a save / new life / heir is
@@ -564,12 +598,10 @@
   // feature reads" bug class: it runs at every load chokepoint (new life, loadLife,
   // continueAsHeir). RULE: add a new subsystem ⇒ add its default HERE and its truth
   // to INVARIANTS, and every later feature can just read the field, always present.
-  // ── Gameplay limits (kept reasonable so the sim can't run away: no 100s of kids,
-  //    no dozens of simultaneous spouses, no births every menu click). Read by the
-  //    INVARIANTS registry and the relationship/reproduction guards. ──
-  const MAX_CHILDREN = 20;       // hard cap on living player children (all paths)
-  const MAX_SPOUSES = 3;         // hard cap on concurrent living spouses (bigamy risk above 1)
-  const FERTILE_MAX_AGE = 50;    // natural / own-egg conception cutoff for the mother
+  // Reproduction/marriage caps (read by INVARIANTS + the relationship guards).
+  const MAX_CHILDREN = BALANCE.limits.maxChildren;
+  const MAX_SPOUSES = BALANCE.limits.maxSpouses;
+  const FERTILE_MAX_AGE = BALANCE.limits.fertileMaxAge;
   function livingChildCount() { return (game.relationships || []).filter(r => r.alive && r.relation === "child" && r.isPlayerChild).length; }
   function livingSpouses() { return (game.relationships || []).filter(r => r.alive && r.flags && r.flags.married); }
 
@@ -1157,11 +1189,7 @@
   // ── Hire a hitman: pay to make a chosen person (any living relationship) — or your
   //    election opponent — disappear. Pay more for a cleaner job; cheap hits botch and
   //    every job risks the hitman flipping on you (prison for conspiracy to murder). ──
-  const HITMAN_TIERS = [
-    { id: "street", label: "Street thug",       cost: 15000,  catch: 0.55, botch: 0.20 },
-    { id: "pro",    label: "Professional",       cost: 75000,  catch: 0.32, botch: 0.06 },
-    { id: "ghost",  label: "Untraceable ghost",  cost: 250000, catch: 0.15, botch: 0.0  },
-  ];
+  const HITMAN_TIERS = BALANCE.hitman.tiers;
   function hitmanDesc(t) { return `${fmtMoney(t.cost)} · ${Math.round(t.catch * 100)}% caught${t.botch ? ` · ${Math.round(t.botch * 100)}% botched` : ""}`; }
   function openHitman(forElection) {
     if (!requireFree("hire a hitman")) return;
@@ -1194,7 +1222,7 @@
     if (rngChance(tier.catch)) {
       game.crimeRecord.arrests += 1; game.crimeRecord.convictions += 1; applyEffects({ happiness: -10 });
       log("crime", `🔪 The hitman flipped on you — the deal was a setup.`);
-      sendToPrison(rngInt(15, 40), "conspiracy to commit murder");
+      sendToPrison(rngInt(BALANCE.hitman.sentence[0], BALANCE.hitman.sentence[1]), "conspiracy to commit murder");
       closeModal(); autosave(); renderAll(); return;
     }
     if (tier.botch && rngChance(tier.botch)) {
@@ -1202,7 +1230,7 @@
       log("crime", `🔪 The hit was botched — your target survived and is spooked. The money's gone.`);
       closeModal(); autosave(); renderAll(); return;
     }
-    game.crimeRecord.notoriety += rngInt(8, 20); grantAchievement("fixer"); applyEffects({ happiness: -6 });
+    game.crimeRecord.notoriety += rngInt(BALANCE.hitman.notoriety[0], BALANCE.hitman.notoriety[1]); grantAchievement("fixer"); applyEffects({ happiness: -6 });
     if (isElection) {
       const opp = game.flags.election; game.flags.election = null;
       log("crime", `🔪 ${opp ? opp.name : "Your opponent"} died in a tragic "accident." The race is wide open now.`);
@@ -1219,20 +1247,21 @@
     if (!requireFree("do that")) return;
     const c = game.character;
     if (!requireAge(18, "do that")) return;
-    const cost = rngInt(150, 500);
+    const V = BALANCE.vice;
+    const cost = rngInt(V.prostituteCost[0], V.prostituteCost[1]);
     if (!requireMoney(cost)) return;
     c.money -= cost;
-    applyEffects({ happiness: rngInt(4, 9) });
-    if (rngChance(0.07)) {
+    applyEffects({ happiness: rngInt(V.prostituteHappy[0], V.prostituteHappy[1]) });
+    if (rngChance(V.solicitationArrest)) {
       game.crimeRecord.arrests += 1; applyEffects({ happiness: -6 });
       log("crime", "🚓 It was a sting operation — you were arrested for solicitation.");
       sendToPrison(1, "solicitation");
       closeModal(); autosave(); renderAll(); return;
     }
-    if (rngChance(0.18)) { addCondition("std", "an STD", 4, 2, 700, false); log("event", "🌃 You paid for company tonight — and picked up an STD."); }
+    if (rngChance(V.stdChance)) { addCondition("std", "an STD", 4, 2, 700, false); log("event", "🌃 You paid for company tonight — and picked up an STD."); }
     else log("event", "🌃 You paid for some company tonight.");
     const partner = game.relationships.find(r => r.alive && r.flags && (r.flags.married || r.flags.dating));
-    if (partner && rngChance(0.25)) {
+    if (partner && rngChance(V.partnerCatch)) {
       partner.bar = clampStat(partner.bar - rngInt(20, 45)); applyEffects({ happiness: -8 });
       log("relationship", `${partner.name} found out and is furious. 💔`);
       if (partner.bar <= 5 && partner.flags.dating && !partner.flags.married) { partner.flags.dating = false; partner.relation = "friend"; }
@@ -2134,6 +2163,31 @@
       if (!held) break; // one report per breakage point is enough
     }
   }
+  // (1b) BALANCE reasonableness — every tunable number must stay in sane bounds, so
+  //      an out-of-range edit fails the suite instead of shipping (the general net
+  //      against "keno prints money" / "100 babies" style regressions). The
+  //      assertions double as documentation of each knob's intended range. Called
+  //      from both runSelfCheck (in-browser) and tests/headless.mjs (CI).
+  function auditBalance(ok) {
+    const B = BALANCE;
+    const prob = (v, m) => ok(Number.isFinite(v) && v >= 0 && v <= 1, "balance 0..1: " + m);
+    const range = (a, m) => ok(Array.isArray(a) && a.length === 2 && Number.isFinite(a[0]) && Number.isFinite(a[1]) && a[0] >= 0 && a[0] <= a[1], "balance range lo<=hi: " + m);
+    const pos = (v, m) => ok(Number.isFinite(v) && v > 0, "balance >0: " + m);
+    ok(B.limits.maxChildren > 0 && B.limits.maxChildren <= 50, "limits.maxChildren sane");
+    ok(B.limits.maxSpouses > 0 && B.limits.maxSpouses <= 10, "limits.maxSpouses sane");
+    ok(B.limits.fertileMaxAge >= 30 && B.limits.fertileMaxAge <= 70, "limits.fertileMaxAge sane");
+    for (const k of ["loanInterest", "loanPayment", "mortgageInterest", "mortgagePayment", "estateTax", "vehicleDeprec"]) prob(B.finance[k], "finance." + k);
+    for (const k of ["diseaseBase", "diseaseAgeCoef", "lowHealthBonus"]) prob(B.health[k], "health." + k);
+    for (const k of ["ivfBase", "ivfAgeCoef", "ivfTwins", "surrogacy", "adoptBase", "adoptWealthCap"]) prob(B.family[k], "family." + k);
+    ok(B.family.bigFamilyAt > 0, "family.bigFamilyAt > 0");
+    for (const k of ["proposeBase", "prenupBase", "bigamyRiskPerSpouse", "bigamyArrestShare"]) prob(B.marriage[k], "marriage." + k);
+    range(B.marriage.bigamySentence, "marriage.bigamySentence");
+    for (const k of ["stdChance", "solicitationArrest", "partnerCatch"]) prob(B.vice[k], "vice." + k);
+    range(B.vice.prostituteCost, "vice.prostituteCost"); range(B.vice.prostituteHappy, "vice.prostituteHappy");
+    range(B.hitman.sentence, "hitman.sentence"); range(B.hitman.notoriety, "hitman.notoriety");
+    for (const t of B.hitman.tiers) { pos(t.cost, "hitman " + t.id + ".cost"); prob(t.catch, "hitman " + t.id + ".catch"); prob(t.botch, "hitman " + t.id + ".botch"); }
+    prob(B.election.winBase, "election.winBase"); pos(B.election.campaignCost, "election.campaignCost"); range(B.election.oppStrength, "election.oppStrength");
+  }
 
   // (2) PLAYER_ACTIONS — every direct player action, with a sample invocation and
   //     its prison rule. "block" = must be a no-op while jailed; "allow" = legal
@@ -2206,6 +2260,7 @@
       const cids = DATA.CAREERS.map(c => c.id); ok(new Set(cids).size === cids.length, "unique career ids");
       for (const g of DATA.ACTIVITIES.casino) if (g.winChance && g.payoutMult) ok(g.winChance * (g.payoutMult[0] + g.payoutMult[1]) / 2 < 1, "casino " + g.id + " has house edge");
       for (const id of Object.keys(DATA.ACHIEVEMENTS)) ok(!!FALLBACK_DATA.ACHIEVEMENTS[id], "FALLBACK ribbon " + id + " present");
+      auditBalance(ok);   // every tunable number stays in sane bounds (see auditBalance)
 
       // ── 6 seeded lives to death; ALL invariants checked every year ──
       for (let s = 0; s < 6; s++) {
@@ -2470,11 +2525,12 @@
   function tickBigamy() {
     const spouses = livingSpouses();
     if (spouses.length < 2 || jailed()) return;
-    if (!rngChance(0.15 * (spouses.length - 1))) return;
-    if (rngChance(0.34)) {
+    const M = BALANCE.marriage;
+    if (!rngChance(M.bigamyRiskPerSpouse * (spouses.length - 1))) return;
+    if (rngChance(M.bigamyArrestShare)) {
       game.crimeRecord.arrests += 1; applyEffects({ happiness: -10 });
       log("event", `⚖️ Your bigamy was exposed — the police came for you.`);
-      sendToPrison(rngInt(1, 4), "bigamy");
+      sendToPrison(rngInt(M.bigamySentence[0], M.bigamySentence[1]), "bigamy");
     } else {
       const victim = rngPick(spouses);
       let lost = 0;
@@ -2540,13 +2596,13 @@
       case "propose":
         if (r.bar < 60) { showToast("They're not ready."); return; }
         if (!r.flags.married && livingSpouses().length >= MAX_SPOUSES) { showToast("No officiant will marry a known bigamist again."); return; }
-        if (rngChance(0.5 + r.bar / 300)) { r.flags.married = true; r.relation = "spouse"; r.bar = clampStat(r.bar + 15); applyEffects({ happiness: 12 }); grantAchievement("wedded"); marryIntoRoyalty(r); onMarried(r); log("event", `${r.name} said YES! You're married! 💍`, "wedding"); }
+        if (rngChance(BALANCE.marriage.proposeBase + r.bar / 300)) { r.flags.married = true; r.relation = "spouse"; r.bar = clampStat(r.bar + 15); applyEffects({ happiness: 12 }); grantAchievement("wedded"); marryIntoRoyalty(r); onMarried(r); log("event", `${r.name} said YES! You're married! 💍`, "wedding"); }
         else log("relationship", `${r.name} declined your proposal.`);
         break;
       case "proposePrenup":
         if (r.bar < 60) { showToast("They're not ready."); return; }
         if (!r.flags.married && livingSpouses().length >= MAX_SPOUSES) { showToast("No officiant will marry a known bigamist again."); return; }
-        if (rngChance(0.4 + r.bar / 300)) { r.flags.married = true; r.flags.prenup = true; r.relation = "spouse"; r.bar = clampStat(r.bar + 10); applyEffects({ happiness: 10 }); grantAchievement("wedded"); marryIntoRoyalty(r); onMarried(r); log("event", `${r.name} signed a prenup and married you! 💍📝`, "wedding"); }
+        if (rngChance(BALANCE.marriage.prenupBase + r.bar / 300)) { r.flags.married = true; r.flags.prenup = true; r.relation = "spouse"; r.bar = clampStat(r.bar + 10); applyEffects({ happiness: 10 }); grantAchievement("wedded"); marryIntoRoyalty(r); onMarried(r); log("event", `${r.name} signed a prenup and married you! 💍📝`, "wedding"); }
         else { r.bar = clampStat(r.bar - 5); log("relationship", `${r.name} was put off by the prenup and declined.`); }
         break;
       case "divorce": {
@@ -3873,7 +3929,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const pool = Math.max(0, netWorth());
     for (const heir of heirCandidates()) {
       const frac = willShareFor(heir.id);
-      const cash = Math.round(pool * 0.6 * frac);
+      const cash = Math.round(pool * (1 - BALANCE.finance.estateTax) * frac);
       const willNote = game.will ? ` · ${Math.round(frac * 100)}% per your will` : "";
       $("heir-list").appendChild(optRow(`👶 Continue as ${heir.name}`, `your child, age ${heir.age} · inherits ${fmtMoney(cash)}${willNote}`, "Live on", () => continueAsHeir(heir.id), false));
     }
@@ -4216,7 +4272,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   function tickHealth() {
     const c = game.character;
     for (const cond of (c.conditions || [])) c.stats.health = clampStat(c.stats.health - (cond.drain || 0));
-    if (rngChance(0.05 + Math.max(0, c.age - 40) * 0.004 + (c.stats.health < 40 ? 0.05 : 0))) addDisease();
+    const H = BALANCE.health;
+    if (rngChance(H.diseaseBase + Math.max(0, c.age - 40) * H.diseaseAgeCoef + (c.stats.health < H.lowHealthThresh ? H.lowHealthBonus : 0))) addDisease();
   }
   // Vehicle upkeep + depreciation. (Real estate + valuables appreciation is handled
   // in advanceMarkets, which grows every asset with an `apprec` field — not here.)
@@ -4224,20 +4281,20 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const c = game.character;
     for (const v of (game.assets || []).filter(a => a.type === "vehicle")) {
       c.money -= (v.upkeep || 0);
-      v.currentValue = Math.round((v.currentValue || 0) * (1 - (v.deprec || 0.1)));
+      v.currentValue = Math.round((v.currentValue || 0) * (1 - (v.deprec || BALANCE.finance.vehicleDeprec)));
     }
   }
-  // Loan (8%/yr) and mortgage (5%/yr) interest + automatic payments.
+  // Loan and mortgage interest + automatic payments (rates in BALANCE.finance).
   function tickFinances() {
-    const c = game.character;
+    const c = game.character; const F = BALANCE.finance;
     if ((game.loanBalance || 0) > 0) {
-      game.loanBalance = Math.round(game.loanBalance * 1.08);
-      const pay = Math.max(0, Math.round(game.loanBalance * 0.1));
+      game.loanBalance = Math.round(game.loanBalance * (1 + F.loanInterest));
+      const pay = Math.max(0, Math.round(game.loanBalance * F.loanPayment));
       if (c.money >= pay) { c.money -= pay; game.loanBalance -= pay; }
     }
     if ((game.mortgageBalance || 0) > 0) {
-      game.mortgageBalance = Math.round(game.mortgageBalance * 1.05);
-      const mp = Math.max(0, Math.round(game.mortgageBalance * 0.08));
+      game.mortgageBalance = Math.round(game.mortgageBalance * (1 + F.mortgageInterest));
+      const mp = Math.max(0, Math.round(game.mortgageBalance * F.mortgagePayment));
       if (c.money >= mp) { c.money -= mp; game.mortgageBalance -= mp; }
     }
   }
@@ -4441,7 +4498,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   function makeOpponent() {
     const g = rngPick(["male", "female"]);
     const name = rngPick(DATA.NAME_POOLS[g]) + " " + rngPick(DATA.NAME_POOLS.surnames);
-    return { name, strength: Math.round(rngFloat(0.2, 0.7) * 100) / 100 };
+    return { name, strength: Math.round(rngFloat(BALANCE.election.oppStrength[0], BALANCE.election.oppStrength[1]) * 100) / 100 };
   }
   function openElection() {
     if (!requireFree("run for office")) return;
@@ -4450,26 +4507,26 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (!game.flags.election) game.flags.election = makeOpponent();
     const opp = game.flags.election;
     const reach = Math.min(0.2, totalFollowers() / 5000000);
-    const odds = Math.max(3, Math.min(97, Math.round((0.25 + c.fame / 250 + c.stats.looks / 400 + c.stats.smarts / 500 + reach - (opp ? opp.strength : 0)) * 100)));
+    const odds = Math.max(3, Math.min(97, Math.round((BALANCE.election.winBase + c.fame / 250 + c.stats.looks / 400 + c.stats.smarts / 500 + reach - (opp ? opp.strength : 0)) * 100)));
     modalShell("🗳️ Election", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">You're running for office. Your opponent is <b>${opp ? opp.name : "(none — the field is clear)"}</b>${opp ? ` — a ${opp.strength >= 0.55 ? "formidable" : opp.strength >= 0.35 ? "solid" : "weak"} challenger.` : "."} Campaign honestly, or make the race… easier.</div><div class="sub-h">Your chances: ~${odds}%</div><div id="elec-list"></div>`);
-    $("elec-list").appendChild(optRow("📣 Run an honest campaign", "$50,000 deposit · win on the issues", "Campaign", () => runForOffice(), c.money < 50000));
+    $("elec-list").appendChild(optRow("📣 Run an honest campaign", `${fmtMoney(BALANCE.election.campaignCost)} deposit · win on the issues`, "Campaign", () => runForOffice(), c.money < BALANCE.election.campaignCost));
     if (opp) $("elec-list").appendChild(optRow("🔪 Hire a hitman to remove your opponent", "make the race disappear · 18+ · risky", "Hire", () => openHitman(true), c.age < 18));
   }
   function runForOffice() {
     if (!requireFree("run for office")) return;
     const c = game.character;
     if (c.age < 25) { showToast("Must be 25+."); return; }
-    if (c.money < 50000) { showToast("A campaign costs $50,000."); return; }
-    c.money -= 50000;
+    if (c.money < BALANCE.election.campaignCost) { showToast(`A campaign costs ${fmtMoney(BALANCE.election.campaignCost)}.`); return; }
+    c.money -= BALANCE.election.campaignCost;
     const opp = game.flags.election;
     // A big social-media following helps get out the vote (capped contribution); a strong
     // opponent drags your odds down — unless they've mysteriously dropped out of the race.
     const reach = Math.min(0.2, totalFollowers() / 5000000);
-    const odds = Math.max(0.03, 0.25 + c.fame / 250 + c.stats.looks / 400 + c.stats.smarts / 500 + reach - (opp ? opp.strength : 0));
+    const odds = Math.max(0.03, BALANCE.election.winBase + c.fame / 250 + c.stats.looks / 400 + c.stats.smarts / 500 + reach - (opp ? opp.strength : 0));
     if (rngChance(odds)) {
       c.fame = clampStat(c.fame + 25); applyEffects({ happiness: 15 }); game.flags.officeHeld = true; game.flags.election = null; grantAchievement("politician");
       log("event", `🗳️ You ${opp ? `beat ${opp.name} and ` : ""}won the election and took office! 🎉`);
-    } else { applyEffects({ happiness: -8 }); log("event", `🗳️ You lost the election${opp ? ` to ${opp.name}` : ""} (and your $50,000 deposit).`); }
+    } else { applyEffects({ happiness: -8 }); log("event", `🗳️ You lost the election${opp ? ` to ${opp.name}` : ""} (and your ${fmtMoney(BALANCE.election.campaignCost)} deposit).`); }
     autosave(); renderAll();
   }
 
@@ -4624,7 +4681,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (c.money < 15000) { showToast("You need $15,000 to adopt."); return; }
     if (livingChildCount() >= MAX_CHILDREN) { showToast("You already have a big family — you can't take on more."); return; }
     if (!oncePerYear("adopt")) return;
-    if (rngChance(0.6 + Math.min(0.25, c.money / 400000))) {
+    if (rngChance(BALANCE.family.adoptBase + Math.min(BALANCE.family.adoptWealthCap, c.money / 400000))) {
       c.money -= 15000; const kid = bearChild({ adopted: true, age: rngInt(0, 8) });
       applyEffects({ happiness: 12 });
       log("event", `👶 Your adoption was approved — welcome ${kid.name}!`, "baby");
@@ -4640,9 +4697,9 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (c.gender === "female" && c.age > FERTILE_MAX_AGE) { showToast("You're past the age for IVF with your own eggs — consider surrogacy or adoption."); return; }
     if (!oncePerYear("ivf")) return;
     c.money -= 12000;
-    const chance = Math.max(0.15, 0.75 - Math.max(0, c.age - 30) * 0.02);   // younger ⇒ better odds
+    const chance = Math.max(0.15, BALANCE.family.ivfBase - Math.max(0, c.age - 30) * BALANCE.family.ivfAgeCoef);   // younger ⇒ better odds
     if (rngChance(chance)) {
-      const twins = rngChance(0.2);
+      const twins = rngChance(BALANCE.family.ivfTwins);
       let names = bearChild({ age: 0 }).name;
       if (twins) names += " and " + bearChild({ age: 0 }).name;
       applyEffects({ happiness: twins ? 16 : 11 });
@@ -4658,7 +4715,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (livingChildCount() >= MAX_CHILDREN) { showToast("You already have a big family — you can't raise more kids."); return; }
     if (!oncePerYear("surrogacy")) return;
     c.money -= 50000;
-    if (rngChance(0.9)) {
+    if (rngChance(BALANCE.family.surrogacy)) {
       const kid = bearChild({ age: 0 });
       applyEffects({ happiness: 14 });
       log("event", `🤰 Your surrogate delivered a healthy baby: ${kid.name}! 👶`, "baby");
@@ -4717,7 +4774,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     // crown — and the treasury — pass down with the bloodline.
     const inheritThrone = !!(game.throne && game.throne.monarch && (game.throne.heirId == null || game.throne.heirId === rid));
     const keptTreasury = inheritThrone ? game.throne.treasury : 0;
-    const share = Math.round(Math.max(0, netWorth()) * 0.6 * willShareFor(rid)); // 40% estate tax, then your will's split (equal if none)
+    const share = Math.round(Math.max(0, netWorth()) * (1 - BALANCE.finance.estateTax) * willShareFor(rid)); // estate tax, then your will's split (equal if none)
     const parts = (heir.name || "Heir").split(" ");
     game.generation = (game.generation || 1) + 1;
     game.character = {

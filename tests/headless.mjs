@@ -68,6 +68,7 @@ const snap = () => JSON.stringify(stripTransient(game));
 // 0) Data integrity (mirror of the in-browser asserts)
 for (const [st, arr] of Object.entries(DATA.EVENTS || {})) { const ids = arr.map(e => e.id); ok(new Set(ids).size === ids.length, "unique event ids in " + st); }
 for (const id of Object.keys(DATA.ACHIEVEMENTS)) ok(!!FALLBACK_DATA.ACHIEVEMENTS[id], "FALLBACK ribbon " + id);
+auditBalance(ok);   // BALANCE reasonableness — out-of-range tunable numbers fail CI
 
 // 1) ensureState migrates a synthetic pre-refactor save (missing new subsystem fields)
 createNewLife({ first: "Old", last: "Save", seed: "1234" });
