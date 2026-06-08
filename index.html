@@ -3588,10 +3588,14 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       const h = document.createElement("div"); h.className = "sub-h"; h.textContent = label; body.appendChild(h);
       for (const a of (arr || [])) {
         const price = game.market.prices[a.id], hold = holdingFor(a.id);
+        const hist = game.market.history[a.id] || [];
+        const prev = hist.length >= 2 ? hist[hist.length - 2] : null;
+        const pct = prev ? ((price - prev) / prev) * 100 : 0;
+        const chg = prev ? `<span style="font-size:11px;font-weight:700;color:${pct >= 0 ? "var(--ok)" : "var(--err)"}"> ${pct >= 0 ? "▲" : "▼"}${Math.abs(pct).toFixed(1)}%</span>` : "";
         const div = document.createElement("div"); div.className = "opt"; div.style.flexWrap = "wrap";
         const tip = game.activeTip && game.activeTip.assetId === a.id ? " 💡" : "";
         div.innerHTML = `<div class="info" style="flex-basis:100%;display:flex;justify-content:space-between;align-items:center">
-          <div><div class="t">${a.name}${tip} <span style="color:var(--text-muted);font-size:11px">$${fmtPrice(price)}</span></div>
+          <div><div class="t">${a.name}${tip} <span style="color:var(--text-muted);font-size:11px">$${fmtPrice(price)}</span>${chg}</div>
           <div class="d">${hold ? `you own ${hold.shares} (avg $${fmtPrice(hold.avgCost)}, val ${fmtMoney(hold.shares*price)})` : "not held"}${a.taxable ? " · taxable" : ""}</div></div>
           ${sparkline(game.market.history[a.id])}</div>`;
         const ctr = document.createElement("div"); ctr.style.cssText = "display:flex;gap:4px;margin-top:6px;flex-basis:100%;align-items:center";
@@ -4297,7 +4301,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const c = game.character;
     if (c.age < 13) { showToast("Must be 13+ to make an account."); return; }
     game.social = game.social || {};
-    modalShell("📱 Social Media", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Post to grow followers (free & repeatable), get verified, then cash in with sponsorship deals (once per platform each year). Reach builds fame — which helps with movies, endorsements and elections.</div><div class="sub-h">Total reach: ${fmtFollowers(totalFollowers())} followers · fame ${c.fame}/100</div><div id="soc"></div>`);
+    modalShell("📱 Social Media", `<div class="hint" style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Post once a year to grow followers, get verified, then cash in with sponsorship deals (once per platform each year). Reach builds fame — which helps with movies, endorsements and elections. Age up to post again.</div><div class="sub-h">Total reach: ${fmtFollowers(totalFollowers())} followers · fame ${c.fame}/100</div><div id="soc"></div>`);
     const wrap = $("soc");
     for (const p of SOCIAL_PLATFORMS) {
       const acct = game.social[p.id];
@@ -4305,7 +4309,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       h.textContent = acct ? `${p.emoji} ${p.name} — ${fmtFollowers(acct.followers)} followers${acct.verified ? " 🔵" : ""}` : `${p.emoji} ${p.name}`;
       wrap.appendChild(h);
       if (!acct) { wrap.appendChild(optRow("Create account", "free · start building a following", "Join", () => createAccount(p.id), false)); continue; }
-      wrap.appendChild(optRow(p.verb, "grow your followers (free, repeatable)", "Post", () => socialPost(p.id), false));
+      const postedThisYear = !!(game.yearActions && game.yearActions["post_" + p.id]);
+      wrap.appendChild(optRow(p.verb, postedThisYear ? "already posted this year — age up to post again" : "grow your followers · once a year", "Post", () => socialPost(p.id), postedThisYear));
       if (!acct.verified) wrap.appendChild(optRow("Get verified 🔵", `needs ${fmtFollowers(p.verify)} followers`, "Verify", () => socialVerify(p.id), acct.followers < p.verify));
       const est = Math.round(acct.followers * p.rate);
       wrap.appendChild(optRow("Sponsorship deal 💸", est > 0 ? `~${fmtMoney(est)} · once per year` : "grow followers first", "Promote", () => socialSponsor(p.id), acct.followers < 1000));
@@ -4324,10 +4329,14 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
   function socialPost(id) {
     if (!requireFree("use social media")) return;
     const p = socialPlatform(id); const acct = (game.social || {})[id]; if (!p || !acct) { showToast("Create the account first."); return; }
+    if (!oncePerYear("post_" + id)) return;          // one post per platform per year (like the original — age up to post again)
     const c = game.character;
     const viral = rngChance(0.10 + c.fame / 400 + c.stats.looks / 1500);
     const head = Math.max(0, 1 - acct.followers / MAX_FOLLOWERS);   // logistic: growth slows toward the ceiling
-    let gain = rngInt(20, 220) + Math.round(acct.followers * (0.015 + c.fame / 1200 + c.stats.looks / 3000) * head);
+    // One post a year now (gated above), so each post is a meaningful yearly jump:
+    // a flat reach plus ~20–50% compounding scaled by fame/looks. Reaching verified
+    // takes years and influencer (1M) a dedicated career — no more one-year millions.
+    let gain = rngInt(120, 700) + Math.round(acct.followers * (0.18 + c.fame / 220 + c.stats.looks / 450) * head);
     if (viral) gain = Math.round(gain * rngInt(3, 8));
     const flop = !viral && rngChance(0.12);
     if (flop) { acct.followers = Math.max(0, acct.followers - rngInt(10, 120)); applyEffects({ happiness: -1 }); log("event", `${p.emoji} Your ${p.name} post flopped — lost a few followers.`); }
