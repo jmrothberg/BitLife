@@ -142,6 +142,20 @@ So the "roommate-issues-in-jail" bug — and its whole class — fails the tests
 **When you add a feature: declare its state in `STATE_SCHEMA`, its truths in `INVARIANTS`, and its
 actions in `PLAYER_ACTIONS`. That's it.**
 
+### 4. Tunable numbers — one block (`const BALANCE`) + `auditBalance`
+Every odds/cost/cap/payout a designer would change lives in **`BALANCE`** (in `index.html`'s CONFIG
+section), grouped by system, so all the numbers can be reviewed in one place. Read them in code
+(`BALANCE.crime.…`); don't sprinkle magic numbers through functions. `auditBalance(ok)` asserts each
+is in a sane range (probabilities 0–1, ranges ordered, costs > 0) and runs in **both** `runSelfCheck`
+and `tests/headless.mjs`, so an out-of-range edit fails CI. Pure *content* odds (casino/gamble win
+chances, crime catch chances) stay in `bitlife_data.json` and are EV-audited by `check.sh`.
+**Anything that *creates entities* (children, spouses, assets) needs a cap in `BALANCE.limits` AND a
+bound in `INVARIANTS`** — that's the general fix for the "100 babies / 12 wives" class.
+
+> The top of the `<script>` has a **SYSTEMS INDEX** banner summarizing all of the above per system
+> (state · tick · actions · truths · numbers) plus the section map — read it first. End action
+> handlers with `commit({close})` (persist + repaint) instead of hand-rolling `autosave(); renderAll()`.
+
 ## Recipes
 
 ### Add a life event
@@ -445,77 +459,36 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 
 ---
 
-# Status, content counts & roadmap
+# Status & roadmap
 
-## Concrete content counts (v0.22.0)
+> **Release history lives in git tags/commits, not here** — this file stays forward-looking.
+> The **`README.md` comparison table is the live feature checklist**, and content counts are derived
+> from the JSON (count `EVENTS`/`CAREERS`/`ACTIVITIES`/… entries) + the ribbon list — they're not
+> hand-maintained here, because hand-kept counts drift.
 
-> **v0.16.0** — engine foundation (canonical `STATE_SCHEMA` + `ensureState()` at every load chokepoint,
-> `tickDepth()` split into ordered single-concern sub-ticks, headless `tests/headless.mjs` in `check.sh`).
-> **v0.17.0** — **custody & alimony** on divorce (`settleCustody`, `tickObligations`, `game.obligations`).
-> **v0.18.0** — **prison depth**: a yearly inside-the-walls hook (`prisonYearlyEvent` — riots/shakedowns),
-> `prisonContraband` & `joinPrisonGang` actions, and `prison.respect`/`contraband` state (+1 ribbon).
-> **v0.19.0** — **royalty & full monarchy sim**: born-royal or marry-in → `ascendThrone`, rule via
-> `royalDecree`/`openThrone` (approval ↔ treasury, festivals, war, name-heir, abdicate), overthrow, and
-> dynastic succession in `continueAsHeir`; `game.throne` state, `tickRoyalty` yearly hook (+2 ribbons).
-> **v0.20.0** — **content volume**: events 85 → **155** (≈ doubled per stage), with optional `cond`
-> gating (`EVENT_CONDS`) so royal-court, family, business and military beats fire only when relevant.
-> **v0.21.0** — **school depth**: two new `education` stats **grades** & **popularity** (clamped via
-> `applyEffects`), a `SCHOOL_GROUPS` table of joinable **clubs / sports teams / cliques** (per-stage,
-> requirement-gated), a `tickSchool()` yearly drift inside `advanceEducation`, per-year actions
-> (study / skip class / school dance / run for class president), **dropout**, **merit scholarships** on
-> college enrolment, and an `openSchool()` modal reached from the **Occupation** nav slot — which (like the
-> original) shows 🎓 School while enrolled and 💼 Career otherwise (`nav-occupation`, toggled in
-> `renderHeader`), cross-linked with `openCareers` so a student can still take a job (+2 ribbons: honorRoll, classPres).
-> **v0.22.0** — **crime/relationship depth & reproduction limits**: **hire a hitman** (`HITMAN_TIERS`,
-> `openHitman`/`hireHitman`) to kill any relationship — or your **election opponent** (`makeOpponent`,
-> `openElection`, `runForOffice` now races a named rival); **wills** (`game.will`, `openWill`/`setWill`/
-> `willShareFor`) so `continueAsHeir` splits the estate by your allocation (disinherit / charity); **visit
-> a prostitute** (`visitProstitute` — STD + solicitation-arrest risk); and a **logic/number audit** —
-> `MAX_CHILDREN`/`MAX_SPOUSES`/`FERTILE_MAX_AGE` caps, a once-a-year birth cooldown (`babyBlockReason`/
-> `markBirth`, `character.lastBirthYear`), and **bigamy danger** (a second marriage is allowed but
-> `tickBigamy` risks a furious divorce or arrest each year). +3 ribbons: fixer, planner, bigamist.
+## Known dead-ends — don't reintroduce
+These are the bug *classes* that already bit us; the harness now guards them, so keep the guards:
+- **Casino/gamble EV must be < 1.** Keno once shipped at `0.25 × 6.5 = 1.625` RTP and printed
+  fortunes. `check.sh` + `auditBalance` assert EV<1 — compute it by hand for any odds change.
+- **Cap anything repeatable that creates entities.** Marriage/children once had no caps → dozens of
+  spouses and 100s of kids. Caps live in `BALANCE.limits` with matching `INVARIANTS`; a creating
+  action without a cap invariant is a bug.
+- **No runtime network in the core loop** (breaks offline) · **no `Math.random()` for an outcome**
+  (breaks seeds) · **never rename/remove a save field** (breaks saved lives) · **no repeatable
+  money-positive action without `oncePerYear()` or a house edge** (infinite faucet).
 
+## Backlog (next features — one PR + version bump each, reusing existing seams)
+- Deeper **careers** toward 100+ (promotion ladders, firing, retirement).
+- More **mini-games** (the `minigames/*.js` module contract + the `minigame` event-choice hook).
+- **Pet breeding & shows** depth; richer **business** management.
+- **Cleanups:** relocate the remaining inline data tables (`VEHICLES`, `LIFESTYLE`, `DISEASES`, …)
+  into `BALANCE`/JSON, and **auto-generate `FALLBACK_DATA`** from `bitlife_data.json` (a `tools/*.mjs`
+  script + a `check.sh` diff) to retire the hand-maintained second copy.
 
-- Events: **155** — baby 16, child 24, teen 25, youngAdult 25, adult 24, middleAge 21, senior 20
-- Activities: **41** — mindBody 13, doctor 7, education 3, crime 11, casino 7
-- Careers: **43** (incl. military Army/Navy/Air Force, trades, journalist, scientist, fame paths) · Degrees: **12**
-- Market assets: **9** (4 stock / 3 crypto / 2 bond) · Real estate: **4** · Insider tips: **4**
-- Ribbons/achievements: **45** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
-- School groups: **15** joinable clubs/sports/cliques (`SCHOOL_GROUPS`) + grades & popularity stats
-- Beyond the v0.9 depth update: **social media** (5 platforms — followers/verified/sponsorships/podcasts,
-  v0.10.0) and **friends / coworkers / enemies** (make friends, befriend, prank, block, reconcile, v0.11.0).
-
-## Gap-closure roadmap
-
-**Shipped** (the chart in `README.md` is the live source of truth): relationships/dating/divorce +
-friends/coworkers/enemies, health/disease, money/loans/mortgages/taxes/inheritance, activities/travel,
-careers/fame/business/social-media, crime/gangs/heists/justice, generations/royalty(stipend)/politics,
-God Mode/Time Machine. Most of the old A–H epics are done.
-
-**Remaining gaps — next features (one PR + version bump each, reusing existing seams):**
-1. **Friends & social circle** — ✅ shipped v0.11.0.
-2. **Military deployments** — add a `deploy` action on top of the existing military careers (medals,
-   promotion, injuries via `addCondition`, court-martial); ribbons Veteran / War Hero.
-3. **Adoption, IVF & surrogacy** — `adoptChild`/IVF/surrogacy funnelling into `addRelationship({relation:"child"})`.
-4. **Business with employees** — migrate `flags.business` → `game.business = {id, employees, value}`; hire/fire.
-5. **Pet breeding & shows** — pet `training` stat (train/walk/vet), breed two pets, `petShow` (`oncePerYear`).
-
-**Runners-up:** custody/alimony on divorce — ✅ v0.17.0 (`settleCustody`/`tickObligations`); prison
-depth — ✅ v0.18.0 (`prisonYearlyEvent`, `prisonContraband`/`joinPrisonGang`, `prison.respect`); royalty
-& full monarchy sim (+ marry-into-royalty) — ✅ v0.19.0 (`tickRoyalty`/`ascendThrone`/`royalDecree`/
-`openThrone`, `game.throne`, dynastic succession in `continueAsHeir`); content volume — ✅ v0.20.0
-(events 85 → 155, ~16–25/stage, with `cond`-gated royal/family/business/military beats). Still open:
-deeper **careers** (toward 100+ with ladders/firing/retire) and more mini-games.
-
-Each feature = data tables + one/few engine functions + one modal, reusing the existing seams
-(mini-game launcher, the `minigame` event-choice hook, `modalShell`/`optRow` drill-downs, `applyEffects`).
-**Every feature must register new actions in `PLAYER_ACTIONS` and new truths in `INVARIANTS`** (see
-"Keeping the logic correct as it grows" above), then bump the version and advance the chart row it closes.
-
-> Keep every addition deterministic-first and routed through `applyEffects` (auto-clamped). The LLM is
-> only for the free-text box; buttons stay instant local logic; skill mini-games never call `rng()`.
-> Vendor any new library locally and precache it (offline rule). The recipes & mini-game contract
-> are above in this file.
+Each feature = data + one/few engine functions + one modal, reusing existing seams (`modalShell`/
+`optRow`, the mini-game launcher, `applyEffects`), and **must register its state/actions/truths/numbers**
+in `STATE_SCHEMA` / `PLAYER_ACTIONS` / `INVARIANTS` / `BALANCE` (see "Keeping the logic correct"),
+then bump the version and advance the README row it closes.
 
 ## How to check status yourself
 
