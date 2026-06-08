@@ -463,8 +463,9 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 > `applyEffects`), a `SCHOOL_GROUPS` table of joinable **clubs / sports teams / cliques** (per-stage,
 > requirement-gated), a `tickSchool()` yearly drift inside `advanceEducation`, per-year actions
 > (study / skip class / school dance / run for class president), **dropout**, **merit scholarships** on
-> college enrolment, and an `openSchool()` modal on a `data-tab="school"` nav chip shown while enrolled
-> (+2 ribbons: honorRoll, classPres).
+> college enrolment, and an `openSchool()` modal reached from the **Occupation** nav slot — which (like the
+> original) shows 🎓 School while enrolled and 💼 Career otherwise (`nav-occupation`, toggled in
+> `renderHeader`), cross-linked with `openCareers` so a student can still take a job (+2 ribbons: honorRoll, classPres).
 
 
 - Events: **155** — baby 16, child 24, teen 25, youngAdult 25, adult 24, middleAge 21, senior 20

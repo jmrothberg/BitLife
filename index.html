@@ -388,7 +388,7 @@
         <button id="btn-send">Do</button>
       </div>
       <nav class="navbar">
-        <button class="nav-item" data-tab="careers"><span class="ni-ic">💼</span><span class="ni-lb">Career</span></button>
+        <button class="nav-item" id="nav-occupation" data-tab="careers"><span class="ni-ic">💼</span><span class="ni-lb">Career</span></button>
         <button class="nav-item" data-tab="assets"><span class="ni-ic">💹</span><span class="ni-lb">Assets</span></button>
         <div class="age-wrap">
           <button class="ageup" id="btn-ageup"><span class="ai">🎂</span><span class="al">Age</span></button>
@@ -398,7 +398,6 @@
         <button class="nav-item" data-tab="activities"><span class="ni-ic">🏃</span><span class="ni-lb">Activities</span></button>
       </nav>
       <div class="navbar2">
-        <button data-tab="school" id="nav-school" style="display:none">🎓 School</button>
         <button data-tab="crime">🦹 Crime</button>
         <button data-tab="casino">🎰 Casino</button>
         <button data-tab="achievements">🏅 Awards</button>
@@ -3213,8 +3212,15 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (c.fame > 0) { const row = document.createElement("div"); row.className = "bar-row"; row.innerHTML = `<span class="lbl">🌟</span><span class="bname">Fame</span><div class="bar-track"><div class="bar-fill" style="width:${c.fame}%;background:var(--accent)"></div></div><span class="bval">${c.fame}%</span>`; bars.appendChild(row); }
     const rib = $("h-ribbons"); rib.innerHTML = "";
     for (const id of game.achievements) { const a = DATA.ACHIEVEMENTS[id]; if (a) { const s = document.createElement("span"); s.className = "ribbon"; s.textContent = `${a.icon || "🏅"} ${a.label}`; rib.appendChild(s); } }
-    // School tab is only relevant while enrolled — surface it then, hide it otherwise.
-    const ns = $("nav-school"); if (ns) ns.style.display = (c.education && c.education.inSchool) ? "" : "none";
+    // Occupation slot (like the original): it shows School while you're enrolled and
+    // your Career otherwise — same slot, contextual, no extra tab.
+    const occ = $("nav-occupation");
+    if (occ) {
+      const inSchool = !!(c.education && c.education.inSchool);
+      occ.dataset.tab = inSchool ? "school" : "careers";
+      occ.querySelector(".ni-ic").textContent = inSchool ? "🎓" : "💼";
+      occ.querySelector(".ni-lb").textContent = inSchool ? "School" : "Career";
+    }
   }
 
   function renderEntry(e) {
@@ -3408,6 +3414,12 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
         wrap.appendChild(optRow(`${g.emoji} ${g.label}`, joined ? `member · ${perks}/yr` : (reqTxt || perks), joined ? "Joined" : "Join", () => joinSchoolGroup(g.id), joined || !elig));
       }
     }
+    // A student can still take a part-time job — link to the careers hub (the
+    // Occupation slot shows School while enrolled, so this keeps jobs reachable).
+    if (c.age >= 16) {
+      const jh = document.createElement("div"); jh.className = "sub-h"; jh.textContent = "Also"; wrap.appendChild(jh);
+      wrap.appendChild(optRow("💼 Jobs & careers", c.job ? `currently: ${c.job.levelName || ""} ${c.job.title}` : "find a part-time or full-time job", "Open", () => openCareers(), false));
+    }
     // Drop out
     if (c.age >= 16) { const dh = document.createElement("div"); dh.className = "sub-h"; dh.textContent = "Danger Zone"; wrap.appendChild(dh); wrap.appendChild(optRow("🚭 Drop out of school", "quit for good — hurts your future", "Drop out", dropOut, false)); }
   }
@@ -3451,8 +3463,10 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     const mil = c.job && isMilitaryJob(c.job.id);
     if (c.job) html += `<div class="sub-h">Current Job</div><div class="opt"><div class="info"><div class="t">${c.job.levelName} ${c.job.title}${mil && game.military && game.military.medals ? ` · 🏅×${game.military.medals}` : ""}</div><div class="d">$${c.job.salary.toLocaleString()}/yr · performance ${c.job.performance} · ${c.job.yearsHeld||0}y</div></div></div>
       <div class="row" style="margin-bottom:10px"><button id="j-work">Work harder</button><button id="j-promo">Ask for promotion</button>${mil ? `<button id="j-deploy">🎖️ Deploy</button>` : ""}<button id="j-quit">Quit</button></div>`;
+    if (c.education && c.education.inSchool) html += `<div class="sub-h">School</div><div class="opt"><div class="info"><div class="t">🎓 ${schoolLevelLabel()}</div><div class="d">grades ${c.education.grades ?? 70}% · clubs, dances & more</div></div><button id="j-school">Open</button></div>`;
     html += `<div class="sub-h">Open Positions</div><div id="job-list"></div>`;
-    modalShell("💼 Careers", html);
+    modalShell("💼 Occupation", html);
+    if (c.education && c.education.inSchool) $("j-school").onclick = openSchool;
     if (c.job) { $("j-work").onclick = workHarder; $("j-promo").onclick = askPromotion; $("j-quit").onclick = quitJob; if (mil) $("j-deploy").onclick = deploy; }
     const list = $("job-list");
     for (const car of DATA.CAREERS) {
