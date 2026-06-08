@@ -447,7 +447,7 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 
 # Status, content counts & roadmap
 
-## Concrete content counts (v0.21.0)
+## Concrete content counts (v0.22.0)
 
 > **v0.16.0** — engine foundation (canonical `STATE_SCHEMA` + `ensureState()` at every load chokepoint,
 > `tickDepth()` split into ordered single-concern sub-ticks, headless `tests/headless.mjs` in `check.sh`).
@@ -466,13 +466,21 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 > college enrolment, and an `openSchool()` modal reached from the **Occupation** nav slot — which (like the
 > original) shows 🎓 School while enrolled and 💼 Career otherwise (`nav-occupation`, toggled in
 > `renderHeader`), cross-linked with `openCareers` so a student can still take a job (+2 ribbons: honorRoll, classPres).
+> **v0.22.0** — **crime/relationship depth & reproduction limits**: **hire a hitman** (`HITMAN_TIERS`,
+> `openHitman`/`hireHitman`) to kill any relationship — or your **election opponent** (`makeOpponent`,
+> `openElection`, `runForOffice` now races a named rival); **wills** (`game.will`, `openWill`/`setWill`/
+> `willShareFor`) so `continueAsHeir` splits the estate by your allocation (disinherit / charity); **visit
+> a prostitute** (`visitProstitute` — STD + solicitation-arrest risk); and a **logic/number audit** —
+> `MAX_CHILDREN`/`MAX_SPOUSES`/`FERTILE_MAX_AGE` caps, a once-a-year birth cooldown (`babyBlockReason`/
+> `markBirth`, `character.lastBirthYear`), and **bigamy danger** (a second marriage is allowed but
+> `tickBigamy` risks a furious divorce or arrest each year). +3 ribbons: fixer, planner, bigamist.
 
 
 - Events: **155** — baby 16, child 24, teen 25, youngAdult 25, adult 24, middleAge 21, senior 20
 - Activities: **41** — mindBody 13, doctor 7, education 3, crime 11, casino 7
 - Careers: **43** (incl. military Army/Navy/Air Force, trades, journalist, scientist, fame paths) · Degrees: **12**
 - Market assets: **9** (4 stock / 3 crypto / 2 bond) · Real estate: **4** · Insider tips: **4**
-- Ribbons/achievements: **42** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
+- Ribbons/achievements: **45** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
 - School groups: **15** joinable clubs/sports/cliques (`SCHOOL_GROUPS`) + grades & popularity stats
 - Beyond the v0.9 depth update: **social media** (5 platforms — followers/verified/sponsorships/podcasts,
   v0.10.0) and **friends / coworkers / enemies** (make friends, befriend, prank, block, reconcile, v0.11.0).
