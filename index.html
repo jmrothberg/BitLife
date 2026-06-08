@@ -300,7 +300,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.20.0</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.21.0</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -398,6 +398,7 @@
         <button class="nav-item" data-tab="activities"><span class="ni-ic">🏃</span><span class="ni-lb">Activities</span></button>
       </nav>
       <div class="navbar2">
+        <button data-tab="school" id="nav-school" style="display:none">🎓 School</button>
         <button data-tab="crime">🦹 Crime</button>
         <button data-tab="casino">🎰 Casino</button>
         <button data-tab="achievements">🏅 Awards</button>
@@ -445,7 +446,7 @@
     ],
     COUNTRIES: ["USA", "UK", "Canada", "Japan"],
     NAME_POOLS: { male: ["Liam", "Noah", "James"], female: ["Emma", "Olivia", "Mia"], nonbinary: ["Alex", "Sam", "Jordan"], surnames: ["Smith", "Lee", "Garcia", "Chen"] },
-    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." }, verified: { label: "Verified", icon: "🔵", desc: "Got verified on social media." }, influencer: { label: "Influencer", icon: "📱", desc: "Reached 1,000,000 followers." }, socialite: { label: "Socialite", icon: "🧑‍🤝‍🧑", desc: "Had 5+ friends at once." }, veteran: { label: "Veteran", icon: "🎖️", desc: "Served a military deployment." }, warHero: { label: "War Hero", icon: "🏅", desc: "Earned 3+ military medals." }, bigFamily: { label: "Big Family", icon: "👨‍👩‍👧‍👦", desc: "Raised 4+ children." }, tycoon: { label: "Tycoon", icon: "🏭", desc: "Grew a business to full staff." }, bestInShow: { label: "Best in Show", icon: "🏆", desc: "Won a pet show." }, shotCaller: { label: "Shot Caller", icon: "🪪", desc: "Earned respect behind bars." }, monarch: { label: "Monarch", icon: "👑", desc: "Ascended to a throne." }, tyrant: { label: "Tyrant", icon: "🗡️", desc: "Ruled with the people against you." } },
+    ACHIEVEMENTS: { martha: { label: "Martha", icon: "⚖️", desc: "Caught insider trading." }, centenarian: { label: "Centenarian", icon: "🎂", desc: "Lived to 100." }, scholar: { label: "Scholar", icon: "🎓", desc: "Graduated college." }, millionaire: { label: "Millionaire", icon: "💰", desc: "$1M net worth." }, rich: { label: "Rich", icon: "💵", desc: "$2.5M net worth." }, loaded: { label: "Loaded", icon: "🤑", desc: "$20M net worth." }, jailbird: { label: "Jailbird", icon: "🔒", desc: "Went to prison." }, thief: { label: "Thief", icon: "🧤", desc: "Pulled off 10+ crimes." }, wedded: { label: "Just Married", icon: "💍", desc: "Got married." }, parent: { label: "Parenthood", icon: "👶", desc: "Had a child." }, lottery: { label: "Jackpot", icon: "🎰", desc: "Won big gambling." }, petlover: { label: "Pet Lover", icon: "🐶", desc: "Adopted a pet." }, homeowner: { label: "Homeowner", icon: "🏠", desc: "Bought property." }, graduate2: { label: "Licensed", icon: "🚗", desc: "Got your license." }, famous: { label: "Famous", icon: "🌟", desc: "80+ fame." }, phd: { label: "PhD", icon: "🧪", desc: "Graduate degree." }, escapee: { label: "Escape Artist", icon: "🪜", desc: "Broke out of prison." }, catBurglar: { label: "Cat Burglar", icon: "🐾", desc: "Pulled off a live burglary." }, survivor: { label: "Survivor", icon: "🩺", desc: "Beat a serious illness." }, dynasty: { label: "Dynasty", icon: "👑", desc: "Continued as your heir." }, gearhead: { label: "Gearhead", icon: "🚗", desc: "Bought a vehicle." }, globetrotter: { label: "Globetrotter", icon: "✈️", desc: "Travelled the world." }, celebrity: { label: "Celebrity", icon: "🌟", desc: "Did a fame activity." }, politician: { label: "Politician", icon: "🗳️", desc: "Won political office." }, kingpin: { label: "Kingpin", icon: "👑", desc: "Became a gang boss." }, royalty: { label: "Royalty", icon: "👑", desc: "Born into a royal family." }, mogul: { label: "Mogul", icon: "🏢", desc: "Started a business." }, timeLord: { label: "Time Lord", icon: "⏪", desc: "Used the Time Machine." }, collector: { label: "Collector", icon: "💎", desc: "Bought a valuable." }, verified: { label: "Verified", icon: "🔵", desc: "Got verified on social media." }, influencer: { label: "Influencer", icon: "📱", desc: "Reached 1,000,000 followers." }, socialite: { label: "Socialite", icon: "🧑‍🤝‍🧑", desc: "Had 5+ friends at once." }, veteran: { label: "Veteran", icon: "🎖️", desc: "Served a military deployment." }, warHero: { label: "War Hero", icon: "🏅", desc: "Earned 3+ military medals." }, bigFamily: { label: "Big Family", icon: "👨‍👩‍👧‍👦", desc: "Raised 4+ children." }, tycoon: { label: "Tycoon", icon: "🏭", desc: "Grew a business to full staff." }, bestInShow: { label: "Best in Show", icon: "🏆", desc: "Won a pet show." }, shotCaller: { label: "Shot Caller", icon: "🪪", desc: "Earned respect behind bars." }, monarch: { label: "Monarch", icon: "👑", desc: "Ascended to a throne." }, tyrant: { label: "Tyrant", icon: "🗡️", desc: "Ruled with the people against you." }, honorRoll: { label: "Honor Roll", icon: "🏅", desc: "Graduated with 90%+ grades." }, classPres: { label: "Class President", icon: "🗳️", desc: "Won a class-president election." } },
     EVENTS: {
       baby: [{ id: "fw", weight: 5, minAge: 1, maxAge: 2, noChoice: true, text: "You said your first words!", effects: { happiness: 6, smarts: 2 } }],
       child: [{ id: "bully", weight: 7, minAge: 6, maxAge: 12, text: "A bully keeps shoving you at school.", choices: [{ label: "Ignore it", effects: { happiness: -6 } }, { label: "Tell a teacher", effects: { happiness: 2 }, outcome: { chance: 0.55, success: { happiness: 7 }, fail: { happiness: -5 } } }, { label: "Fight back", effects: {}, outcome: { chance: 0.45, success: { happiness: 9, health: -3 }, fail: { health: -12, happiness: -7 } } }] }],
@@ -591,6 +592,16 @@
     if (g.prison && g.prison.contraband == null) g.prison.contraband = 0;
     if (g.military && g.military.deployments == null) g.military.deployments = 0;
     if (g.military && g.military.medals == null) g.military.medals = 0;
+    // School depth (added after older saves): grades/popularity/groups on the
+    // character's education object, which is built inline (not via STATE_SCHEMA).
+    if (g.character && g.character.education) {
+      const ed = g.character.education;
+      if (ed.grades == null) ed.grades = 70;
+      if (ed.popularity == null) ed.popularity = 50;
+      if (!Array.isArray(ed.groups)) ed.groups = [];
+      if (ed.president == null) ed.president = false;
+      if (ed.dropped == null) ed.dropped = false;
+    }
     return g;
   }
 
@@ -619,7 +630,7 @@
       age: 0, lifeStage: "baby", alive: true, causeOfDeath: null,
       stats: { health: rngInt(70, 95), happiness: rngInt(65, 90), smarts: rngInt(30, 70), looks: rngInt(30, 80) },
       fame: 0, money: 0,
-      education: { level: "none", inSchool: false, degree: null, major: null },
+      education: { level: "none", inSchool: false, degree: null, major: null, grades: 70, popularity: 50, groups: [], president: false, dropped: false },
       job: null, appearanceHash: ""
     };
     game.relationships = [];
@@ -681,6 +692,11 @@
       if (typeof effects[k] === "number") st[k] = clampStat(st[k] + effects[k]);
     }
     if (typeof effects.fame === "number") c.fame = clampStat(c.fame + effects.fame);
+    // School stats (grades/popularity) live on education; clamp like any other 0..100 stat.
+    if ((typeof effects.grades === "number" || typeof effects.popularity === "number") && c.education) {
+      if (typeof effects.grades === "number") c.education.grades = clampStat((c.education.grades ?? 70) + effects.grades);
+      if (typeof effects.popularity === "number") c.education.popularity = clampStat((c.education.popularity ?? 50) + effects.popularity);
+    }
     if (typeof effects.money === "number") c.money = Math.round(c.money + effects.money);
     if (effects.random) { for (const [k, [lo, hi]] of Object.entries(effects.random)) { if (k in st) st[k] = clampStat(st[k] + rngInt(lo, hi)); } }
     if (effects.setFlag) Object.assign(game.flags, effects.setFlag);
@@ -791,25 +807,44 @@
     if (c.education.inSchool) st.smarts = clampStat(st.smarts + rngInt(0, 2));
   }
 
+  // Each grade level (and college) is a new social world — clubs/cliques and any
+  // class-president title don't carry across schools.
+  function resetSchoolSocial() { const ed = game.character.education; ed.groups = []; ed.president = false; }
+  // Yearly while enrolled: grades drift toward your smarts (study habits), popularity
+  // toward your looks, and every joined group applies its small per-year effect. Dropping
+  // out is handled in dropOut(); this only runs for kids still in school.
+  function tickSchool() {
+    const c = game.character, ed = c.education;
+    if (!ed.inSchool || ed.dropped) return;
+    // grades gravitate toward smarts; popularity toward looks — with a little noise.
+    ed.grades = clampStat((ed.grades ?? 70) + Math.round((c.stats.smarts - (ed.grades ?? 70)) * 0.12) + Math.round(gaussian() * 3));
+    ed.popularity = clampStat((ed.popularity ?? 50) + Math.round((c.stats.looks - (ed.popularity ?? 50)) * 0.08) + Math.round(gaussian() * 3));
+    for (const gid of (ed.groups || [])) { const g = SCHOOL_GROUPS.find(x => x.id === gid); if (g && g.perYear) applyEffects(g.perYear); }
+  }
+
   function advanceEducation() {
     const c = game.character, ed = c.education;
     if (c.age === 5) { ed.level = "elementary"; ed.inSchool = true; log("system", "You started school.", "firstDay"); }
-    else if (c.age === 11) { ed.level = "middle"; }
-    else if (c.age === 14) { ed.level = "high"; }
+    else if (c.age === 11 && ed.inSchool) { ed.level = "middle"; resetSchoolSocial(); }
+    else if (c.age === 14 && ed.inSchool) { ed.level = "high"; resetSchoolSocial(); }
     else if (c.age === 18 && ed.inSchool && ["high", "middle", "elementary"].includes(ed.level)) {
-      ed.level = "highGrad"; ed.inSchool = false;
-      log("event", "You graduated high school! 🎓", "graduation"); grantAchievement("scholar");
+      ed.level = "highGrad"; ed.inSchool = false; resetSchoolSocial();
+      log("event", `You graduated high school${(ed.grades ?? 70) >= 90 ? " with honors 🏅" : ""}! 🎓`, "graduation"); grantAchievement("scholar");
+      if ((ed.grades ?? 70) >= 90) grantAchievement("honorRoll");
     }
     // college handled via Activities (apply) and graduation tick
     if (ed.level === "college" && ed.inSchool) {
       ed._collegeYears = (ed._collegeYears || 0) + 1;
       if (ed._collegeYears >= 4) {
         ed.inSchool = false; ed.level = ed.degree && DATA.DEGREES.find(d => d.id === ed.degree && d.grad) ? "gradGrad" : "collegeGrad";
+        resetSchoolSocial();
         log("event", `You graduated college with a degree in ${(DATA.DEGREES.find(d => d.id === ed.degree) || {}).label || "your field"}! 🎓`, "graduation");
         grantAchievement("scholar");
+        if ((ed.grades ?? 70) >= 90) grantAchievement("honorRoll");
         if (DATA.DEGREES.find(d => d.id === ed.degree && d.grad)) grantAchievement("phd");
       }
     }
+    tickSchool();
   }
 
   // Optional per-event preconditions: an event may carry `"cond": "royal"` (or any
@@ -991,12 +1026,93 @@
   }
 
   function applyCollege(degreeId) {
-    const c = game.character;
-    if (c.education.level !== "highGrad") { showToast("Need to finish high school."); return; }
+    const c = game.character, ed = c.education;
+    if (ed.level !== "highGrad") { showToast("Need to finish high school."); return; }
     const deg = DATA.DEGREES.find(d => d.id === degreeId);
     if (c.stats.smarts < deg.minSmarts) { showToast(`Need ${deg.minSmarts} smarts for ${deg.label}.`); return; }
-    c.education.level = "college"; c.education.inSchool = true; c.education.degree = degreeId; c.education._collegeYears = 0;
+    ed.level = "college"; ed.inSchool = true; ed.degree = degreeId; ed._collegeYears = 0; ed.dropped = false;
+    resetSchoolSocial();    // new school, new clubs/cliques
     log("event", `You enrolled in college to study ${deg.label}.`);
+    // High-school honor students earn a merit scholarship toward tuition/living costs.
+    if ((ed.grades ?? 70) >= 85) { const award = rngInt(5000, 20000); c.money += award; applyEffects({ happiness: 4 }); log("event", `🎓 Your ${ed.grades}% grades earned a ${fmtMoney(award)} merit scholarship!`); }
+    closeModal(); autosave(); renderAll();
+  }
+
+  // ── School depth: clubs/cliques, class president, dropout, and per-year actions ──
+  function schoolStageRank() { return SCHOOL_STAGE_RANK[game.character.education.level] || 0; }
+  function groupEligible(g) {
+    const c = game.character, ed = c.education;
+    if (schoolStageRank() < g.minStage) return false;
+    const r = g.req || {};
+    if (r.grades != null && (ed.grades ?? 70) < r.grades) return false;
+    if (r.popularity != null && (ed.popularity ?? 50) < r.popularity) return false;
+    if (r.health != null && c.stats.health < r.health) return false;
+    if (r.smarts != null && c.stats.smarts < r.smarts) return false;
+    if (r.looks != null && c.stats.looks < r.looks) return false;
+    return true;
+  }
+  function joinSchoolGroup(id) {
+    if (!requireFree("join a school group")) return;
+    const ed = game.character.education;
+    if (!ed.inSchool) { showToast("You're not in school."); return; }
+    const g = SCHOOL_GROUPS.find(x => x.id === id); if (!g) return;
+    if ((ed.groups || []).includes(id)) { showToast("You're already in that group."); return; }
+    if (!groupEligible(g)) { showToast("You don't meet the requirements yet."); return; }
+    ed.groups = ed.groups || []; ed.groups.push(id);
+    applyEffects(g.perYear);   // an immediate taste of the perk on top of the yearly tick
+    log("event", `${g.emoji} You joined ${g.kind === "Clique" ? "" : "the "}${g.label}.`);
+    autosave(); renderAll(); openSchool();
+  }
+  function runForPresident() {
+    if (!requireFree("run for class president")) return;
+    const c = game.character, ed = c.education;
+    if (!ed.inSchool || schoolStageRank() < 3) { showToast("Only high-school & college students can run."); return; }
+    if (ed.president) { showToast("You're already class president."); return; }
+    if (!oncePerYear("classPres")) return;
+    const odds = 0.15 + (ed.popularity ?? 50) / 220 + (ed.grades ?? 70) / 400;
+    if (rngChance(odds)) {
+      ed.president = true; applyEffects({ popularity: 8, happiness: 8, smarts: 2 });
+      grantAchievement("classPres");
+      log("event", "🗳️ You won the race for class president!");
+    } else { applyEffects({ happiness: -4 }); log("event", "🗳️ You lost the class-president election."); }
+    autosave(); renderAll(); openSchool();
+  }
+  function studyHard() {
+    if (!requireFree("study")) return;
+    const ed = game.character.education;
+    if (!ed.inSchool) { showToast("You're not in school."); return; }
+    if (!oncePerYear("studyHard")) return;
+    applyEffects({ grades: rngInt(5, 10), smarts: rngInt(1, 3), happiness: -2 });
+    log("event", "📚 You hit the books hard this year.");
+    autosave(); renderAll(); openSchool();
+  }
+  function skipClass() {
+    if (!requireFree("skip class")) return;
+    const ed = game.character.education;
+    if (!ed.inSchool) { showToast("You're not in school."); return; }
+    if (!oncePerYear("skipClass")) return;
+    applyEffects({ grades: -rngInt(4, 9), popularity: rngInt(1, 4), happiness: rngInt(2, 5) });
+    log("event", "🚪 You ditched class with friends.");
+    autosave(); renderAll(); openSchool();
+  }
+  function schoolDance() {
+    if (!requireFree("go to the dance")) return;
+    const c = game.character, ed = c.education;
+    if (!ed.inSchool || schoolStageRank() < 3) { showToast("Dances are a high-school & college thing."); return; }
+    if (!requireMoney(40)) return;
+    if (!oncePerYear("schoolDance")) return;
+    c.money -= 40; applyEffects({ popularity: rngInt(3, 7), happiness: rngInt(4, 8), looks: 1 });
+    log("event", "💃 You went to the school dance.");
+    autosave(); renderAll(); openSchool();
+  }
+  function dropOut() {
+    if (!requireFree("drop out")) return;
+    const c = game.character, ed = c.education;
+    if (!ed.inSchool) { showToast("You're not in school."); return; }
+    if (c.age < 16) { showToast("You're too young to drop out."); return; }
+    ed.inSchool = false; ed.dropped = true; resetSchoolSocial();
+    applyEffects({ happiness: rngInt(2, 6), smarts: -rngInt(1, 4) });
+    log("event", "🚭 You dropped out of school.");
     closeModal(); autosave(); renderAll();
   }
 
@@ -1896,6 +2012,9 @@
     ["relationship bars stay 0..100", g => (g.relationships || []).every(r => Number.isFinite(r.bar) && r.bar >= 0 && r.bar <= 100)],
     ["dead character has a cause of death", g => g.character.alive || !!g.character.causeOfDeath],
     ["social followers are finite & ≥ 0", g => Object.values(g.social || {}).every(a => Number.isFinite(a.followers) && a.followers >= 0)],
+    ["school grades stay 0..100", g => { const v = g.character.education && g.character.education.grades; return v == null || (Number.isFinite(v) && v >= 0 && v <= 100); }],
+    ["school popularity stays 0..100", g => { const v = g.character.education && g.character.education.popularity; return v == null || (Number.isFinite(v) && v >= 0 && v <= 100); }],
+    ["no school groups unless enrolled", g => { const ed = g.character.education || {}; return !(ed.groups && ed.groups.length) || ed.inSchool; }],
     ["military counters finite & ≥ 0", g => !g.military || (Number.isFinite(g.military.deployments) && g.military.deployments >= 0 && Number.isFinite(g.military.medals) && g.military.medals >= 0)],
     ["children have finite, non-negative ages", g => (g.relationships || []).filter(r => r.relation === "child").every(r => Number.isFinite(r.age) && r.age >= 0)],
     ["business employees finite & ≥ 0", g => !g.business || (Number.isFinite(g.business.employees) && g.business.employees >= 0)],
@@ -1945,6 +2064,12 @@
     { fn: "socialPost", prison: "block", run: () => socialPost("tiktalk") },
     { fn: "socialVerify", prison: "block", run: () => socialVerify("tiktalk") },
     { fn: "socialSponsor", prison: "block", run: () => socialSponsor("tiktalk") },
+    { fn: "joinSchoolGroup", prison: "block", run: () => joinSchoolGroup("art") },
+    { fn: "runForPresident", prison: "block", run: () => runForPresident() },
+    { fn: "studyHard", prison: "block", run: () => studyHard() },
+    { fn: "skipClass", prison: "block", run: () => skipClass() },
+    { fn: "schoolDance", prison: "block", run: () => schoolDance() },
+    { fn: "dropOut", prison: "block", run: () => dropOut() },
     { fn: "makeFriend", prison: "block", run: () => makeFriend() },
     { fn: "deploy", prison: "block", run: () => deploy() },
     { fn: "adoptChild", prison: "block", run: () => adoptChild() },
@@ -3088,6 +3213,8 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     if (c.fame > 0) { const row = document.createElement("div"); row.className = "bar-row"; row.innerHTML = `<span class="lbl">🌟</span><span class="bname">Fame</span><div class="bar-track"><div class="bar-fill" style="width:${c.fame}%;background:var(--accent)"></div></div><span class="bval">${c.fame}%</span>`; bars.appendChild(row); }
     const rib = $("h-ribbons"); rib.innerHTML = "";
     for (const id of game.achievements) { const a = DATA.ACHIEVEMENTS[id]; if (a) { const s = document.createElement("span"); s.className = "ribbon"; s.textContent = `${a.icon || "🏅"} ${a.label}`; rib.appendChild(s); } }
+    // School tab is only relevant while enrolled — surface it then, hide it otherwise.
+    const ns = $("nav-school"); if (ns) ns.style.display = (c.education && c.education.inSchool) ? "" : "none";
   }
 
   function renderEntry(e) {
@@ -3223,6 +3350,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
 
   function openModal(tab) {
     if (tab === "menu") return openMenuModal();
+    if (tab === "school") return openSchool();
     if (tab === "activities") return openActivities();
     if (tab === "careers") return openCareers();
     if (tab === "crime") return openCrime();
@@ -3237,6 +3365,51 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     for (const [k, v] of Object.entries(act.effects || {})) parts.push(`${k} ${v > 0 ? "+" : ""}${v}`);
     if (act.cost) parts.unshift(fmtMoney(-act.cost));
     return parts.join(", ");
+  }
+
+  function schoolLevelLabel() {
+    const m = { elementary: "Elementary School", middle: "Middle School", high: "High School", college: "College" };
+    return m[game.character.education.level] || "School";
+  }
+  function openSchool() {
+    if (!requireFree("go to school")) return;
+    const c = game.character, ed = c.education;
+    if (!ed.inSchool) { modalShell("🎓 School", `<div class="hint" style="color:var(--text-muted)">You're not enrolled in school right now.${ed.level === "highGrad" ? " You can enroll in college from the Activities tab." : ""}</div>`); return; }
+    const did = (k) => !!(game.yearActions && game.yearActions[k]);
+    modalShell("🎓 School", `<div class="sub-h">${schoolLevelLabel()} · age ${c.age}${ed.president ? " · 🗳️ Class President" : ""}</div>
+      <div class="bars" id="school-bars" style="margin:4px 0 8px"></div><div id="school-body"></div>`);
+    // grade + popularity bars (reuse the header bar styling)
+    const bars = $("school-bars");
+    for (const [k, icon, label, color] of [["grades", "📊", "Grades", "var(--smarts)"], ["popularity", "🫶", "Popularity", "var(--looks)"]]) {
+      const v = ed[k] ?? (k === "grades" ? 70 : 50);
+      const row = document.createElement("div"); row.className = "bar-row";
+      row.innerHTML = `<span class="lbl">${icon}</span><span class="bname">${label}</span><div class="bar-track"><div class="bar-fill" style="width:${v}%;background:${color}"></div></div><span class="bval">${v}%</span>`;
+      bars.appendChild(row);
+    }
+    const wrap = $("school-body");
+    // Per-year actions
+    const ah = document.createElement("div"); ah.className = "sub-h"; ah.textContent = "This Year"; wrap.appendChild(ah);
+    wrap.appendChild(optRow("📚 Study hard", did("studyHard") ? "already studied this year" : "boost your grades & smarts", "Study", studyHard, did("studyHard")));
+    wrap.appendChild(optRow("🚪 Skip class", did("skipClass") ? "already skipped this year" : "fun & cred, but grades drop", "Skip", skipClass, did("skipClass")));
+    if (schoolStageRank() >= 3) {
+      wrap.appendChild(optRow("💃 School dance", did("schoolDance") ? "already went this year" : `${fmtMoney(40)} · popularity & happiness`, "Go", schoolDance, did("schoolDance") || c.money < 40));
+      wrap.appendChild(optRow("🗳️ Run for class president", ed.president ? "you're already president" : (did("classPres") ? "already ran this year" : "popularity helps you win"), "Run", runForPresident, ed.president || did("classPres")));
+    }
+    // Joinable groups, by kind
+    for (const [kind, title] of [["Club", "Clubs"], ["Team", "Sports Teams"], ["Clique", "Cliques"]]) {
+      const groups = SCHOOL_GROUPS.filter(g => g.kind === kind && schoolStageRank() >= g.minStage);
+      if (!groups.length) continue;
+      const h = document.createElement("div"); h.className = "sub-h"; h.textContent = title; wrap.appendChild(h);
+      for (const g of groups) {
+        const joined = (ed.groups || []).includes(g.id);
+        const elig = groupEligible(g);
+        const perks = Object.entries(g.perYear).map(([k, v]) => `${k} ${v > 0 ? "+" : ""}${v}`).join(", ");
+        const reqTxt = Object.entries(g.req || {}).map(([k, v]) => `needs ${k} ${v}`).join(" · ");
+        wrap.appendChild(optRow(`${g.emoji} ${g.label}`, joined ? `member · ${perks}/yr` : (reqTxt || perks), joined ? "Joined" : "Join", () => joinSchoolGroup(g.id), joined || !elig));
+      }
+    }
+    // Drop out
+    if (c.age >= 16) { const dh = document.createElement("div"); dh.className = "sub-h"; dh.textContent = "Danger Zone"; wrap.appendChild(dh); wrap.appendChild(optRow("🚭 Drop out of school", "quit for good — hurts your future", "Drop out", dropOut, false)); }
   }
 
   function openActivities() {
@@ -3802,6 +3975,33 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
     { id: "church", label: "⛪ Attend a religious service", cost: 0, minAge: 5, eff: { happiness: 4, health: 1 } }
   ];
 
+  // School clubs / sports teams / cliques you can join while enrolled. `minStage` is the
+  // earliest school stage (1 elementary · 2 middle · 3 high · 4 college). `req` gates entry
+  // on your current school/character stats; `perYear` is a small clamped effect applied by
+  // tickSchool() every year you stay in the group. Joining is a one-time choice per school
+  // (groups reset when you change schools via resetSchoolSocial()).
+  const SCHOOL_GROUPS = [
+    // ── Clubs ──
+    { id: "art",       label: "Art Club",          kind: "Club",   emoji: "🎨", minStage: 2, req: {}, perYear: { happiness: 2, looks: 1 } },
+    { id: "anime",     label: "Anime Club",        kind: "Club",   emoji: "🍙", minStage: 2, req: {}, perYear: { happiness: 2, smarts: 1 } },
+    { id: "chess",     label: "Chess Club",        kind: "Club",   emoji: "♟️", minStage: 2, req: { grades: 55 }, perYear: { smarts: 2, popularity: -1 } },
+    { id: "science",   label: "Science Club",      kind: "Club",   emoji: "🔬", minStage: 2, req: { grades: 70 }, perYear: { smarts: 3, popularity: -1 } },
+    { id: "debate",    label: "Debate Team",       kind: "Club",   emoji: "🎙️", minStage: 3, req: { grades: 65, smarts: 60 }, perYear: { smarts: 2, popularity: 1 } },
+    { id: "drama",     label: "Drama Club",        kind: "Club",   emoji: "🎭", minStage: 2, req: { popularity: 40 }, perYear: { happiness: 2, looks: 1, popularity: 1 } },
+    { id: "band",      label: "Marching Band",     kind: "Club",   emoji: "🎺", minStage: 2, req: {}, perYear: { happiness: 2, smarts: 1 } },
+    // ── Sports teams ──
+    { id: "soccer",    label: "Soccer Team",       kind: "Team",   emoji: "⚽", minStage: 2, req: { health: 50 }, perYear: { health: 3, popularity: 2 } },
+    { id: "basketball",label: "Basketball Team",   kind: "Team",   emoji: "🏀", minStage: 2, req: { health: 55 }, perYear: { health: 3, popularity: 2 } },
+    { id: "track",     label: "Track & Field",     kind: "Team",   emoji: "🏃", minStage: 2, req: { health: 50 }, perYear: { health: 2, looks: 1, popularity: 1 } },
+    { id: "football",  label: "Football Team",     kind: "Team",   emoji: "🏈", minStage: 3, req: { health: 60, popularity: 45 }, perYear: { health: 3, popularity: 4 } },
+    // ── Cliques ──
+    { id: "jocks",     label: "the Jocks",         kind: "Clique", emoji: "🏅", minStage: 3, req: { popularity: 55, health: 55 }, perYear: { popularity: 2, happiness: 1 } },
+    { id: "nerds",     label: "the Nerds",         kind: "Clique", emoji: "🤓", minStage: 3, req: { grades: 65 }, perYear: { smarts: 2, popularity: -1 } },
+    { id: "populars",  label: "the Popular Kids",  kind: "Clique", emoji: "😎", minStage: 3, req: { popularity: 65, looks: 55 }, perYear: { popularity: 3, happiness: 1 } },
+    { id: "goths",     label: "the Goths",         kind: "Clique", emoji: "🖤", minStage: 3, req: {}, perYear: { happiness: 1, popularity: 1 } }
+  ];
+  const SCHOOL_STAGE_RANK = { none: 0, elementary: 1, middle: 2, high: 3, highGrad: 3, college: 4, collegeGrad: 4, gradGrad: 4 };
+
   // Gate repeatable money-positive actions to once per year (menus don't consume
   // the turn, so an ungated +EV action would be an infinite faucet within a year).
   function oncePerYear(key) {
@@ -4270,7 +4470,7 @@ Rules: effects are DELTAS only (never set absolute values). Keep each stat delta
       birthYear: game.market.year - (heir.age || 0), birthMonth: rngInt(1, 12), birthDay: rngInt(1, 28), zodiac: dead.zodiac, talent: null,
       age: heir.age || 0, lifeStage: lifeStageFor(heir.age || 0), alive: true, causeOfDeath: null,
       stats: { health: rngInt(70, 95), happiness: rngInt(60, 85), smarts: rngInt(35, 75), looks: rngInt(35, 85) },
-      fame: 0, money: share, education: { level: "none", inSchool: false, degree: null, major: null }, job: null, appearanceHash: ""
+      fame: 0, money: share, education: { level: "none", inSchool: false, degree: null, major: null, grades: 70, popularity: 50, groups: [], president: false, dropped: false }, job: null, appearanceHash: ""
     };
     // fresh slate (inheritance is the cash share); clear orphaned holdings/relations
     // AND every per-life subsystem so the heir doesn't inherit the parent's business,
