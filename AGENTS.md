@@ -447,7 +447,7 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 
 # Status, content counts & roadmap
 
-## Concrete content counts (v0.20.0)
+## Concrete content counts (v0.21.0)
 
 > **v0.16.0** — engine foundation (canonical `STATE_SCHEMA` + `ensureState()` at every load chokepoint,
 > `tickDepth()` split into ordered single-concern sub-ticks, headless `tests/headless.mjs` in `check.sh`).
@@ -459,13 +459,21 @@ a quick Monte Carlo for money mechanics, and do an **offline smoke test** (DevTo
 > dynastic succession in `continueAsHeir`; `game.throne` state, `tickRoyalty` yearly hook (+2 ribbons).
 > **v0.20.0** — **content volume**: events 85 → **155** (≈ doubled per stage), with optional `cond`
 > gating (`EVENT_CONDS`) so royal-court, family, business and military beats fire only when relevant.
+> **v0.21.0** — **school depth**: two new `education` stats **grades** & **popularity** (clamped via
+> `applyEffects`), a `SCHOOL_GROUPS` table of joinable **clubs / sports teams / cliques** (per-stage,
+> requirement-gated), a `tickSchool()` yearly drift inside `advanceEducation`, per-year actions
+> (study / skip class / school dance / run for class president), **dropout**, **merit scholarships** on
+> college enrolment, and an `openSchool()` modal reached from the **Occupation** nav slot — which (like the
+> original) shows 🎓 School while enrolled and 💼 Career otherwise (`nav-occupation`, toggled in
+> `renderHeader`), cross-linked with `openCareers` so a student can still take a job (+2 ribbons: honorRoll, classPres).
 
 
 - Events: **155** — baby 16, child 24, teen 25, youngAdult 25, adult 24, middleAge 21, senior 20
 - Activities: **41** — mindBody 13, doctor 7, education 3, crime 11, casino 7
 - Careers: **43** (incl. military Army/Navy/Air Force, trades, journalist, scientist, fame paths) · Degrees: **12**
 - Market assets: **9** (4 stock / 3 crypto / 2 bond) · Real estate: **4** · Insider tips: **4**
-- Ribbons/achievements: **40** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
+- Ribbons/achievements: **42** · Countries: **30** · Mini-games: **3** (prison escape, street fight, burglary)
+- School groups: **15** joinable clubs/sports/cliques (`SCHOOL_GROUPS`) + grades & popularity stats
 - Beyond the v0.9 depth update: **social media** (5 platforms — followers/verified/sponsorships/podcasts,
   v0.10.0) and **friends / coworkers / enemies** (make friends, befriend, prank, block, reconcile, v0.11.0).
 
