@@ -166,6 +166,13 @@ do?" list all pick it up, no duplication. Mini-games are excluded (they need liv
 opens their screen instead. Determinism holds: the LLM only *chooses* the action; the action is the
 existing seeded fn (and the LLM stays off in tests).
 
+The **no-AI keyword router** (`keywordResolve`) is deliberately **misfire-averse**: it matches curated
+trigger phrases (`INTENT_ALIASES`) and full example phrases with a score threshold, so an unclear
+command **misses safely** (asks for the menu/help) rather than firing the WRONG action. `NL_HINTS` maps
+synonyms ("work out"→gym). A headless coverage test asserts ~30 common phrasings route correctly, with
+regression guards for ones that once mis-fired. **When you add an action, add its phrasings to
+`INTENT_ALIASES`** so it works without the AI too.
+
 > The top of the `<script>` has a **SYSTEMS INDEX** banner summarizing all of the above per system
 > (state · tick · actions · truths · numbers) plus the section map — read it first. End action
 > handlers with `commit({close})` (persist + repaint) instead of hand-rolling `autosave(); renderAll()`.
