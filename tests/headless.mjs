@@ -139,6 +139,22 @@ dispatchAction("interact", { target: "Mum Test", action: "propose" });
 ok(!mum.flags.married, "cannot marry a blood relative via NL");
 ok(game.log.slice(lb).some(e => /🚫/.test(e.text)), "blocked incest NL action gives a visible feed reason");
 checkInvariants("post-feedback", ok);
+// no-AI relationship/pet targeting: verb + target ("mom", "my wife", "the dog", species)
+// resolve deterministically so common commands work instantly without the LLM.
+createNewLife({ first: "Tgt", last: "Test", seed: "8801" });
+game.character.age = 30; game.character.lifeStage = lifeStageFor(30);
+addRelationship({ relation: "mother", name: "Ava T", gender: "female", age: 60, bar: 70 });
+const _w = addRelationship({ relation: "spouse", name: "Mia T", gender: "female", age: 29, bar: 80 }); _w.flags.married = true;
+addRelationship({ relation: "pet", name: "🐹 Olivia", gender: "female", age: 1, bar: 80, training: 50, species: "hamster" });
+addRelationship({ relation: "pet", name: "🐹 Henry", gender: "male", age: 1, bar: 80, training: 50, species: "hamster" });
+const _pi = (s) => { const x = parseInteract(s); return x ? x.action : null; };
+ok(_pi("give mom a gift") === "gift", "no-AI: 'give mom a gift' → gift");
+ok(_pi("give my wife money") === "giveMoney", "no-AI: 'give my wife money' → giveMoney");
+ok(_pi("divorce my wife") === "divorce", "no-AI: 'divorce my wife' → divorce");
+ok(_pi("breed the hamsters") === "petBreed", "no-AI: 'breed the hamsters' → petBreed");
+ok(_pi("walk the dog") === "petWalk", "no-AI: 'walk the dog' → petWalk");
+ok(_pi("buy some groceries") === null, "no-AI: non-relationship text → no false interact");
+const _mom = resolveRelTarget("compliment mom"); ok(!!_mom && game.relationships.find(r => r.id === _mom).relation === "mother", "resolveRelTarget 'mom' → the mother");
 // death-cause attribution: a sick CHILD must never "die of old age" (live bug: age 6).
 createNewLife({ first: "Sick", last: "Child", seed: "6006" });
 game.character.age = 6; game.character.lifeStage = lifeStageFor(6); game.character.stats.health = 70;

@@ -179,7 +179,11 @@ existing seeded fn (and the LLM stays off in tests).
 The **no-AI keyword router** (`keywordResolve`) is deliberately **misfire-averse**: it matches curated
 trigger phrases (`INTENT_ALIASES`) and full example phrases with a score threshold, so an unclear
 command **misses safely** (asks for the menu/help) rather than firing the WRONG action. `NL_HINTS` maps
-synonyms ("work out"→gym). A headless coverage test asserts ~30 common phrasings route correctly, with
+synonyms ("work out"→gym), and **`resolveRelTarget` + `parseInteract`** resolve relationship/pet commands
+deterministically — a target ("mom", "my wife", "the dog", a name, a species) + an `INTERACT_VERBS` verb —
+so "give mom a gift", "divorce my wife", "breed the hamsters" work **instantly without the LLM** (which is
+slow on-device; the keyword router handles most cases, the LLM is the fallback for novel/creative input).
+A headless coverage test asserts ~30 common phrasings + the relationship/pet targeting route correctly, with
 regression guards for ones that once mis-fired. **When you add an action, add its phrasings to
 `INTENT_ALIASES`** so it works without the AI too.
 
