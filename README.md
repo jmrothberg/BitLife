@@ -35,10 +35,13 @@ turn-based life simulation (be born, **Age Up**, random life events with choices
 crime → prison, casino, relationships, investing, achievements/ribbons) as faithfully as practical.
 It adds **two things the original doesn't have**, both running **locally in your browser**:
 
-1. **Talk to your life — interact with and get more information from a local LLM.** Type any
-   free-form action ("start a food truck", "run for office") and a small in-browser model (Gemma)
-   interprets it into bounded, safe game effects. An optional **AI narrator** also comments on your
-   life as you age, and a built-in **Hint/Help** lets you ask the game how anything works.
+1. **Talk to your life — do almost anything by typing.** The action box reaches nearly every button:
+   "buy any coin under $1,000", "apply for a doctor job", "marry Alex", "take a $20k loan" all run the
+   real action (through the same guards, with a confirm on destructive ones). Anything that isn't a
+   button ("busk on the subway") becomes bounded, safe stat/money effects via a small in-browser model
+   (Gemma). With AI off, keyword matching still routes common commands. Type **"what can I do"** for the
+   full, always-up-to-date list. An optional **AI narrator** comments as you age, and **Hint/Help**
+   explains anything.
 2. **Art that's both pre-made and freshly generated.** A local Stable Diffusion model paints your
    character avatar and life-event scenes. Common scenes ship **pre-baked for instant display**, and
    anything new is **generated on the fly** and cached — so art is always either instant or arriving.
@@ -48,7 +51,7 @@ It adds **two things the original doesn't have**, both running **locally in your
 A living scorecard of how close this build is to the real game. ✅ solid · 🟡 partial/shallow ·
 ❌ missing · ➕ beyond the original. Full detail in **[AGENTS.md](./AGENTS.md)**.
 
-Full system-by-system table (v0.23.0). Counts + the gap-closure roadmap live in **[AGENTS.md](./AGENTS.md)** (the contributor/LLM guide).
+Full system-by-system table (v0.24.0). Counts + the gap-closure roadmap live in **[AGENTS.md](./AGENTS.md)** (the contributor/LLM guide).
 
 | System | Real BitLife | This game | Status |
 |---|---|---|---|
@@ -212,5 +215,5 @@ clamped (`sanitizeLlmEffects` → `applyEffects` → 0–100), so the AI flavors
 the game. A parse failure just shows narration; gameplay never blocks on the model.
 
 ---
-*v0.23.0 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
+*v0.24.0 — Jonathan Rothberg, 2026. An homage to BitLife by Candywriter, LLC; not affiliated with or
 endorsed by Candywriter. All AI (LLM + image) runs locally in your browser.*
