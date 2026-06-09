@@ -167,7 +167,12 @@ refused *before* any confirm with a feed reason, and a guard that blocks inside 
 does nothing (the "kill mom at age 4 → nothing happened" bug). Give a gated action a `minAge`, and have
 refusals call `requireFree/Age/Money/oncePerYear` (or `interact`'s `bail()`), and feedback is automatic.
 **To expose a new action to typing + help: add ONE catalog entry** — button, AI, keyword router, and the
-`openGuide` "What can I do?" list all pick it up, no duplication. Mini-games are excluded (they need live input); `MENU_INTENTS`
+`openGuide` "What can I do?" list all pick it up, no duplication. **`auditCatalog` enforces COMPLETENESS**:
+every `PLAYER_ACTIONS` fn must appear in `ACTION_CATALOG`, and every `INTENT_ALIASES` id must be a real
+entry — so the typed/LLM map can't drift behind the action registry (add an action without mapping it ⇒
+CI fails). `interact`'s sub-actions (incl. pet walk/train/vet/breed/show) are the single `INTERACT_ACTIONS`
+list; prison-only actions carry `prison: true` (offered only while jailed); `interact` is `always: true`
+(visitation works in prison); age gates use `minAge`. Mini-games are excluded (they need live input); `MENU_INTENTS`
 opens their screen instead. Determinism holds: the LLM only *chooses* the action; the action is the
 existing seeded fn (and the LLM stays off in tests).
 

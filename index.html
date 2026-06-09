@@ -300,7 +300,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.25.1</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.26.0</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -2347,6 +2347,16 @@
         if (p.type !== "int") ok(Array.isArray(paramValues(p, {})), "catalog " + e.id + "." + p.name + " resolves to an array");
       }
     }
+    // ── COMPLETENESS (the maintainability guarantee): every direct player action in
+    //    PLAYER_ACTIONS must be exposed via the catalog, so the typed/LLM + keyword map
+    //    can't drift behind the action registry. Add an action ⇒ add a catalog entry,
+    //    or this fails. interact's sub-actions are the single INTERACT_ACTIONS list.
+    const catIds = new Set(ACTION_CATALOG.map(e => e.id));
+    const catFns = new Set(ACTION_CATALOG.map(e => e.fn));
+    for (const a of PLAYER_ACTIONS) ok(catFns.has(a.fn), "PLAYER_ACTIONS fn '" + a.fn + "' is mapped in ACTION_CATALOG (add a catalog entry)");
+    const ie = ACTION_CATALOG.find(e => e.id === "interact");
+    ok(!!ie && ie.params.some(p => p.values === INTERACT_ACTIONS), "interact's catalog enum is the single INTERACT_ACTIONS source");
+    for (const id of Object.keys(INTENT_ALIASES)) ok(catIds.has(id), "INTENT_ALIASES id '" + id + "' has a catalog entry");
   }
 
   // (2) PLAYER_ACTIONS — every direct player action, with a sample invocation and
@@ -2418,6 +2428,10 @@
   // fn; the fn's own guards (requireFree/requireMoney/oncePerYear) still enforce safety.
   // ════════════════════════════════════════════════════════════════════════════
   const livingRels = () => (game.relationships || []).filter(r => r.alive);
+  // Every action the `interact(rid, action)` switch handles — the single source of truth
+  // for the catalog's interact enum AND the completeness test (so a new interact case
+  // can't be added without exposing it to typed/LLM play).
+  const INTERACT_ACTIONS = ["compliment", "conversation", "spendTime", "gift", "giveMoney", "vacation", "date", "propose", "proposePrenup", "moveIn", "haveBaby", "cheat", "breakUp", "divorce", "argue", "insult", "askMoney", "befriend", "reconcile", "prank", "block", "petWalk", "petTrain", "petVet", "petBreed", "petShow"];
   const _ids = (arr) => (arr || []).map(x => (typeof x === "string" ? x : x.id));
   const ACTION_CATALOG = [
     // ── Core ──
@@ -2499,11 +2513,11 @@
     { id: "visitProstitute", fn: "visitProstitute", minAge: 18, category: "Crime", confirm: true, desc: "Visit a prostitute (18+, risky).",
       params: [], examples: ["visit a prostitute", "hire an escort"], call: () => visitProstitute() },
     // ── Relationships & family ──
-    { id: "interact", fn: "interact", category: "Relationships", menu: "relationships",
-      desc: "Interact with someone: compliment, gift, give money, spend time, date, propose, have a baby, argue, divorce, break up…",
+    { id: "interact", fn: "interact", category: "Relationships", menu: "relationships", always: true,
+      desc: "Interact with a person OR pet: compliment, gift, give money, spend time, date, propose, have a baby, argue, divorce, break up; for pets walk/train/vet/breed/show.",
       params: [ { name: "target", type: "rel", resolve: () => livingRels() },
-                { name: "action", type: "enum", values: ["compliment", "conversation", "spendTime", "gift", "giveMoney", "vacation", "date", "propose", "proposePrenup", "moveIn", "haveBaby", "cheat", "breakUp", "divorce", "argue", "insult", "askMoney", "befriend", "reconcile", "prank"] } ],
-      examples: ["give Mom a gift", "ask Alex on a date", "propose to Sam", "have a baby with my wife", "divorce my husband"],
+                { name: "action", type: "enum", values: INTERACT_ACTIONS } ],
+      examples: ["give Mom a gift", "ask Alex on a date", "propose to Sam", "have a baby with my wife", "divorce my husband", "walk the dog", "breed the hamsters", "take my cat to the vet"],
       confirm: (a) => ["divorce", "breakUp", "cheat"].includes(a.action),
       call: (a) => interact(a.target, a.action) },
     { id: "makeFriend", fn: "makeFriend", category: "Relationships", desc: "Meet someone new and make a friend.",
@@ -2548,6 +2562,42 @@
       examples: ["throw a festival", "raise taxes", "declare war"], call: (a) => royalDecree(a.kind) },
     { id: "abdicate", fn: "abdicate", category: "Royalty", confirm: true, desc: "Abdicate the throne.",
       params: [], examples: ["abdicate the throne"], call: () => abdicate() },
+    { id: "nameThroneHeir", fn: "nameThroneHeir", category: "Royalty", desc: "Name an heir to your throne.",
+      params: [], examples: ["name an heir", "name my heir"], call: () => nameThroneHeir() },
+    // ── Career (while employed) ──
+    { id: "workHarder", fn: "workHarder", category: "Career", desc: "Work harder this year to raise job performance.",
+      params: [], examples: ["work harder", "put in overtime", "work hard at my job"], call: () => workHarder() },
+    { id: "askPromotion", fn: "askPromotion", category: "Career", desc: "Ask your boss for a promotion / raise.",
+      params: [], examples: ["ask for a promotion", "ask for a raise"], call: () => askPromotion() },
+    { id: "quitJob", fn: "quitJob", category: "Career", confirm: true, desc: "Quit your current job.",
+      params: [], examples: ["quit my job", "resign from my job"], call: () => quitJob() },
+    // ── Business & debt ──
+    { id: "fireEmployee", fn: "fireEmployee", category: "Money", desc: "Lay off a business employee.",
+      params: [], examples: ["fire an employee", "lay someone off"], call: () => fireEmployee() },
+    { id: "sellBusiness", fn: "sellBusiness", category: "Money", confirm: true, desc: "Sell your business.",
+      params: [], examples: ["sell my business", "sell the company"], call: () => sellBusiness() },
+    { id: "repayLoan", fn: "repayLoan", minAge: 18, category: "Money", menu: "assets", desc: "Repay your bank loan.",
+      params: [], examples: ["repay my loan", "pay off my loan", "pay back the bank"], call: () => repayLoan() },
+    { id: "hireLawyer", fn: "hireLawyer", minAge: 18, category: "Crime", desc: "Put a lawyer on retainer ($8,000 — halves your next sentence).",
+      params: [], examples: ["hire a lawyer", "get a lawyer", "lawyer up"], call: () => hireLawyer() },
+    // ── Social media (need an account) ──
+    { id: "socialVerify", fn: "socialVerify", category: "Fame", desc: "Get verified on a social platform.",
+      params: [ { name: "id", type: "enum", resolve: () => SOCIAL_PLATFORMS } ],
+      examples: ["get verified on TikTalk", "verify my account"], call: (a) => socialVerify(a.id) },
+    { id: "socialSponsor", fn: "socialSponsor", category: "Fame", desc: "Cash in a sponsorship deal on a platform.",
+      params: [ { name: "id", type: "enum", resolve: () => SOCIAL_PLATFORMS } ],
+      examples: ["do a sponsorship on TikTalk", "cash in a brand deal"], call: (a) => socialSponsor(a.id) },
+    // ── Prison (available ONLY while incarcerated) ──
+    { id: "requestParole", fn: "requestParole", prison: true, category: "Prison", desc: "Ask the parole board for early release.",
+      params: [], examples: ["request parole", "ask for parole"], call: () => requestParole() },
+    { id: "appealConviction", fn: "appealConviction", prison: true, category: "Prison", desc: "Appeal your conviction ($15,000).",
+      params: [], examples: ["appeal my conviction", "appeal my sentence"], call: () => appealConviction() },
+    { id: "prisonJob", fn: "prisonJob", prison: true, category: "Prison", desc: "Work a prison job for a little money.",
+      params: [], examples: ["work a prison job", "get a job in prison"], call: () => prisonJob() },
+    { id: "prisonContraband", fn: "prisonContraband", prison: true, category: "Prison", confirm: true, desc: "Smuggle contraband for cash & respect (risky).",
+      params: [], examples: ["trade contraband", "smuggle contraband"], call: () => prisonContraband() },
+    { id: "joinPrisonGang", fn: "joinPrisonGang", prison: true, category: "Prison", confirm: true, desc: "Join a prison crew for respect.",
+      params: [], examples: ["join a prison gang", "join a prison crew"], call: () => joinPrisonGang() },
   ];
   // Mini-games & menus the NL layer should OPEN rather than auto-play (live input).
   const MENU_INTENTS = [
@@ -2680,7 +2730,7 @@
     gangJob: ["gang job", "job for the gang"],
     hireHitman: ["hire a hitman", "hitman", "hit man", "put a hit", "assassinate", "have someone killed"],
     visitProstitute: ["prostitute", "an escort", "hooker", "red light", "pay for sex"],
-    interact: ["marry", "get married", "propose to", "have a baby", "have a kid", "have a child", "divorce", "break up with", "go on a date with", "give a gift", "give money to", "compliment", "spend time with", "cheat on"],
+    interact: ["marry", "get married", "propose to", "have a baby", "have a kid", "have a child", "divorce", "break up with", "go on a date with", "give a gift", "give money to", "compliment", "spend time with", "cheat on", "walk the", "breed the", "breed my", "train my pet", "take to the vet", "pet show", "feed the"],
     makeFriend: ["make a friend", "make friends", "new friend", "meet a friend"],
     adoptChild: ["adopt a child", "adopt a baby", "adopt a kid"],
     doIVF: ["ivf", "fertility treatment", "in vitro"],
@@ -2694,6 +2744,21 @@
     royalDuties: ["royal duties", "perform duties"],
     royalDecree: ["royal decree", "throw a festival", "hold a festival", "raise taxes", "lower taxes", "cut taxes", "declare war"],
     abdicate: ["abdicate", "give up the throne", "step down as king", "step down as queen"],
+    nameThroneHeir: ["name an heir", "name my heir", "name a heir", "choose an heir"],
+    workHarder: ["work harder", "work hard", "put in overtime", "do overtime"],
+    askPromotion: ["promotion", "ask for a raise", "ask for a promotion", "get promoted", "ask for more money at work"],
+    quitJob: ["quit my job", "quit job", "resign", "leave my job"],
+    fireEmployee: ["fire an employee", "lay off", "lay someone off", "fire a worker"],
+    sellBusiness: ["sell my business", "sell the business", "sell the company"],
+    repayLoan: ["repay my loan", "pay off my loan", "pay back the bank", "pay off the loan", "repay the loan"],
+    hireLawyer: ["hire a lawyer", "get a lawyer", "lawyer up"],
+    socialVerify: ["get verified", "verify my account", "get the blue check"],
+    socialSponsor: ["sponsorship", "brand deal", "sponsor deal", "cash in followers"],
+    requestParole: ["parole", "request parole", "ask for parole"],
+    appealConviction: ["appeal my conviction", "appeal my sentence", "appeal the conviction"],
+    prisonJob: ["prison job", "work in prison", "job in prison"],
+    prisonContraband: ["contraband", "smuggle"],
+    joinPrisonGang: ["prison gang", "prison crew", "join a crew inside"],
   };
   const _STOP = new Set("a an the to of for on in at it is i you me my do go get some this that with and".split(" "));
   const _norm = (s) => " " + String(s).toLowerCase().replace(/[^a-z0-9$ ]/g, " ").replace(/\s+/g, " ").trim() + " ";
@@ -3410,8 +3475,24 @@
     schoolDance: () => !!(game.character.education && game.character.education.inSchool),
     runForPresident: () => !!(game.character.education && game.character.education.inSchool),
     dropOut: () => !!(game.character.education && game.character.education.inSchool),
+    workHarder: () => !!game.character.job,
+    askPromotion: () => !!game.character.job,
+    quitJob: () => !!game.character.job,
+    fireEmployee: () => !!currentBusiness() && (currentBusiness().employees || 0) > 0,
+    sellBusiness: () => !!currentBusiness(),
+    repayLoan: () => (game.loanBalance || 0) > 0,
+    hireLawyer: () => !game.flags.lawyer,
+    socialVerify: () => Object.keys(game.social || {}).length > 0,
+    socialSponsor: () => Object.keys(game.social || {}).length > 0,
+    nameThroneHeir: () => !!(game.throne && game.throne.monarch),
   };
-  function catalogAvailable(e) { if (jailed()) return false; if (e.minAge && game.character.age < e.minAge) return false; const f = _avail[e.id]; return f ? !!f() : true; }
+  function catalogAvailable(e) {
+    if (e.always) return true;                 // always offerable (e.g. interact: visitation works in prison)
+    if (jailed()) return !!e.prison;           // in prison → only prison actions
+    if (e.prison) return false;                // out of prison → prison actions hidden
+    if (e.minAge && game.character.age < e.minAge) return false;
+    const f = _avail[e.id]; return f ? !!f() : true;
+  }
   // Plain-English reason an action isn't available right now (shown in the feed BEFORE
   // we'd ever ask the player to confirm a destructive one).
   function unavailableReason(e) {
