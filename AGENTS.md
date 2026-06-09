@@ -187,6 +187,19 @@ A headless coverage test asserts ~30 common phrasings + the relationship/pet tar
 regression guards for ones that once mis-fired. **When you add an action, add its phrasings to
 `INTENT_ALIASES`** so it works without the AI too.
 
+**Typed input is a 3-tier cascade** (`handleTypedAction`), best tool at each cost — each tier falls
+through to the next only on a *confident* miss:
+1. **Keyword router** (`keywordResolve`, **0 ms, no model**) — the instant path; handles most commands.
+2. **Semantic router** (`embedResolve`, **~30 ms, small embedding model** `Xenova/all-MiniLM-L6-v2`,
+   default-on, offline-cached) — catches paraphrases keywords miss ("end my marriage" → divorce) by
+   nearest-neighbor over an intent index **auto-built from each catalog entry's desc/examples + the
+   `INTERACT_VERBS`** (zero per-action work). Misfire-averse (acts only above `EMBED_THRESHOLD` with a
+   margin); args are filled by the shared `fillArgs`. **Measure accuracy at `#test=embeddings`** (a
+   labeled `EMBED_TESTSET`); keep it default-on only while it clears the bar.
+3. **Generative LLM** (slow, opt-in) — structured action OR freeform roleplay, last resort.
+The semantic tier is strictly additive: it only sees what the keyword tier missed, so it can't regress
+existing behavior. Expand `EMBED_TESTSET` as you add actions — it's the ground truth for tuning.
+
 ### 6. Plausibility & the census — catching *semantic* bugs, not just math
 `INVARIANTS` catch hard violations (stats in `0..100`); **`PLAUSIBILITY`** catches *nonsensical-but-valid*
 states (a child older than you, a 6-year-old "of old age", marrying a sibling, a job at age 4). It's a
