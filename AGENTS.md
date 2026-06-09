@@ -160,9 +160,14 @@ registry**, `ACTION_CATALOG` (just after `PLAYER_ACTIONS`). Each entry POINTS AT
 living relationships), and a `confirm` rule (bool or `(args)=>bool`) for destructive actions. The
 dispatcher (`runNlAction`→`dispatchAction`) validates args against the resolvers and invokes the real
 fn through its **existing guards** — so an LLM- or keyword-triggered action is exactly as safe as the
-button. `auditCatalog` asserts every entry is well-formed (runs in CI). **To expose a new action to
-typing + help: add ONE catalog entry** — button, AI, keyword router, and the `openGuide` "What can I
-do?" list all pick it up, no duplication. Mini-games are excluded (they need live input); `MENU_INTENTS`
+button. `auditCatalog` asserts every entry is well-formed (runs in CI). **Immediate feedback is
+guaranteed at this one choke point:** an unavailable action (`catalogAvailable`/`minAge`/prison) is
+refused *before* any confirm with a feed reason, and a guard that blocks inside the fn sets `_nlBlock`
+(a plain sentence) which `dispatchAction` shows in the feed as `🚫 <why>` — a typed action NEVER silently
+does nothing (the "kill mom at age 4 → nothing happened" bug). Give a gated action a `minAge`, and have
+refusals call `requireFree/Age/Money/oncePerYear` (or `interact`'s `bail()`), and feedback is automatic.
+**To expose a new action to typing + help: add ONE catalog entry** — button, AI, keyword router, and the
+`openGuide` "What can I do?" list all pick it up, no duplication. Mini-games are excluded (they need live input); `MENU_INTENTS`
 opens their screen instead. Determinism holds: the LLM only *chooses* the action; the action is the
 existing seeded fn (and the LLM stays off in tests).
 

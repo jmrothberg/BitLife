@@ -123,6 +123,22 @@ routesTo("rob a bank", "crime");        // was: take a loan
 routesTo("see a doctor", "clinic");     // was: apply for a job
 routesTo("date someone", "find love");  // was: file a lawsuit
 checkInvariants("post-nl-dispatch", ok);
+// immediate feedback: a blocked NL action must leave a visible 🚫 reason in the feed
+// (the "kill mom at age 4 → nothing happened" bug) and must NOT execute.
+createNewLife({ first: "Kid", last: "Test", seed: "9300" });
+game.character.age = 4; game.character.lifeStage = lifeStageFor(4);
+const mum = addRelationship({ relation: "mother", name: "Mum Test", gender: "female", age: 34, bar: 80 });
+let lb = game.log.length;
+dispatchAction("hireHitman", { target: "Mum Test", tierId: "street" });
+ok(mum.alive, "a 4-year-old cannot hire a hitman (age-gated)");
+ok(game.log.slice(lb).some(e => /🚫/.test(e.text)), "blocked age-gated NL action gives a visible feed reason (got: " + JSON.stringify(game.log.slice(lb).map(e => e.text)) + ")");
+// incest is refused with feed feedback too, via interact's bail()
+game.character.age = 30; game.character.lifeStage = lifeStageFor(30);
+lb = game.log.length;
+dispatchAction("interact", { target: "Mum Test", action: "propose" });
+ok(!mum.flags.married, "cannot marry a blood relative via NL");
+ok(game.log.slice(lb).some(e => /🚫/.test(e.text)), "blocked incest NL action gives a visible feed reason");
+checkInvariants("post-feedback", ok);
 // death-cause attribution: a sick CHILD must never "die of old age" (live bug: age 6).
 createNewLife({ first: "Sick", last: "Child", seed: "6006" });
 game.character.age = 6; game.character.lifeStage = lifeStageFor(6); game.character.stats.health = 70;
