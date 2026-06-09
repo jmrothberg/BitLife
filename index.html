@@ -751,9 +751,11 @@
   // This keeps gating uniform + greppable, and #test=selfcheck audits that every
   // "free-only" action actually refuses while in prison (so prison bugs can't recur).
   function jailed() { return !!(game && game.prison && game.prison.inPrison); }
-  function requireFree(verb) { if (jailed()) { showToast(`Can't ${verb || "do that"} in prison.`); return false; } return true; }
-  function requireAge(n, verb) { if (game.character.age < n) { showToast(`Must be ${n}+ to ${verb || "do that"}.`); return false; } return true; }
-  function requireMoney(n) { if (game.character.money < n) { showToast("Not enough money."); return false; } return true; }
+  // Guards. When an NL command triggered the action (_nlActive), a rejection is also
+  // traced so the debug shows WHY a typed command silently no-opped (player sees only a toast).
+  function requireFree(verb) { if (jailed()) { if (_nlActive) dbg("guard", `requireFree blocked "${verb || ""}" — in prison`); showToast(`Can't ${verb || "do that"} in prison.`); return false; } return true; }
+  function requireAge(n, verb) { if (game.character.age < n) { if (_nlActive) dbg("guard", `requireAge blocked "${verb || ""}" — need ${n}+, is ${game.character.age}`); showToast(`Must be ${n}+ to ${verb || "do that"}.`); return false; } return true; }
+  function requireMoney(n) { if (game.character.money < n) { if (_nlActive) dbg("guard", `requireMoney blocked — need ${fmtMoney(n)}, have ${fmtMoney(game.character.money)}`); showToast("Not enough money."); return false; } return true; }
 
   // ── canonical mutators ──
   const clampStat = (v) => Math.max(0, Math.min(100, Math.round(v)));
@@ -2481,12 +2483,15 @@
   // Run a catalog action: validate, confirm if destructive, else invoke the real fn
   // (which still enforces its own guards). Returns true if it handled the intent.
   function dispatchAction(id, rawArgs) {
-    const entry = catalogById(id); if (!entry) return false;
+    const entry = catalogById(id); if (!entry) { dbg("act", `unknown action "${id}"`); return false; }
     const v = validateArgs(entry, rawArgs);
-    if (!v.ok) { showToast(v.reason || "Can't do that."); if (entry.menu) openModal(entry.menu); return true; }
+    if (!v.ok) { dbg("act", `${id} INVALID: ${v.reason} (raw=${JSON.stringify(rawArgs)})`); showToast(v.reason || "Can't do that."); if (entry.menu) openModal(entry.menu); return true; }
     const need = typeof entry.confirm === "function" ? entry.confirm(v.args) : !!entry.confirm;
-    const go = () => { try { entry.call(v.args); } catch (e) { showToast("That didn't work."); } };
-    if (need) confirmAction(entry, v.args, go); else go();
+    // _nlActive lets the guards (requireFree/Money/Age/oncePerYear) trace WHY an
+    // NL-triggered action no-ops, even though the player only sees a toast.
+    const go = () => { _nlActive = true; try { entry.call(v.args); } catch (e) { dbg("act", `${id} threw: ${e.message}`); showToast("That didn't work."); } finally { _nlActive = false; } };
+    if (need) { dbg("act", `${id}(${describeArgs(entry, v.args)}) → confirm`); confirmAction(entry, v.args, go); }
+    else { dbg("act", `${id}(${describeArgs(entry, v.args)}) → run`); go(); }
     return true;
   }
   function describeArgs(entry, args) {
@@ -2498,15 +2503,15 @@
   function confirmAction(entry, args, onYes) {
     const summary = describeArgs(entry, args);
     modalShell("🤖 Confirm", `<div class="hint" style="color:var(--text-muted);font-size:13px;margin-bottom:10px">The AI wants to: <b>${entry.desc}</b>${summary ? `<br/><span style="color:var(--text)">${summary}</span>` : ""}</div><div class="row"><button class="primary" id="cf-yes">Do it</button><button id="cf-no">Cancel</button></div>`);
-    $("cf-yes").onclick = () => { closeModal(); onYes(); };
-    $("cf-no").onclick = () => { closeModal(); log("system", "(Cancelled.)"); };
+    $("cf-yes").onclick = () => { closeModal(); dbg("act", `${entry.id} confirmed`); onYes(); };
+    $("cf-no").onclick = () => { closeModal(); dbg("act", `${entry.id} cancelled`); log("system", "(Cancelled.)"); };
   }
   // No-AI / fallback parser: match free text to a catalog action by keyword, fill
   // simple args from the text, and dispatch (or open the relevant menu). This is the
   // single registry-driven router — it replaces the old hardcoded keyword list.
   function keywordResolve(text) {
     const t = " " + text.toLowerCase().trim() + " ";
-    for (const mi of MENU_INTENTS) { if (mi.re.test(text.toLowerCase())) { mi.fn(); return "Opening " + mi.label; } }
+    for (const mi of MENU_INTENTS) { if (mi.re.test(text.toLowerCase())) { dbg("kw", `"${text}" → menu ${mi.label}`); mi.fn(); return "Opening " + mi.label; } }
     // score catalog entries by keyword overlap with id/desc/examples
     const words = t.match(/[a-z0-9$]+/g) || [];
     let best = null, bestScore = 0;
@@ -2518,7 +2523,7 @@
       for (const ex of e.examples) { const key = ex.toLowerCase().split(" ").filter(x => x.length > 3); if (key.length && key.every(k => t.includes(k))) score += 3; }
       if (score > bestScore) { bestScore = score; best = e; }
     }
-    if (!best || bestScore < 1) return null;
+    if (!best || bestScore < 1) { dbg("kw", `"${text}" → no match`); return null; }
     // try to fill params from the text
     const args = {};
     let okFill = true;
@@ -2528,6 +2533,7 @@
       const hit = vals.find(x => t.includes(" " + String(x.id).toLowerCase() + " ") || (x.label && t.includes(x.label.toLowerCase())));
       if (hit) args[p.name] = hit.id; else okFill = false;
     }
+    dbg("kw", `"${text}" → ${best.id} (score ${bestScore}${okFill || !best.params.length ? "" : ", need args"})`);
     if (okFill || best.params.length === 0) { dispatchAction(best.id, args); return "Interpreted as: " + best.desc; }
     if (best.menu) { openModal(best.menu); return "Opening the " + best.menu + " menu for: " + best.desc; }
     return null;
@@ -3226,6 +3232,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
       return;
     }
     busy = true; setControlsEnabled(false);
+    dbg("llm", `ask "${text}" via ${useOllama ? "ollama:" + ollamaModel : "gemma"}`);
     const thinking = log("system", "…thinking…");
     let raw;
     const t0 = performance.now();
@@ -3233,20 +3240,23 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     catch (e) {
       removeEntry(thinking);
       const oom = /buffer|memory|allocat/i.test(e.message || "");
+      dbg("llm", `ERROR ${oom ? "OOM" : (e.message || "?")}`);
       log("system", oom ? "(The AI ran out of memory. Try a shorter action.)" : `(AI error: ${e.message})`);
       busy = false; setControlsEnabled(true); return;
     }
     removeEntry(thinking);
     busy = false; setControlsEnabled(true);
+    const ms = Math.round(performance.now() - t0);
     const parsed = extractFirstJson(raw);
     // Action mode: the LLM chose a real catalog action → validate + invoke the SAME
     // function the button calls (guards & confirms apply). Else fall back to freeform.
     if (parsed && parsed.mode === "action" && parsed.action && catalogById(parsed.action)) {
       if (parsed.narration) log("llm", `“${text}” — ${parsed.narration}`);
-      setDebug([`typed: ${text}`, `llm action: ${parsed.action}`, `args: ${JSON.stringify(parsed.args || {})}`, `${Math.round(performance.now() - t0)}ms`]);
+      dbg("llm", `action=${parsed.action} args=${JSON.stringify(parsed.args || {})} (${raw.length}ch ${ms}ms)`);
       dispatchAction(parsed.action, parsed.args || {});
       return;
     }
+    dbg("llm", `${parsed ? (parsed.mode === "freeform" ? "freeform" : "unknown-mode→freeform") : "parse FAIL→freeform"} (${raw.length}ch ${ms}ms)`);
     applyFreeformLlm(parsed, raw, text, t0);
   }
   // The original creative path: clamped stat/money/relationship deltas + narration +
@@ -3259,7 +3269,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     Object.assign(game.flags, san.set_flags);
     if (san.grant_achievement) grantAchievement(san.grant_achievement);
     const entry = log("llm", `“${text}” — ${narration}`);
-    setDebug([`typed: ${text}`, `llm freeform`, `effects: ${JSON.stringify(san.effects)}`, `${Math.round(performance.now() - t0)}ms`]);
+    dbg("llm", `freeform applied fx=${JSON.stringify(san.effects)}${san.event_image ? " +img" : ""}`);
     if (san.event_image) generateAndAttach(entry, composeScenePrompt(san.event_image), "scene");
     checkDeath(); autosave(); renderAll();
   }
@@ -3476,7 +3486,8 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
 
   function runHelp(query) {
     const q = (query || "").trim();
-    if (q === "guide") { openGuide(); return; }
+    if (q === "guide") { dbg("help", "→ guide"); openGuide(); return; }
+    dbg("help", q ? `"${q}" → ${findHelpTopic(q) ? findHelpTopic(q).topic : "no topic (hints)"}` : "hint");
     let body;
     if (!q) {
       body = ["💡 Hint — what to do next", ...situationalHints(), "", "Type \"what can I do\" for the full list of actions you can do by typing."].join("\n");
@@ -3658,9 +3669,11 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     key = key || (kind + ":" + simpleHash(prompt));
     // if cached/static we can show instantly even before SD finishes loading
     const cachedStatic = (manifest && manifest[key]) || memCache.has(key) || await idbGet(key);
-    if (!imgReady && !cachedStatic) return; // nothing to show yet; idle pre-gen may fill later
+    if (!imgReady && !cachedStatic) { dbg("img", `${key} skip — diffuser not ready (${Math.round(imgPct)}%)`); return; }
     markEntryGenerating(entry);
+    const t0 = performance.now();
     const url = await getImage(key, prompt);
+    dbg("img", `${key} ${url ? (cachedStatic ? "cached" : "generated") : "FAILED"} (${Math.round(performance.now() - t0)}ms)`);
     if (url) { entry.imageUrl = url; updateEntryImage(entry, url); }
     else clearEntryGenerating(entry);
   }
@@ -3828,12 +3841,20 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
 
   // ── Debug panel: a live, compact snapshot of the whole game + AI/cache state ──
   // Kept terse (one line per subsystem) so it's actually scannable while debugging.
-  let _lastTyped = [];            // last typed-action trace (prompt/resp/json/effects)
   const _errors = [];             // last few uncaught errors / rejections (most recent last)
   function noteError(msg) { _errors.push(msg); while (_errors.length > 6) _errors.shift(); try { renderDebug(); } catch {} try { _testDbgRefresh && _testDbgRefresh(); } catch {} }
   window.addEventListener("error", (e) => noteError(`ERR ${e.message} @ ${(e.filename || "").split("/").pop()}:${e.lineno || "?"}`));
   window.addEventListener("unhandledrejection", (e) => noteError(`REJECT ${(e.reason && (e.reason.message || e.reason)) || "?"}`));
-  function setDebug(lines) { _lastTyped = Array.isArray(lines) ? lines : [lines]; renderDebug(); }
+  // Rolling diagnostic TRACE across the AI / command / help / image paths, so reading a
+  // long debug reveals the recent causal sequence — where an LLM command, its dispatch,
+  // a guard (silent no-op), the help router, or image generation actually failed. Tags:
+  //   llm   = LLM call (ask/parse/mode/error)      act = catalog dispatch (args/valid/run)
+  //   kw    = no-AI keyword router result          guard = a guard blocked an NL action
+  //   help  = help/guide query result              img = diffuser (cached/gen/fail + ms)
+  const _diag = [];
+  let _nlActive = false;          // true while an NL-triggered action runs, so a guard
+                                  // rejection gets traced WITH the command that caused it
+  function dbg(tag, msg) { _diag.push({ t: Date.now(), tag, msg: String(msg).slice(0, 200) }); while (_diag.length > 30) _diag.shift(); try { renderDebug(); } catch {} try { _testDbgRefresh && _testDbgRefresh(); } catch {} }
   // Build the snapshot string (works regardless of panel visibility). Wrapped in
   // try/catch per line so a broken subsystem can't blank out the whole report.
   function buildDebugText() {
@@ -3850,10 +3871,16 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
       safe(() => `ENG   seed=${game.seed} rng=${game.rngState} year=${game.market.year} pending=${game.pendingEvent ? game.pendingEvent.id : "-"} tip=${game.activeTip ? game.activeTip.assetId + "(" + (game.activeTip.boughtShares || 0) + "sh)" : "-"}`);
       safe(() => { const pr = game.prison || {}; return `LAW   prison=${pr.inPrison ? `${pr.yearsServed || 0}/${pr.sentenceYears}y (${pr.reason})` : "free"} arrests=${game.crimeRecord ? game.crimeRecord.arrests : 0} convictions=${game.crimeRecord ? game.crimeRecord.convictions : 0}`; });
       safe(() => `CNT   rel=${game.relationships.filter(r => r.alive).length}/${game.relationships.length} portfolio=${game.portfolio.length} assets=${game.assets.length} ach=${game.achievements.length}/${Object.keys(DATA.ACHIEVEMENTS).length} log=${game.log.length} flags=${Object.keys(game.flags || {}).length} slot=${game._slot || "-"}`);
+      safe(() => `SUB   cond=${(game.character.conditions || []).length} obl=${(game.obligations || []).length} biz=${game.business ? (game.business.employees || 0) + "emp" : "-"} throne=${game.throne ? game.throne.approval + "appr/$" + (game.throne.treasury || 0) : "-"} social=${Object.keys(game.social || {}).length} will=${game.will ? "set" : "-"} loan=${game.loanBalance || 0} mort=${game.mortgageBalance || 0}`);
     } else {
       L.push("CHAR  (no life started)");
     }
-    if (_lastTyped.length) L.push("LLM   " + _lastTyped.join(" | "));
+    safe(() => `NL    actions=${ACTION_CATALOG.length} help=${HELP_INDEX.length} narrator=${aiNarrator}${narrating ? "(running)" : ""} nlActive=${_nlActive} typing=${busy}`);
+    if (_diag.length) {
+      L.push("───── trace (newest last) ─────");
+      const now = Date.now();
+      for (const d of _diag) L.push(`${("-" + ((now - d.t) / 1000).toFixed(0) + "s").padStart(6)} ${d.tag.padEnd(5)} ${d.msg}`);
+    }
     if (_errors.length) { L.push("───── errors (newest last) ─────"); for (const e of _errors) L.push(e); }
     return L.join("\n");
   }
@@ -4590,7 +4617,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
   // the turn, so an ungated +EV action would be an infinite faucet within a year).
   function oncePerYear(key) {
     game.yearActions = game.yearActions || {};
-    if (game.yearActions[key]) { showToast("Already did that this year — age up first."); return false; }
+    if (game.yearActions[key]) { if (_nlActive) dbg("guard", `oncePerYear blocked — "${key}" already done this year`); showToast("Already did that this year — age up first."); return false; }
     game.yearActions[key] = true; return true;
   }
 
