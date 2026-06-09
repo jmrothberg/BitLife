@@ -300,7 +300,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.24.2</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.25.0</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -601,11 +601,11 @@
   // ════════════════════════════════════════════════════════════════════════════
   const BALANCE = {
     // Hard caps so the sim can't run away (no 100s of kids, no dozens of spouses).
-    limits:   { maxChildren: 20, maxSpouses: 3, fertileMaxAge: 50 },
+    limits:   { maxChildren: 20, maxSpouses: 3, fertileMaxAge: 50, workMinAge: 14 },
     // Yearly money mechanics (tickFinances / tickAssets / continueAsHeir).
     finance:  { loanInterest: 0.08, loanPayment: 0.10, mortgageInterest: 0.05, mortgagePayment: 0.08, estateTax: 0.40, vehicleDeprec: 0.10 },
     // Disease onset (tickHealth): base + per-year-over-40 + a bump when already sick.
-    health:   { diseaseBase: 0.05, diseaseAgeCoef: 0.004, lowHealthThresh: 40, lowHealthBonus: 0.05 },
+    health:   { diseaseBase: 0.05, diseaseAgeCoef: 0.004, lowHealthThresh: 40, lowHealthBonus: 0.05, recoverAcute: 0.55, recoverMind: 0.25 },
     // Conception odds (haveBaby / IVF / surrogacy / adoption); bigFamilyAt grants the ribbon.
     family:   { ivfBase: 0.75, ivfAgeCoef: 0.02, ivfTwins: 0.20, surrogacy: 0.90, adoptBase: 0.60, adoptWealthCap: 0.25, bigFamilyAt: 4 },
     // Marriage / bigamy (interact + tickBigamy): risk scales with #spouses.
@@ -870,6 +870,7 @@
     tickDepth();
 
     checkDeath();
+    auditNow();   // flag any nonsensical state into the debug TRACE (read-only)
     autosave();
     renderAll();
     // optional LLM flavor commentary (runs in background; skips if an event popup is up)
@@ -2200,6 +2201,108 @@
       if (!held) break; // one report per breakage point is enough
     }
   }
+  // (1a) PLAUSIBILITY — semantic "should never happen" rules: states that are
+  //      mathematically valid (stats in range, money finite) yet NONSENSICAL (a
+  //      child older than you, a 6-year-old "of old age", marrying a sibling, a job
+  //      at age 4). The hard-math checks live in INVARIANTS; these catch *sense*.
+  //      Read-only predicates (no rng, no mutation) → safe to run in the census, the
+  //      seeded sim, AND live during play (auditNow → debug TRACE). RULE: every logic
+  //      bug we find becomes a one-line predicate here and is then guarded forever.
+  const RELATION_KINDS = new Set(["partner", "spouse", "exspouse", "child", "mother", "father", "sibling", "grandparent", "friend", "coworker", "enemy", "pet"]);
+  const PLAUSIBILITY = [
+    ["lifeStage matches age", g => !g.character.alive || lifeStageFor(g.character.age) === g.character.lifeStage],
+    ["death cause fits age — no 'old age' under 50", g => g.character.alive || !/\bold age\b/.test(g.character.causeOfDeath || "") || g.character.age >= 50],
+    ["'extreme old age' only past 100", g => g.character.alive || !/extreme old age/.test(g.character.causeOfDeath || "") || g.character.age >= 100],
+    ["dead character holds no job", g => g.character.alive || !g.character.job],
+    ["in prison implies alive", g => !(g.prison && g.prison.inPrison) || g.character.alive],
+    ["no job under working age", g => !g.character.job || g.character.age >= BALANCE.limits.workMinAge],
+    ["no child older than the player", g => (g.relationships || []).filter(r => r.alive && r.relation === "child" && r.isPlayerChild).every(r => r.age < g.character.age + 1)],
+    ["no romance with a blood relative", g => (g.relationships || []).every(r => !(BLOOD_FAMILY.has(r.relation) && r.flags && (r.flags.dating || r.flags.married)))],
+    ["a partner/spouse is at least 16", g => (g.relationships || []).every(r => !(r.alive && r.flags && (r.flags.dating || r.flags.married) && r.age < 16))],
+    ["relationship kind is known", g => (g.relationships || []).every(r => RELATION_KINDS.has(r.relation))],
+    ["NPC ages are bounded 0..130", g => (g.relationships || []).every(r => Number.isFinite(r.age) && r.age >= 0 && r.age <= 130)],
+    ["condition severity is sane", g => (g.character.conditions || []).every(x => x.severity == null || (Number.isFinite(x.severity) && x.severity >= 0 && x.severity <= 100))],
+    ["business has non-negative employees", g => !g.business || (g.business.employees || 0) >= 0],
+    ["education object is intact", g => { const e = g.character.education; return e && typeof e.level === "string" && typeof e.inSchool === "boolean"; }],
+  ];
+  function checkPlausibility(label, ok) {
+    for (const [name, pred] of PLAUSIBILITY) {
+      let held; try { held = !!pred(game); } catch (e) { held = false; }
+      ok(held, `plausibility "${name}" (${label})`);
+      if (!held) break;
+    }
+  }
+  // Live anomaly detector: run the plausibility rules against the CURRENT game and
+  // push any violation to the debug TRACE, so a nonsensical state surfaces in the
+  // debug the player already reads (even on the live site). Read-only & deterministic.
+  function auditNow() {
+    if (!game || !game.character) return;
+    for (const [name, pred] of PLAUSIBILITY) {
+      let held; try { held = !!pred(game); } catch (e) { held = false; }
+      if (!held) dbg("BUG", name);
+    }
+  }
+  // (1d) CENSUS — the statistical net. Simulate N lives to death (auto-resolving
+  //      non-minigame events), running INVARIANTS + PLAUSIBILITY every year, and
+  //      aggregate population stats. Then assert tolerance bands, so RATE bugs
+  //      ("too many kids die young", "deaths of old age under 50") fail CI even
+  //      though no single life looks wrong. Returns the census for a printable summary.
+  function runCensus(N, ok) {
+    const cz = { lives: 0, reached1: 0, reached18: 0, reached65: 0, deathAges: [], causes: {}, totalKids: 0, maxKids: 0, maxSpouses: 0, oldAgeUnder50: 0, exceptions: 0 };
+    for (let s = 0; s < N; s++) {
+      try {
+        createNewLife({ first: "Census", last: "Sim", seed: String(20000 + s) });
+        let guard = 0;
+        while (game.character.alive && guard < 200) {
+          if (game.pendingEvent) {
+            const ev = game.pendingEvent; const ch = ev.choices || [];
+            const pickable = []; for (let i = 0; i < ch.length; i++) if (!ch[i].minigame) pickable.push(i);
+            applyChoice(ev.id, pickable.length ? pickable[Math.floor(rng() * pickable.length)] : 0);
+          } else { ageUp(); }
+          checkInvariants("census " + s, ok);
+          checkPlausibility("census " + s, ok);
+          guard++;
+        }
+        const c = game.character; cz.lives++;
+        if (c.age >= 1) cz.reached1++; if (c.age >= 18) cz.reached18++; if (c.age >= 65) cz.reached65++;
+        cz.deathAges.push(c.age);
+        const cause = c.causeOfDeath || "(survived 200y)";
+        cz.causes[cause] = (cz.causes[cause] || 0) + 1;
+        if (/\bold age\b/.test(cause) && c.age < 50) cz.oldAgeUnder50++;
+        const kids = (game.relationships || []).filter(r => r.relation === "child" && r.isPlayerChild).length;
+        cz.totalKids += kids; cz.maxKids = Math.max(cz.maxKids, kids);
+        cz.maxSpouses = Math.max(cz.maxSpouses, (game.relationships || []).filter(r => r.flags && r.flags.married).length);
+      } catch (e) { cz.exceptions++; ok(false, "census life " + s + " threw: " + (e && e.message || e)); }
+    }
+    const n = cz.lives || 1;
+    const sorted = cz.deathAges.slice().sort((a, b) => a - b);
+    const median = sorted.length ? sorted[Math.floor(sorted.length / 2)] : 0;
+    cz.median = median; cz.pct18 = cz.reached18 / n; cz.pct1 = cz.reached1 / n; cz.pct65 = cz.reached65 / n; cz.avgKids = cz.totalKids / n;
+    // ── tolerance bands (hard-fail) ──
+    // These catch BUGS and DEGENERATE distributions, NOT a target lifespan: a careless
+    // life (this census does no self-care) is MEANT to die young. So the lifespan bands
+    // are wide — they fire only on a collapse (the original median-21 disease bug) or an
+    // impossible distribution, while the semantic checks (old-age-under-50, caps) are hard.
+    ok(cz.exceptions === 0, "census: no life threw (" + cz.exceptions + " threw)");
+    ok(cz.pct1 >= 0.95, "census: >=95% reach age 1 — babies shouldn't die en masse (got " + (100 * cz.pct1).toFixed(1) + "%)");
+    ok(cz.pct18 >= 0.50, "census: >=50% reach age 18 — catches mass child death (got " + (100 * cz.pct18).toFixed(1) + "%)");
+    ok(median >= 25 && median <= 100, "census: median death age in [25,100] — catches the disease-collapse bug (got " + median + ")");
+    ok(cz.pct65 >= 0.01, "census: a long life is POSSIBLE (>=1% reach 65) — catches a lifespan ceiling bug (got " + (100 * cz.pct65).toFixed(1) + "%)");
+    ok(cz.oldAgeUnder50 === 0, "census: zero 'old age' deaths under 50 (got " + cz.oldAgeUnder50 + ")");
+    ok(cz.maxKids <= MAX_CHILDREN, "census: max children within cap (" + cz.maxKids + ")");
+    ok(cz.maxSpouses <= MAX_SPOUSES, "census: max concurrent spouses within cap (" + cz.maxSpouses + ")");
+    ok(cz.avgKids <= 8, "census: average children sane (" + cz.avgKids.toFixed(2) + ")");
+    return cz;
+  }
+  function censusSummary(cz) {
+    const buckets = [0, 0, 0, 0, 0, 0]; // <1, 1-17, 18-39, 40-64, 65-84, 85+
+    for (const a of cz.deathAges) buckets[a < 1 ? 0 : a < 18 ? 1 : a < 40 ? 2 : a < 65 ? 3 : a < 85 ? 4 : 5]++;
+    const top = Object.entries(cz.causes).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => k + "=" + v).join(", ");
+    return "CENSUS " + cz.lives + " lives · reach1=" + (100 * cz.pct1).toFixed(0) + "% reach18=" + (100 * cz.pct18).toFixed(0) + "% reach65=" + (100 * cz.pct65).toFixed(0) + "%"
+      + " · medianDeath=" + cz.median + " · avgKids=" + cz.avgKids.toFixed(2)
+      + "\n  deathAge[<1,1-17,18-39,40-64,65-84,85+]=" + JSON.stringify(buckets)
+      + "\n  causes: " + top;
+  }
   // (1b) BALANCE reasonableness — every tunable number must stay in sane bounds, so
   //      an out-of-range edit fails the suite instead of shipping (the general net
   //      against "keno prints money" / "100 babies" style regressions). The
@@ -2214,7 +2317,7 @@
     ok(B.limits.maxSpouses > 0 && B.limits.maxSpouses <= 10, "limits.maxSpouses sane");
     ok(B.limits.fertileMaxAge >= 30 && B.limits.fertileMaxAge <= 70, "limits.fertileMaxAge sane");
     for (const k of ["loanInterest", "loanPayment", "mortgageInterest", "mortgagePayment", "estateTax", "vehicleDeprec"]) prob(B.finance[k], "finance." + k);
-    for (const k of ["diseaseBase", "diseaseAgeCoef", "lowHealthBonus"]) prob(B.health[k], "health." + k);
+    for (const k of ["diseaseBase", "diseaseAgeCoef", "lowHealthBonus", "recoverAcute", "recoverMind"]) prob(B.health[k], "health." + k);
     for (const k of ["ivfBase", "ivfAgeCoef", "ivfTwins", "surrogacy", "adoptBase", "adoptWealthCap"]) prob(B.family[k], "family." + k);
     ok(B.family.bigFamilyAt > 0, "family.bigFamilyAt > 0");
     for (const k of ["proposeBase", "prenupBase", "bigamyRiskPerSpouse", "bigamyArrestShare"]) prob(B.marriage[k], "marriage." + k);
@@ -2515,7 +2618,7 @@
     const need = typeof entry.confirm === "function" ? entry.confirm(v.args) : !!entry.confirm;
     // _nlActive lets the guards (requireFree/Money/Age/oncePerYear) trace WHY an
     // NL-triggered action no-ops, even though the player only sees a toast.
-    const go = () => { _nlActive = true; try { entry.call(v.args); } catch (e) { dbg("act", `${id} threw: ${e.message}`); showToast("That didn't work."); } finally { _nlActive = false; } };
+    const go = () => { _nlActive = true; try { entry.call(v.args); } catch (e) { dbg("act", `${id} threw: ${e.message}`); showToast("That didn't work."); } finally { _nlActive = false; } auditNow(); };
     if (need) { dbg("act", `${id}(${describeArgs(entry, v.args)}) → confirm`); confirmAction(entry, v.args, go); }
     else { dbg("act", `${id}(${describeArgs(entry, v.args)}) → run`); go(); }
     return true;
@@ -2663,6 +2766,7 @@
             applyChoice(ev.id, idx);
           } else { ageUp(); }
           checkInvariants(`seed ${s}, age ${game.character.age}`, ok);
+          checkPlausibility(`seed ${s}, age ${game.character.age}`, ok);
           guard++;
         }
         ok(guard < 200, "life " + s + " ended within 200y (no infinite loop)");
@@ -2699,6 +2803,11 @@
       game.character.age = 25; game.character.lifeStage = lifeStageFor(25);
       doFame("post"); const m1 = game.character.money; doFame("post");
       ok(game.character.money === m1, "fame action is gated once per year (no faucet)");
+
+      // ── Statistical census (smaller in-browser) — per-year invariants + plausibility
+      //    over many lives + population tolerance bands. (CI runs 500; here 40 for speed.) ──
+      const cz = runCensus(40, ok);
+      results.push(censusSummary(cz));
     } catch (e) { fail++; results.push("THREW: " + (e && e.message)); }
     window.removeEventListener("error", onErr);
     const green = fail === 0 && errs === 0;
@@ -2933,6 +3042,10 @@
 
   // In prison only basic visitation is possible (no gifts/dates/marriage/divorce/etc.).
   const PRISON_REL_OK = new Set(["compliment", "conversation", "spendTime", "insult", "argue"]);
+  // Blood relatives you can never date/marry. The Relationships UI hides the Date
+  // button for these, but the engine must enforce it too — the NL/keyword layer can
+  // now call interact("date"/"propose", <anyone>) directly, bypassing the UI.
+  const BLOOD_FAMILY = new Set(["mother", "father", "sibling", "child", "grandparent"]);
   const PET_ACTIONS = new Set(["petWalk", "petTrain", "petVet", "petBreed", "petShow"]);
   // A soured non-family social tie can turn into an enemy (but never your active
   // partner/spouse, your kids, parents, or pets).
@@ -2978,17 +3091,20 @@
       case "giveMoney": if (c.money < 1000) { showToast("Need $1,000."); return; } c.money -= 1000; r.bar = clampStat(r.bar + rngInt(8, 18)); log("relationship", `You gave ${r.name} $1,000.`); break;
       case "insult": r.bar = clampStat(r.bar - rngInt(8, 18)); applyEffects({ happiness: -2 }); log("relationship", `You insulted ${r.name}.`); maybeEnemy(r); break;
       case "date":
+        if (BLOOD_FAMILY.has(r.relation)) { showToast("You can't date a blood relative."); return; }
         if (c.age < 16) { showToast("Too young."); return; }
         if (rngChance(0.4 + c.stats.looks / 250 + r.bar / 400)) { r.flags.dating = true; r.relation = "partner"; r.bar = clampStat(r.bar + 10); log("relationship", `${r.name} agreed to date you! 💕`); }
         else log("relationship", `${r.name} turned you down.`);
         break;
       case "propose":
+        if (BLOOD_FAMILY.has(r.relation)) { showToast("You can't marry a blood relative."); return; }
         if (r.bar < 60) { showToast("They're not ready."); return; }
         if (!r.flags.married && livingSpouses().length >= MAX_SPOUSES) { showToast("No officiant will marry a known bigamist again."); return; }
         if (rngChance(BALANCE.marriage.proposeBase + r.bar / 300)) { r.flags.married = true; r.relation = "spouse"; r.bar = clampStat(r.bar + 15); applyEffects({ happiness: 12 }); grantAchievement("wedded"); marryIntoRoyalty(r); onMarried(r); log("event", `${r.name} said YES! You're married! 💍`, "wedding"); }
         else log("relationship", `${r.name} declined your proposal.`);
         break;
       case "proposePrenup":
+        if (BLOOD_FAMILY.has(r.relation)) { showToast("You can't marry a blood relative."); return; }
         if (r.bar < 60) { showToast("They're not ready."); return; }
         if (!r.flags.married && livingSpouses().length >= MAX_SPOUSES) { showToast("No officiant will marry a known bigamist again."); return; }
         if (rngChance(BALANCE.marriage.prenupBase + r.bar / 300)) { r.flags.married = true; r.flags.prenup = true; r.relation = "spouse"; r.bar = clampStat(r.bar + 10); applyEffects({ happiness: 10 }); grantAchievement("wedded"); marryIntoRoyalty(r); onMarried(r); log("event", `${r.name} signed a prenup and married you! 💍📝`, "wedding"); }
@@ -3116,7 +3232,7 @@
       }
     }
     if (cause) {
-      c.alive = false; c.causeOfDeath = cause;
+      c.alive = false; c.causeOfDeath = cause; c.job = null;   // the dead hold no job
       if (c.age >= 100) grantAchievement("centenarian");
       dbg("life", `died @${c.age} of ${cause} (H${c.stats.health} cond=${(c.conditions || []).length})`);
       log("death", `💀 You died at age ${c.age} of ${cause}.`, "death");
@@ -4753,9 +4869,24 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
   }
   // Conditions drain health each year; poor health/age can spawn a new illness.
   function tickHealth() {
-    const c = game.character;
+    const c = game.character; const H = BALANCE.health;
+    // Acute illnesses (flu, pneumonia, anxiety…) can resolve on their own — you don't
+    // stay sick forever. CHRONIC conditions (diabetes, heart disease, cancer) persist
+    // until treated. Without this, untreated acute illness accumulated indefinitely and
+    // collapsed health (a passive life's median lifespan was ~21 — caught by the census).
+    if (c.conditions && c.conditions.length) {
+      c.conditions = c.conditions.filter(cond => {
+        if (cond.chronic) return true;
+        if (rngChance(cond.mind ? H.recoverMind : H.recoverAcute)) { log("event", `🩺 You recovered from ${cond.label}.`); return false; }
+        return true;
+      });
+    }
     for (const cond of (c.conditions || [])) c.stats.health = clampStat(c.stats.health - (cond.drain || 0));
-    const H = BALANCE.health;
+    // Warn the player to act BEFORE neglect becomes fatal (a careless life still dies
+    // young — but now you're told why and what to do: see a doctor / treat conditions).
+    const conds = c.conditions || [];
+    if (c.stats.health > 0 && c.stats.health < 25) log("event", `⚠️ Your health is critical (${c.stats.health}/100) — see a doctor now (Activities → Health clinic) or you may not survive.`);
+    else if (c.stats.health < 45 && conds.length) log("event", `⚠️ Your health is poor (${c.stats.health}/100) and ${conds.length === 1 ? "an untreated condition is" : conds.length + " untreated conditions are"} dragging it down — visit the Health clinic.`);
     if (rngChance(H.diseaseBase + Math.max(0, c.age - 40) * H.diseaseAgeCoef + (c.stats.health < H.lowHealthThresh ? H.lowHealthBonus : 0))) addDisease();
   }
   // Vehicle upkeep + depreciation. (Real estate + valuables appreciation is handled
@@ -5356,7 +5487,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
   }
   function fireEmployee() {
     const biz = currentBusiness(); if (!biz || (biz.employees || 0) <= 0) return;
-    biz.employees -= 1;
+    biz.employees = Math.max(0, (biz.employees || 0) - 1);
     log("event", `🏢 You laid off an employee.`); autosave(); renderAll(); openBusiness();
   }
   function sellBusiness() {
