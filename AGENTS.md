@@ -173,6 +173,18 @@ synonyms ("work out"→gym). A headless coverage test asserts ~30 common phrasin
 regression guards for ones that once mis-fired. **When you add an action, add its phrasings to
 `INTENT_ALIASES`** so it works without the AI too.
 
+### 6. Plausibility & the census — catching *semantic* bugs, not just math
+`INVARIANTS` catch hard violations (stats in `0..100`); **`PLAUSIBILITY`** catches *nonsensical-but-valid*
+states (a child older than you, a 6-year-old "of old age", marrying a sibling, a job at age 4). It's a
+registry of read-only predicates run three ways: every year in the seeded sim, in **`runCensus(N)`**
+(simulate hundreds of lives to death + assert population **tolerance bands** — catches RATE bugs like the
+disease-collapse that made median lifespan 21), and **live during play** via `auditNow()` (any breach is
+flagged into the debug TRACE as `BUG: <rule>`, even on the live site). The census bands catch *degenerate
+distributions/regressions*, **not** a target lifespan — a careless life is *meant* to die young.
+**RULE: every logic bug you find becomes a one-line `PLAUSIBILITY` predicate** (then the census + runtime
+detector enforce it forever). An **action-outcome audit** (CI) dispatches every `ACTION_CATALOG` entry in
+a valid state and asserts it doesn't throw / break an invariant — the net against silent-no-op actions.
+
 > The top of the `<script>` has a **SYSTEMS INDEX** banner summarizing all of the above per system
 > (state · tick · actions · truths · numbers) plus the section map — read it first. End action
 > handlers with `commit({close})` (persist + repaint) instead of hand-rolling `autosave(); renderAll()`.

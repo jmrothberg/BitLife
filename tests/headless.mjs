@@ -280,6 +280,29 @@ let badCond = null;
 for (const arr of Object.values(DATA.EVENTS)) for (const e of arr) if (e.cond && !EVENT_CONDS[e.cond]) badCond = e.id;
 ok(badCond === null, "no event names an unknown cond" + (badCond ? " (" + badCond + ")" : ""));
 
+// 7b) Action-outcome audit: every ACTION_CATALOG entry must dispatch WITHOUT throwing
+//     in a valid state, leaving invariants + plausibility intact (catches crashes /
+//     reference errors / nonsensical side-effects across the whole NL surface).
+createNewLife({ first: "Act", last: "Audit", seed: "9200" });
+game.character.age = 30; game.character.lifeStage = lifeStageFor(30); game.character.money = 1000000;
+addRelationship({ relation: "friend", name: "Pal Test", gender: "male", age: 30, bar: 60 });
+let actThrew = null;
+for (const e of ACTION_CATALOG) {
+  try {
+    const args = {};
+    for (const p of e.params) { if (p.type === "int") args[p.name] = p.min || 1; else { const vals = paramValues(p, args); if (vals.length) args[p.name] = vals[0].id; } }
+    dispatchAction(e.id, args);
+  } catch (err) { actThrew = e.id + ": " + (err && err.message || err); break; }
+  checkInvariants("action " + e.id, ok); checkPlausibility("action " + e.id, ok);
+}
+ok(actThrew === null, "every catalog action dispatches without throwing" + (actThrew ? " (" + actThrew + ")" : ""));
+
+// 8) Statistical census: simulate many lives to death, running INVARIANTS +
+//    PLAUSIBILITY every year, and assert population tolerance bands. This is the
+//    net for RATE/semantic bugs ("kids dying young", "old age under 50").
+const __census = runCensus(500, ok);
+console.log(censusSummary(__census));
+
 const green = fail === 0;
 console.log((green ? "ALL PASS \\u2705" : "FAILURES \\u274c") + " — " + pass + " passed, " + fail + " failed (" + INVARIANTS.length + " invariants, " + PLAYER_ACTIONS.length + " actions)");
 if (!green) { for (const m of fails) console.log("  FAIL: " + m); }
