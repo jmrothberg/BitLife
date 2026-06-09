@@ -155,6 +155,23 @@ ok(_pi("breed the hamsters") === "petBreed", "no-AI: 'breed the hamsters' → pe
 ok(_pi("walk the dog") === "petWalk", "no-AI: 'walk the dog' → petWalk");
 ok(_pi("buy some groceries") === null, "no-AI: non-relationship text → no false interact");
 const _mom = resolveRelTarget("compliment mom"); ok(!!_mom && game.relationships.find(r => r.id === _mom).relation === "mother", "resolveRelTarget 'mom' → the mother");
+
+// Semantic router (embeddings) PLUMBING — validated with a deterministic mock embedder
+// (keyword-overlap vectors). REAL semantic accuracy is measured in-browser at
+// #test=embeddings (the model can't download in this sandbox). Here we check the
+// index builds from the catalog, embedMatch returns the nearest intent, and the
+// labeled EMBED_TESTSET targets are all valid.
+const _mock = (s) => { const d = 96, v = new Array(d).fill(0); for (const w of (String(s).toLowerCase().match(/[a-z]{3,}/g) || [])) { let h = 0; for (const c of w) h = (h * 31 + c.charCodeAt(0)) >>> 0; v[h % d] += 1; } const n = Math.hypot(...v) || 1; return v.map(x => x / n); };
+_embedFn = _mock; embedReady = true;
+await buildIntentIndex();
+ok(Array.isArray(_intentIndex) && _intentIndex.length >= ACTION_CATALOG.length, "embedding intent index builds from catalog + interact verbs (" + (_intentIndex ? _intentIndex.length : 0) + ")");
+const _cids = new Set(ACTION_CATALOG.map(e => e.id));
+const _m1 = await embedMatch("buy shares of a stock"); ok(!!_m1 && _cids.has(_m1.id) && typeof _m1.score === "number", "embedMatch returns a valid scored catalog intent (mock; real accuracy at #test=embeddings)");
+const _m2 = await embedMatch("go to the gym"); ok(!!_m2 && typeof _m2.margin === "number", "embedMatch returns a margin vs 2nd-best");
+let _badTS = null;
+for (const [q, want] of EMBED_TESTSET) { if (want.indexOf(":") >= 0) { if (want.split(":")[0] !== "interact" || !INTERACT_ACTIONS.includes(want.split(":")[1])) _badTS = q; } else if (!_cids.has(want)) _badTS = q; }
+ok(_badTS === null, "EMBED_TESTSET targets are all valid catalog ids / interact actions" + (_badTS ? " (" + _badTS + ")" : ""));
+_embedFn = null; embedReady = false; _intentIndex = null;
 // death-cause attribution: a sick CHILD must never "die of old age" (live bug: age 6).
 createNewLife({ first: "Sick", last: "Child", seed: "6006" });
 game.character.age = 6; game.character.lifeStage = lifeStageFor(6); game.character.stats.health = 70;
