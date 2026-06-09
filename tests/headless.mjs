@@ -123,6 +123,18 @@ routesTo("rob a bank", "crime");        // was: take a loan
 routesTo("see a doctor", "clinic");     // was: apply for a job
 routesTo("date someone", "find love");  // was: file a lawsuit
 checkInvariants("post-nl-dispatch", ok);
+// death-cause attribution: a sick CHILD must never "die of old age" (live bug: age 6).
+createNewLife({ first: "Sick", last: "Child", seed: "6006" });
+game.character.age = 6; game.character.lifeStage = lifeStageFor(6); game.character.stats.health = 70;
+game.character.conditions = [{ id: "infect", label: "a chest infection", severity: 80, drain: 0 }];
+checkDeath();
+ok(!game.character.alive, "a severe untreated condition can be fatal");
+ok(/complications/.test(game.character.causeOfDeath || "") && !/old age/.test(game.character.causeOfDeath || ""), "child death attributed to the illness, not 'old age' (got: " + game.character.causeOfDeath + ")");
+// extreme age still reads as old age
+createNewLife({ first: "Old", last: "Timer", seed: "6007" });
+game.character.age = 125; game.character.lifeStage = lifeStageFor(125); game.character.stats.health = 70; game.character.conditions = [];
+checkDeath();
+ok(!game.character.alive && /old age/.test(game.character.causeOfDeath || ""), "extreme age dies of old age (got: " + game.character.causeOfDeath + ")");
 
 // 1) ensureState migrates a synthetic pre-refactor save (missing new subsystem fields)
 createNewLife({ first: "Old", last: "Save", seed: "1234" });
