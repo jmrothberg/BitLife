@@ -152,6 +152,20 @@ chances, crime catch chances) stay in `bitlife_data.json` and are EV-audited by 
 **Anything that *creates entities* (children, spouses, assets) needs a cap in `BALANCE.limits` AND a
 bound in `INVARIANTS`** — that's the general fix for the "100 babies / 12 wives" class.
 
+### 5. Natural-language play & help — one `ACTION_CATALOG`
+The optional LLM, the no-AI keyword router, and the auto-generated guide are **all driven by one
+registry**, `ACTION_CATALOG` (just after `PLAYER_ACTIONS`). Each entry POINTS AT an existing engine fn
+(via `call(args)`) and adds only metadata: `id`, `fn`, `category`, `desc`, an `examples[]` list, a
+`params` schema whose enum/`rel` resolvers return **live values** (e.g. assets with current prices,
+living relationships), and a `confirm` rule (bool or `(args)=>bool`) for destructive actions. The
+dispatcher (`runNlAction`→`dispatchAction`) validates args against the resolvers and invokes the real
+fn through its **existing guards** — so an LLM- or keyword-triggered action is exactly as safe as the
+button. `auditCatalog` asserts every entry is well-formed (runs in CI). **To expose a new action to
+typing + help: add ONE catalog entry** — button, AI, keyword router, and the `openGuide` "What can I
+do?" list all pick it up, no duplication. Mini-games are excluded (they need live input); `MENU_INTENTS`
+opens their screen instead. Determinism holds: the LLM only *chooses* the action; the action is the
+existing seeded fn (and the LLM stays off in tests).
+
 > The top of the `<script>` has a **SYSTEMS INDEX** banner summarizing all of the above per system
 > (state · tick · actions · truths · numbers) plus the section map — read it first. End action
 > handlers with `commit({close})` (persist + repaint) instead of hand-rolling `autosave(); renderAll()`.

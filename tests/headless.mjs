@@ -70,6 +70,35 @@ for (const [st, arr] of Object.entries(DATA.EVENTS || {})) { const ids = arr.map
 for (const id of Object.keys(DATA.ACHIEVEMENTS)) ok(!!FALLBACK_DATA.ACHIEVEMENTS[id], "FALLBACK ribbon " + id);
 auditBalance(ok);   // BALANCE reasonableness — out-of-range tunable numbers fail CI
 
+// 0b) NL action dispatcher: a fake LLM/keyword result must drive the REAL fn through
+//     the existing guards (no real model involved → deterministic, offline).
+createNewLife({ first: "Nl", last: "Test", seed: "9100" });
+auditCatalog(ok);   // ACTION_CATALOG shape — resolvers need a live game, so audit here
+game.character.age = 30; game.character.lifeStage = lifeStageFor(30); game.character.money = 1000000;
+const priced = allMarketAssets().filter(a => game.market.prices[a.id] > 0);
+ok(priced.length > 0, "market has live prices for NL trades");
+const asset = priced[0]; const m0 = game.character.money;
+dispatchAction("buyAsset", { id: asset.id, shares: 1 });
+ok((game.portfolio || []).some(h => h.assetId === asset.id), "dispatchAction buyAsset added a holding");
+ok(game.character.money < m0, "dispatchAction buyAsset spent money through the real fn");
+const cheap = priced.filter(a => game.market.prices[a.id] < 1000)[0];
+if (cheap) { const m1 = game.character.money; dispatchAction("buyAsset", { id: cheap.id, shares: 1 }); ok(game.character.money < m1, "dispatchAction bought a sub-$1,000 asset (the headline example)"); }
+const m2 = game.character.money; dispatchAction("buyAsset", { id: "NOTREAL", shares: 1 }); ok(game.character.money === m2, "dispatchAction rejects an invalid asset id (no-op)");
+// confirm-gated (destructive) action must NOT execute without confirmation (modal is stubbed)
+const arr0 = game.crimeRecord.arrests, not0 = game.crimeRecord.notoriety;
+dispatchAction("commitCrime", { id: DATA.ACTIVITIES.crime[0].id });
+ok(game.crimeRecord.arrests === arr0 && game.crimeRecord.notoriety === not0, "confirm-gated action waits for confirmation");
+// prison blocks a catalog-dispatched block-action via the fn's own requireFree
+sendToPrison(5, "test"); const pm = game.character.money;
+dispatchAction("buyAsset", { id: asset.id, shares: 1 });
+ok(game.character.money === pm, "in prison, dispatched buyAsset is blocked by requireFree");
+// no-AI keyword router resolves a known phrase and rejects nonsense
+createNewLife({ first: "Kw", last: "Test", seed: "9103" });
+game.character.age = 30; game.character.lifeStage = lifeStageFor(30); game.character.money = 100000;
+ok(typeof keywordResolve("go to the gym") === "string", "keywordResolve maps 'go to the gym' to an action");
+ok(keywordResolve("zzqq nonsense blarg") === null, "keywordResolve returns null on nonsense");
+checkInvariants("post-nl-dispatch", ok);
+
 // 1) ensureState migrates a synthetic pre-refactor save (missing new subsystem fields)
 createNewLife({ first: "Old", last: "Save", seed: "1234" });
 const oldSave = JSON.parse(snap());
