@@ -97,6 +97,12 @@ createNewLife({ first: "Kw", last: "Test", seed: "9103" });
 game.character.age = 30; game.character.lifeStage = lifeStageFor(30); game.character.money = 100000;
 ok(typeof keywordResolve("go to the gym") === "string", "keywordResolve maps 'go to the gym' to an action");
 ok(keywordResolve("zzqq nonsense blarg") === null, "keywordResolve returns null on nonsense");
+// regression: typing "age up" must actually advance the year (was a freeform no-op)
+createNewLife({ first: "Age", last: "Test", seed: "9104" });
+const a0 = game.character.age; dispatchAction("ageUp", {});
+ok(game.character.age === a0 + 1, "dispatchAction ageUp advances the year");
+const a1 = game.character.age; keywordResolve("next year");
+ok(game.character.age === a1 + 1, "keywordResolve 'next year' ages up");
 checkInvariants("post-nl-dispatch", ok);
 
 // 1) ensureState migrates a synthetic pre-refactor save (missing new subsystem fields)
