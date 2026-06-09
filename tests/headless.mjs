@@ -61,6 +61,7 @@ globalThis.alert = () => {}; globalThis.confirm = () => true; globalThis.prompt 
 const driver = `
 DATA = JSON.parse(${JSON.stringify(data)});   // full content, like a successful loadData()
 skipModels = true;
+try { launchMiniGame = () => {}; } catch {}   // mini-games need a browser; never launch under node
 let pass = 0, fail = 0; const fails = [];
 const ok = (c, m) => { if (c) pass++; else { fail++; if (fails.length < 40) fails.push(m); } };
 const snap = () => JSON.stringify(stripTransient(game));
@@ -97,6 +98,30 @@ createNewLife({ first: "Kw", last: "Test", seed: "9103" });
 game.character.age = 30; game.character.lifeStage = lifeStageFor(30); game.character.money = 100000;
 ok(typeof keywordResolve("go to the gym") === "string", "keywordResolve maps 'go to the gym' to an action");
 ok(keywordResolve("zzqq nonsense blarg") === null, "keywordResolve returns null on nonsense");
+// regression: typing "age up" must actually advance the year (was a freeform no-op)
+createNewLife({ first: "Age", last: "Test", seed: "9104" });
+const a0 = game.character.age; dispatchAction("ageUp", {});
+ok(game.character.age === a0 + 1, "dispatchAction ageUp advances the year");
+const a1 = game.character.age; keywordResolve("next year");
+ok(game.character.age === a1 + 1, "keywordResolve 'next year' ages up");
+// no-AI coverage: a battery of common phrasings must ALL resolve (the "did age up being
+// broken mean a dozen others are too?" check). keywordResolve returns a string when it
+// routes (executes or opens the right menu), null when it can't match.
+createNewLife({ first: "Cov", last: "Test", seed: "5150" });
+game.character.age = 30; game.character.lifeStage = lifeStageFor(30); game.character.money = 500000;
+const common = ["go to the gym", "work out", "study", "meditate", "get a job", "buy a car", "buy a house", "buy stocks", "go to the casino", "play blackjack", "rob a bank", "shoplift", "find love", "date someone", "make a friend", "go on vacation", "get a tattoo", "go clubbing", "see a doctor", "get a checkup", "start a business", "take a loan", "buy a pet", "rob a house", "start a fight", "run for office", "post on social media", "write a book", "visit a prostitute", "hire a hitman", "emigrate to canada", "save the game"];
+const unresolved = [];
+for (const cmd of common) { let r = null; try { r = keywordResolve(cmd); } catch (e) { r = "THREW:" + e.message; } if (!r || String(r).startsWith("THREW")) unresolved.push(cmd + (r ? " " + r : "")); }
+ok(unresolved.length === 0, "no-AI keyword router resolves all " + common.length + " common commands (missed: " + unresolved.join(" | ") + ")");
+// regression guards: these once mis-fired to the WRONG action
+const routesTo = (cmd, needle) => { let r = ""; try { r = keywordResolve(cmd) || ""; } catch (e) { r = "THREW:" + e.message; } ok(String(r).toLowerCase().includes(needle), '"' + cmd + '" routes to ' + needle + ' (got: ' + r + ')'); };
+createNewLife({ first: "Reg", last: "Test", seed: "5151" });
+game.character.age = 30; game.character.lifeStage = lifeStageFor(30); game.character.money = 500000;
+routesTo("run for office", "office");   // was: "Go for a run" activity
+routesTo("save the game", "save");      // was: age up
+routesTo("rob a bank", "crime");        // was: take a loan
+routesTo("see a doctor", "clinic");     // was: apply for a job
+routesTo("date someone", "find love");  // was: file a lawsuit
 checkInvariants("post-nl-dispatch", ok);
 
 // 1) ensureState migrates a synthetic pre-refactor save (missing new subsystem fields)
