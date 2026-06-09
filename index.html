@@ -300,7 +300,7 @@
   <div class="app">
     <!-- ═══ Loading overlay / new-life picker ═══ -->
     <div id="overlay">
-      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.27.3</span></h1>
+      <h1>JMR's BitLife <span style="font-size:13px;color:var(--text-muted);font-weight:400;vertical-align:middle">v0.27.4</span></h1>
       <div class="tagline">A life simulator that runs entirely in your browser. Pick your name, gender, country and seed, then live a life by clicking <b>Age Up</b> — the full game is premade and deterministic.<br/><br/>Optional AI (a local LLM for typed actions and Stable Diffusion art) is <b>off by default</b> and is not needed to play. You can switch it on under <span style="color:var(--accent)">AI Features</span> below — best on desktop with a recent GPU.</div>
 
       <div class="card sel" id="card-new" data-pick="new">
@@ -1140,7 +1140,7 @@
     ed.groups = ed.groups || []; ed.groups.push(id);
     applyEffects(g.perYear);   // an immediate taste of the perk on top of the yearly tick
     log("event", `${g.emoji} You joined ${g.kind === "Clique" ? "" : "the "}${g.label}.`);
-    autosave(); renderAll(); openSchool();
+    autosave(); renderAll(); refreshMenu("school");
   }
   function runForPresident() {
     if (!requireFree("run for class president")) return;
@@ -1154,7 +1154,7 @@
       grantAchievement("classPres");
       log("event", "🗳️ You won the race for class president!");
     } else { applyEffects({ happiness: -4 }); log("event", "🗳️ You lost the class-president election."); }
-    autosave(); renderAll(); openSchool();
+    autosave(); renderAll(); refreshMenu("school");
   }
   function studyHard() {
     if (!requireFree("study")) return;
@@ -1163,7 +1163,7 @@
     if (!oncePerYear("studyHard")) return;
     applyEffects({ grades: rngInt(5, 10), smarts: rngInt(1, 3), happiness: -2 });
     log("event", "📚 You hit the books hard this year.");
-    autosave(); renderAll(); openSchool();
+    autosave(); renderAll(); refreshMenu("school");
   }
   function skipClass() {
     if (!requireFree("skip class")) return;
@@ -1172,7 +1172,7 @@
     if (!oncePerYear("skipClass")) return;
     applyEffects({ grades: -rngInt(4, 9), popularity: rngInt(1, 4), happiness: rngInt(2, 5) });
     log("event", "🚪 You ditched class with friends.");
-    autosave(); renderAll(); openSchool();
+    autosave(); renderAll(); refreshMenu("school");
   }
   function schoolDance() {
     if (!requireFree("go to the dance")) return;
@@ -1182,7 +1182,7 @@
     if (!oncePerYear("schoolDance")) return;
     c.money -= 40; applyEffects({ popularity: rngInt(3, 7), happiness: rngInt(4, 8), looks: 1 });
     log("event", "💃 You went to the school dance.");
-    autosave(); renderAll(); openSchool();
+    autosave(); renderAll(); refreshMenu("school");
   }
   function dropOut() {
     if (!requireFree("drop out")) return;
@@ -1372,7 +1372,7 @@
     if (c.money < 8000) { showToast("A lawyer costs $8,000."); return; }
     c.money -= 8000; game.flags.lawyer = true;
     log("crime", "⚖️ You put a criminal-defense lawyer on retainer (halves your next sentence).");
-    autosave(); renderAll(); openCrime();
+    autosave(); renderAll(); refreshMenu("crime");
   }
   function joinGang() {
     if (!requireFree("join a gang")) return;
@@ -1382,7 +1382,7 @@
       game.flags.gang = true; game.crimeRecord.notoriety += 1; applyEffects({ happiness: 3 });
       log("crime", "🔫 You were jumped into a street gang.");
     } else { applyEffects({ health: -8, happiness: -4 }); log("crime", "🔫 The gang beat you up and turned you away."); }
-    autosave(); renderAll(); openCrime();
+    autosave(); renderAll(); refreshMenu("crime");
   }
   function gangJob() {
     if (!requireFree("do a gang job")) return;
@@ -2543,7 +2543,7 @@
     { id: "emigrate", fn: "emigrate", category: "Lifestyle", confirm: true, desc: "Emigrate to another country.",
       params: [ { name: "country", type: "enum", resolve: () => DATA.COUNTRIES } ],
       examples: ["move to Canada", "emigrate to Japan"], call: (a) => emigrate(a.country) },
-    { id: "doFame", fn: "doFame", category: "Fame", desc: "A fame action (write a book, record music, make a film, go viral…).",
+    { id: "doFame", fn: "doFame", minAge: 13, category: "Fame", desc: "A fame action (write a book, record music, make a film, go viral…) (13+).",
       params: [ { name: "id", type: "enum", resolve: () => FAME_ACTIONS } ],
       examples: ["write a book", "record an album", "try to go viral"], call: (a) => doFame(a.id) },
     { id: "createAccount", fn: "createAccount", minAge: 13, category: "Fame", desc: "Create a social-media account (13+).",
@@ -2885,12 +2885,14 @@
     if (ix) { dbg("kw", `"${text}" → interact ${ix.action} on ${describeArgs(catalogById("interact"), ix)}`); dispatchAction("interact", ix); return "Interpreted as: " + ix.action; }
     // 2) Curated catalog aliases / full example phrases — explicit, high-confidence intents
     //    FIRST (so "run for office" beats the "run" activity). Threshold-gated → safe misses.
-    let best = null, bestScore = 0;
+    let best = null, bestScore = 0, bestUnavail = null, bestUnavailScore = 0;
     for (const e of ACTION_CATALOG) {
-      if (!catalogAvailable(e)) continue;
       let score = 0;
       for (const a of (INTENT_ALIASES[e.id] || [])) if (_phrase(t, a)) score = Math.max(score, a.trim().split(" ").length >= 2 ? 12 : 9);
       for (const ex of e.examples) { const w = _norm(ex).trim().split(" ").filter(x => x.length >= 4 && !_STOP.has(x)); if (w.length >= 2 && w.every(k => t.includes(k))) score = Math.max(score, 10); }
+      // unavailable actions can't be dispatched, but remember the best one so a clear
+      // match still gets a WHY ("write a book" at age 0 → "must be 13+", not "no match")
+      if (!catalogAvailable(e)) { if (score > bestUnavailScore) { bestUnavailScore = score; bestUnavail = e; } continue; }
       if (score > bestScore) { bestScore = score; best = e; }
     }
     if (best && bestScore >= 9) {
@@ -2912,6 +2914,14 @@
     }
     const lf = (typeof LIFESTYLE !== "undefined" ? LIFESTYLE : []).find(x => t.includes(" " + String(x.id).toLowerCase() + " ") || _labelHit(t, x.label));
     if (lf) { dbg("kw", `"${text}" → doLifestyle ${lf.id}`); dispatchAction("doLifestyle", { id: lf.id }); return "Interpreted as: " + lf.label; }
+    // 4) Nothing runnable matched — but if an UNAVAILABLE action clearly did, tell the
+    //    player WHY it can't happen instead of a bare "couldn't match".
+    if (bestUnavail && bestUnavailScore >= 9) {
+      const why = unavailableReason(bestUnavail);
+      dbg("kw", `"${text}" → ${bestUnavail.id} unavailable: ${why}`);
+      log("event", `🚫 ${why}`);
+      return true;
+    }
     dbg("kw", `"${text}" → no match`);
     return null;
   }
@@ -4506,7 +4516,11 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
   function openModal(tab) {
     const fns = { menu: openMenuModal, school: openSchool, activities: openActivities,
                   careers: openCareers, crime: openCrime, casino: openCasino,
-                  relationships: openRelationships, assets: openAssets, achievements: openAchievements };
+                  relationships: openRelationships, assets: openAssets, achievements: openAchievements,
+                  // custom sheets, registered so refreshMenu() covers them too (an action fn
+                  // must refresh its host sheet on a UI click but NOT pop it after an NL command)
+                  social: openSocial, fame: openFame, clinic: openClinic, business: openBusiness,
+                  throne: openThrone, findLove: openFindLove };
     if (!fns[tab]) return;
     fns[tab]();  // the opener's modalShell() nulls _modalTab, so stamp it afterwards
     if ($("modal-bg").classList.contains("on")) _modalTab = tab;
@@ -4610,7 +4624,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     wrap.appendChild(optRow("🩺 Health clinic", (c.conditions && c.conditions.length) ? `${c.conditions.length} condition(s) to treat` : "check & treat conditions", "Open", () => openClinic(), locked));
     wrap.appendChild(optRow("✈️ Travel", "take a vacation", "Open", () => openTravel(), locked || c.age < 1));
     wrap.appendChild(optRow("📱 Social Media", "influencer, podcasts, sponsorships · 13+", "Open", () => openSocial(), locked || c.age < 13));
-    wrap.appendChild(optRow("🌟 Fame", "books, music, film & viral fame", "Open", () => openFame(), locked));
+    wrap.appendChild(optRow("🌟 Fame", "books, music, film & viral fame · 13+", "Open", () => openFame(), locked || c.age < 13));
     wrap.appendChild(optRow("🏢 Business", currentBusiness() ? "manage your business & staff" : "start a business for yearly revenue", "Open", () => openBusiness(), locked || c.age < 18));
     wrap.appendChild(optRow("🗳️ Run for office", "campaign for political office · 25+ · $50k", "Run", () => openElection(), locked || c.age < 25));
     wrap.appendChild(optRow("⚖️ File a lawsuit", "$2,000 fees · ~45% to win a settlement · 18+", "Sue", () => fileLawsuit(), locked || c.age < 18 || c.money < 2000));
@@ -4803,7 +4817,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
       ctr.appendChild(amt); ctr.appendChild(b); div.appendChild(ctr); body.appendChild(div);
     }
     if ((game.mortgageBalance || 0) > 0) {
-      body.appendChild(optRow("Mortgage balance", `${fmtMoney(game.mortgageBalance)} owed · 5%/yr (auto payment)`, "Pay extra", () => { const pay = Math.min(game.mortgageBalance, game.character.money); if (pay <= 0) { showToast("No money to pay."); return; } game.character.money -= pay; game.mortgageBalance -= pay; log("event", `🏦 You paid ${fmtMoney(pay)} toward your mortgage.`); autosave(); renderAll(); openAssets(); }, game.character.money <= 0));
+      body.appendChild(optRow("Mortgage balance", `${fmtMoney(game.mortgageBalance)} owed · 5%/yr (auto payment)`, "Pay extra", () => { const pay = Math.min(game.mortgageBalance, game.character.money); if (pay <= 0) { showToast("No money to pay."); return; } game.character.money -= pay; game.mortgageBalance -= pay; log("event", `🏦 You paid ${fmtMoney(pay)} toward your mortgage.`); autosave(); renderAll(); refreshMenu("assets"); }, game.character.money <= 0));
     }
   }
 
@@ -5147,8 +5161,10 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     { id: "cruise", name: "Round-the-world cruise", cost: 12000, happiness: 22, health: 5 }
   ];
   const FAME_ACTIONS = [
-    { id: "post", label: "Post on social media", cost: 0, fame: [1, 6], pay: [0, 500] },
-    { id: "viral", label: "Try to go viral", cost: 0, fame: [0, 18], pay: [0, 4000] },
+    // post/viral share the social-media age rule (BALANCE.limits.socialMinAge) — the
+    // Fame menu's "Post on social media" must agree with the Social Media system.
+    { id: "post", label: "Post on social media", cost: 0, fame: [1, 6], pay: [0, 500], minAge: 13 },
+    { id: "viral", label: "Try to go viral", cost: 0, fame: [0, 18], pay: [0, 4000], minAge: 13 },
     { id: "book", label: "Write a book", cost: 200, fame: [3, 10], pay: [-200, 30000], minAge: 16 },
     { id: "single", label: "Record a single", cost: 1000, fame: [4, 14], pay: [-1000, 60000], minAge: 14 },
     { id: "movie", label: "Star in a film", cost: 0, fame: [8, 25], pay: [5000, 500000], minAge: 18, needFame: 40 }
@@ -5363,7 +5379,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     c.money -= cond.treat;
     if (rngChance(0.85 - cond.severity * 0.12)) { c.conditions.splice(i, 1); applyEffects({ health: 6, happiness: 4 }); log("event", `🩺 You beat ${cond.label}!`); grantAchievement("survivor"); }
     else { applyEffects({ health: 3 }); log("event", `🩺 Treatment for ${cond.label} helped, but it lingers.`); }
-    autosave(); renderAll(); openClinic();
+    autosave(); renderAll(); refreshMenu("clinic");
   }
   function openClinic() {
     const c = game.character;
@@ -5381,13 +5397,13 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     game.assets.push({ type: "vehicle", vid: v.id, id: "veh" + Date.now().toString(36), name: v.name, currentValue: Math.round(v.price * 0.9), deprec: v.deprec, upkeep: v.upkeep });
     grantAchievement("gearhead");
     log("event", `🚗 You bought a ${v.name} for ${fmtMoney(v.price)}.`);
-    autosave(); renderAll(); openAssets();
+    autosave(); renderAll(); refreshMenu("assets");
   }
   function sellVehicle(assetId) {
     const i = game.assets.findIndex(a => a.id === assetId); if (i < 0) return;
     const v = game.assets[i]; game.character.money += (v.currentValue || 0);
     log("event", `🚗 You sold your ${v.name} for ${fmtMoney(v.currentValue)}.`);
-    game.assets.splice(i, 1); autosave(); renderAll(); openAssets();
+    game.assets.splice(i, 1); autosave(); renderAll(); refreshMenu("assets");
   }
   function takeLoan(amount) {
     if (!requireFree("take a loan")) return;
@@ -5396,14 +5412,14 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     if (amount > 200000) { showToast("Max loan is $200,000."); return; }
     game.loanBalance = Math.round(amount * 1.08); game.character.money += amount;
     log("event", `🏦 You took out a ${fmtMoney(amount)} loan (8% interest).`);
-    autosave(); renderAll(); openAssets();
+    autosave(); renderAll(); refreshMenu("assets");
   }
   function repayLoan() {
     const c = game.character; const owe = game.loanBalance || 0; if (owe <= 0) return;
     const pay = Math.min(owe, c.money); if (pay <= 0) { showToast("No money to repay."); return; }
     c.money -= pay; game.loanBalance -= pay;
     log("event", `🏦 You paid ${fmtMoney(pay)} toward your loan${game.loanBalance > 0 ? ` (${fmtMoney(game.loanBalance)} left)` : " — paid off!"}.`);
-    autosave(); renderAll(); openAssets();
+    autosave(); renderAll(); refreshMenu("assets");
   }
   function playLottery() {
     if (!requireFree("gamble")) return;
@@ -5449,7 +5465,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
   }
 
   function openFame() {
-    if (!requireFree("chase fame")) return;
+    if (!requireFree("chase fame") || !requireAge(BALANCE.limits.socialMinAge, "chase fame")) return;
     const c = game.character;
     modalShell("🌟 Fame", `<div class="sub-h">Fame: ${c.fame}/100</div><div id="fame-list"></div>`);
     for (const f of FAME_ACTIONS) {
@@ -5461,8 +5477,11 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
   function doFame(id) {
     if (!requireFree("chase fame")) return;
     const f = FAME_ACTIONS.find(x => x.id === id); if (!f) return;
-    if (!oncePerYear("fame_" + id)) return;     // bounded earnings per year
-    const c = game.character; if (f.cost && c.money < f.cost) { showToast("Can't afford it."); return; }
+    // enforce per-action age in the ENGINE (the menu only disables buttons) — and
+    // before oncePerYear, so a refused attempt doesn't burn the yearly slot
+    if (f.minAge && !requireAge(f.minAge, f.label.toLowerCase())) return;
+    const c = game.character; if (f.cost && !requireMoney(f.cost)) return;   // toast + NL feed reason
+    if (!oncePerYear("fame_" + id)) return;     // bounded earnings per year — last, so a refusal above doesn't burn the slot
     if (f.cost) c.money -= f.cost;
     const fameGain = rngInt(f.fame[0], f.fame[1]), pay = rngInt(f.pay[0], f.pay[1]);
     c.fame = clampStat(c.fame + fameGain); c.money += pay;
@@ -5470,7 +5489,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     grantAchievement("celebrity");
     const payTxt = pay > 0 ? ` earned ${fmtMoney(pay)}` : pay < 0 ? ` cost ${fmtMoney(-pay)}` : "";
     log("event", `🌟 ${f.label}: +${fameGain} fame${payTxt}.`);
-    autosave(); renderAll(); openFame();
+    autosave(); renderAll(); refreshMenu("fame");
   }
   // Generate a named rival for the race. `strength` (0.2–0.7) is subtracted from your
   // win odds — a tough opponent is hard to beat at the ballot box (or you remove them…).
@@ -5544,7 +5563,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     if (game.social[id]) { showToast("You already have that account."); return; }
     game.social[id] = { followers: rngInt(0, 80), verified: false };
     log("event", `${p.emoji} You joined ${p.name}.`);
-    autosave(); renderAll(); openSocial();
+    autosave(); renderAll(); refreshMenu("social");
   }
   function socialPost(id) {
     if (!requireFree("use social media") || !requireAge(BALANCE.limits.socialMinAge, "post on social media")) return;
@@ -5562,7 +5581,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     if (flop) { acct.followers = Math.max(0, acct.followers - rngInt(10, 120)); applyEffects({ happiness: -1 }); log("event", `${p.emoji} Your ${p.name} post flopped — lost a few followers.`); }
     else { acct.followers = Math.min(MAX_FOLLOWERS, acct.followers + gain); c.fame = clampStat(c.fame + (viral ? rngInt(2, 6) : rngInt(0, 2))); applyEffects({ happiness: viral ? 4 : 1 }); grantAchievement("celebrity"); log("event", `${p.emoji} ${p.verb} on ${p.name}: ${viral ? "it went viral! " : ""}+${fmtFollowers(gain)} followers.`); }
     socialMilestones();
-    autosave(); renderAll(); openSocial();
+    autosave(); renderAll(); refreshMenu("social");
   }
   function socialVerify(id) {
     if (!requireFree("use social media") || !requireAge(BALANCE.limits.socialMinAge, "get verified")) return;
@@ -5572,7 +5591,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     acct.verified = true; game.character.fame = clampStat(game.character.fame + 5); applyEffects({ happiness: 5 });
     grantAchievement("verified");
     log("event", `🔵 You got verified on ${p.name}!`);
-    autosave(); renderAll(); openSocial();
+    autosave(); renderAll(); refreshMenu("social");
   }
   function socialSponsor(id) {
     if (!requireFree("use social media") || !requireAge(BALANCE.limits.socialMinAge, "take a sponsorship deal")) return;
@@ -5583,7 +5602,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     game.character.money += pay; game.character.fame = clampStat(game.character.fame + rngInt(0, 2));
     acct.followers = Math.min(MAX_FOLLOWERS, acct.followers + rngInt(0, Math.round(acct.followers * 0.02)));   // a deal nudges reach a touch
     log("event", `💸 Sponsored ${p.name} ${id === "podcast" ? "ad read" : "post"} — earned ${fmtMoney(pay)}.`);
-    autosave(); renderAll(); openSocial();
+    autosave(); renderAll(); refreshMenu("social");
   }
 
   function doLifestyle(id) {
@@ -5595,7 +5614,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     c.money -= a.cost; applyEffects(a.eff); log("event", `${a.label.replace(/^.. /, "")}.`);
     // hard partying can lead to alcoholism
     if (["bar", "nightclub", "party"].includes(id) && rngChance(0.10)) addCondition("alcoholism", "alcoholism", 4, 2, 1500, true);
-    autosave(); renderAll(); openActivities();
+    autosave(); renderAll(); refreshMenu("activities");
   }
 
   function openFindLove() {
@@ -5613,8 +5632,8 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     if (rngChance(0.3 + c.stats.looks / 300 + (100 - cand.looks) / 400 + c.fame / 400)) {
       addRelationship({ relation: "partner", name: cand.name, gender: cand.gender, age: cand.age, bar: rngInt(55, 75), flags: { dating: true, royal: !!cand.royal } });
       applyEffects({ happiness: 8 }); log("relationship", `💘 ${cand.name} agreed to date you!`);
-      game._lovePool.splice(i, 1); autosave(); renderAll(); openRelationships();
-    } else { log("relationship", `💔 ${cand.name} turned you down.`); game._lovePool.splice(i, 1); autosave(); renderAll(); openFindLove(); }
+      game._lovePool.splice(i, 1); autosave(); renderAll(); refreshMenu("relationships");
+    } else { log("relationship", `💔 ${cand.name} turned you down.`); game._lovePool.splice(i, 1); autosave(); renderAll(); refreshMenu("findLove"); }
   }
   // Make a new friend — one new connection per year (no money, so it's gated to
   // keep the circle meaningful rather than spammable).
@@ -5629,7 +5648,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     const friends = game.relationships.filter(r => r.alive && (r.relation === "friend" || r.relation === "coworker")).length;
     if (friends >= 5) grantAchievement("socialite");
     log("relationship", `You made a new friend: ${f.name}. 🧑‍🤝‍🧑`);
-    autosave(); renderAll(); openRelationships();
+    autosave(); renderAll(); refreshMenu("relationships");
   }
 
   // ── Family planning: adopt / IVF / surrogacy (none require a partner) ──────
@@ -5663,7 +5682,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
       applyEffects({ happiness: 12 });
       log("event", `👶 Your adoption was approved — welcome ${kid.name}!`, "baby");
     } else { c.money -= 1500; applyEffects({ happiness: -6 }); log("event", "The adoption agency turned you down this time (lost the $1,500 application fee)."); }
-    autosave(); renderAll(); openRelationships();
+    autosave(); renderAll(); refreshMenu("relationships");
   }
   function doIVF() {
     if (!requireFree("do that")) return;
@@ -5682,7 +5701,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
       applyEffects({ happiness: twins ? 16 : 11 });
       log("event", `🧪 IVF worked — you welcomed ${twins ? "twins" : "a baby"}: ${names}! 👶`, "baby");
     } else { applyEffects({ happiness: -7 }); log("event", "🧪 This IVF cycle didn't take. You can try again next year."); }
-    autosave(); renderAll(); openRelationships();
+    autosave(); renderAll(); refreshMenu("relationships");
   }
   function doSurrogacy() {
     if (!requireFree("do that")) return;
@@ -5697,7 +5716,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
       applyEffects({ happiness: 14 });
       log("event", `🤰 Your surrogate delivered a healthy baby: ${kid.name}! 👶`, "baby");
     } else { applyEffects({ happiness: -8 }); log("event", "🤰 The surrogacy fell through this time."); }
-    autosave(); renderAll(); openRelationships();
+    autosave(); renderAll(); refreshMenu("relationships");
   }
 
   // ── Wills: control how the estate is divided among your children. Without a will the
@@ -5836,7 +5855,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     const c = game.character; if (c.money < b.cost) { showToast("Can't afford it."); return; }
     if (currentBusiness()) { showToast("Sell your current business first."); return; }
     c.money -= b.cost; game.business = { id: b.id, employees: 0 }; grantAchievement("mogul");
-    log("event", `🏢 You started ${b.name}.`); autosave(); renderAll(); openBusiness();
+    log("event", `🏢 You started ${b.name}.`); autosave(); renderAll(); refreshMenu("business");
   }
   function hireEmployee() {
     if (!requireFree("run a business")) return;
@@ -5846,19 +5865,19 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     biz.employees = (biz.employees || 0) + 1;
     if (biz.employees >= b.maxEmp) grantAchievement("tycoon");
     log("event", `🏢 You hired an employee at ${b.name} (${biz.employees}/${b.maxEmp}).`);
-    autosave(); renderAll(); openBusiness();
+    autosave(); renderAll(); refreshMenu("business");
   }
   function fireEmployee() {
     const biz = currentBusiness(); if (!biz || (biz.employees || 0) <= 0) return;
     biz.employees = Math.max(0, (biz.employees || 0) - 1);
-    log("event", `🏢 You laid off an employee.`); autosave(); renderAll(); openBusiness();
+    log("event", `🏢 You laid off an employee.`); autosave(); renderAll(); refreshMenu("business");
   }
   function sellBusiness() {
     const biz = currentBusiness(); if (!biz) return;
     const b = BUSINESSES.find(x => x.id === biz.id);
     const goodwill = b ? Math.round(b.cost * 0.6 + (biz.employees || 0) * b.perEmp * 0.5) : 0;
     game.character.money += goodwill; game.business = null;
-    log("event", `🏢 You sold ${b ? b.name : "your business"} for ${fmtMoney(goodwill)}.`); autosave(); renderAll(); openBusiness();
+    log("event", `🏢 You sold ${b ? b.name : "your business"} for ${fmtMoney(goodwill)}.`); autosave(); renderAll(); refreshMenu("business");
   }
   function royalDuties() {
     if (!requireFree("do that")) return;
@@ -5938,7 +5957,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
       }
     }
     if (t.approval < 10) grantAchievement("tyrant");
-    autosave(); renderAll(); openThrone();
+    autosave(); renderAll(); refreshMenu("throne");
   }
   function nameThroneHeir(rid) {
     if (!requireFree("rule")) return;
@@ -5998,7 +6017,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     game.loanBalance = 0; game.mortgageBalance = 0; if (game.character.money < 0) game.character.money = 0;
     game.flags.bankrupt = true; applyEffects({ happiness: -15 });
     log("event", "🧾 You declared bankruptcy — debts (incl. mortgage) wiped, but it stings.");
-    autosave(); renderAll(); openAssets();
+    autosave(); renderAll(); refreshMenu("assets");
   }
 
   // ── Pet store (buy a pet anytime, not just the childhood event) ──
@@ -6021,7 +6040,7 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     addRelationship({ relation: "pet", species: p.id, emoji: p.emoji, name: p.emoji + " " + rngPick(DATA.NAME_POOLS[g]), gender: g, age: 0, bar: 70, training: 0 });
     applyEffects({ happiness: 8 }); grantAchievement("petlover");
     log("event", `🐾 You adopted a ${p.name}!`);
-    autosave(); renderAll(); openRelationships();
+    autosave(); renderAll(); refreshMenu("relationships");
   }
 
   // ── Valuables (jewelry / art / watches) — appreciate slowly ──
@@ -6039,13 +6058,13 @@ Freeform effects are DELTAS only, each stat -15..15, money realistic. Output val
     game.assets.push({ id: "val" + Date.now().toString(36), type: "valuable", name: v.name, currentValue: v.price, apprec: v.apprec });
     grantAchievement("collector");
     log("event", `💎 You bought a ${v.name} for ${fmtMoney(v.price)}.`);
-    autosave(); renderAll(); openAssets();
+    autosave(); renderAll(); refreshMenu("assets");
   }
   function sellValuable(assetId) {
     const i = game.assets.findIndex(a => a.id === assetId); if (i < 0) return;
     const v = game.assets[i]; game.character.money += (v.currentValue || 0);
     log("event", `💎 You sold your ${v.name} for ${fmtMoney(v.currentValue)}.`);
-    game.assets.splice(i, 1); autosave(); renderAll(); openAssets();
+    game.assets.splice(i, 1); autosave(); renderAll(); refreshMenu("assets");
   }
 
   // controls wiring

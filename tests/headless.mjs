@@ -134,6 +134,18 @@ let lb = game.log.length;
 dispatchAction("hireHitman", { target: "Mum Test", tierId: "street" });
 ok(mum.alive, "a 4-year-old cannot hire a hitman (age-gated)");
 ok(game.log.slice(lb).some(e => /🚫/.test(e.text)), "blocked age-gated NL action gives a visible feed reason (got: " + JSON.stringify(game.log.slice(lb).map(e => e.text)) + ")");
+// the Fame menu's "Post on social media"/"Try to go viral" must obey the SAME 13+ rule
+// as the Social Media system — on the catalog layer AND in the engine fn itself
+// (the regression: openFame's buttons let a 0-year-old post while NL said "must be 13+").
+{
+  const f0 = game.character.fame, m0 = game.character.money; lb = game.log.length;
+  dispatchAction("doFame", { id: "post" });
+  ok(game.character.fame === f0 && game.character.money === m0, "a 4-year-old cannot fame-post via NL (catalog minAge)");
+  ok(game.log.slice(lb).some(e => /🚫/.test(e.text)), "underage fame-post via NL gives a visible feed reason");
+  doFame("viral");   // direct engine call (the buttons' path) — must be blocked inside doFame
+  ok(game.character.fame === f0 && game.character.money === m0, "a 4-year-old cannot fame-post/go-viral via the engine fn (button path)");
+  ok(!(game.yearActions || {})["fame_viral"], "a refused underage fame action does not burn the once-a-year slot");
+}
 // incest is refused with feed feedback too, via interact's bail()
 game.character.age = 30; game.character.lifeStage = lifeStageFor(30);
 lb = game.log.length;
