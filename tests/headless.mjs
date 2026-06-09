@@ -118,7 +118,9 @@ const routesTo = (cmd, needle) => { let r = ""; try { r = keywordResolve(cmd) ||
 createNewLife({ first: "Reg", last: "Test", seed: "5151" });
 game.character.age = 30; game.character.lifeStage = lifeStageFor(30); game.character.money = 500000;
 routesTo("run for office", "office");   // was: "Go for a run" activity
-routesTo("save the game", "save");      // was: age up
+// "save the game" is a direct intent: it saves + toasts and returns true (handled, no
+// "Opening…" echo). Guard the original regression (it once mis-fired to age-up).
+{ const a = game.character.age; const r = keywordResolve("save the game"); ok(r === true && game.character.age === a, '"save the game" is handled without aging up (got: ' + r + ', age ' + a + '→' + game.character.age + ')'); }
 routesTo("rob a bank", "crime");        // was: take a loan
 routesTo("see a doctor", "clinic");     // was: apply for a job
 routesTo("date someone", "find love");  // was: file a lawsuit
